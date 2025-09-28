@@ -12,12 +12,13 @@ import DashboardLayout from '@/components/dashboard-layout'
 import { CheckCircle2, Crown, Zap, Users, CreditCard, Upload, Camera, Copy, QrCode } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useDropzone } from 'react-dropzone'
-import { clerkTierToAppTier } from '@/lib/subscriptions'
+import { clerkTierToAppTier, getUserSubscriptionExpiry } from '@/lib/subscriptions'
 
 interface UserSubscription {
   tier: 'free' | 'pro' | 'premium'
   pendingProof?: boolean
   rejectedProof?: boolean
+  expiresAt?: Date | null
 }
 
 // GCash Payment Details (configurable)
@@ -45,10 +46,20 @@ export default function BillingPage() {
 
   const fetchSubscriptionData = async () => {
     try {
-      // Get subscription tier from Clerk metadata and convert to app tier
-      const clerkTier = user?.publicMetadata?.plan as string || 'free_plan'
-      const appTier = clerkTierToAppTier(clerkTier)
-      setSubscription({ tier: appTier })
+      // Get subscription tier and expiration from API
+      const subResponse = await fetch('/api/subscription/status')
+      if (subResponse.ok) {
+        const subData = await subResponse.json()
+        setSubscription({
+          tier: subData.tier,
+          expiresAt: subData.expiresAt ? new Date(subData.expiresAt) : null
+        })
+      } else {
+        // Fallback to Clerk metadata
+        const clerkTier = user?.publicMetadata?.plan as string || 'free_plan'
+        const appTier = clerkTierToAppTier(clerkTier)
+        setSubscription({ tier: appTier })
+      }
 
       // Check for pending payment proofs
       const response = await fetch('/api/payment-proofs/status')
@@ -233,6 +244,32 @@ export default function BillingPage() {
                     </Badge>
                   )}
                 </div>
+
+                {/* Expiration Information */}
+                {subscription.tier !== 'free' && subscription.expiresAt && (
+                  <div className="mt-3">
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium">Expires:</span>{' '}
+                      {new Date(subscription.expiresAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                      {/* Show days remaining */}
+                      {(() => {
+                        const daysRemaining = Math.ceil((new Date(subscription.expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+                        return daysRemaining > 0 ? (
+                          <span className={`ml-2 ${daysRemaining <= 7 ? 'text-red-600' : 'text-green-600'}`}>
+                            ({daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining)
+                          </span>
+                        ) : (
+                          <span className="ml-2 text-red-600">(Expired)</span>
+                        )
+                      })()}
+                    </p>
+                  </div>
+                )}
+
                 {subscription.pendingProof && (
                   <p className="text-sm text-muted-foreground mt-2">
                     We're reviewing your payment proof. You'll be upgraded within 24 hours.

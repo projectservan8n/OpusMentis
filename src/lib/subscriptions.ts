@@ -68,7 +68,19 @@ export async function getUserSubscriptionTier(userId: string): Promise<Subscript
   try {
     const user = await clerkClient.users.getUser(userId)
     const clerkPlan = user.publicMetadata?.plan as string
-    return clerkTierToAppTier(clerkPlan || 'free_plan')
+    const currentTier = clerkTierToAppTier(clerkPlan || 'free_plan')
+
+    // If user has a paid plan, check if it's expired
+    if (currentTier !== 'free') {
+      const isExpired = await checkUserSubscriptionExpiry(userId)
+      if (isExpired) {
+        // Auto-downgrade expired subscription
+        await downgradeExpiredSubscription(userId)
+        return 'free'
+      }
+    }
+
+    return currentTier
   } catch (error) {
     console.error('Error getting user subscription tier:', error)
     return 'free'
@@ -79,14 +91,117 @@ export async function getUserSubscriptionTier(userId: string): Promise<Subscript
 export async function updateUserSubscriptionTier(userId: string, tier: SubscriptionTier) {
   try {
     const clerkTier = appTierToClerkTier(tier)
+
+    // Calculate expiration date (30 days from now for paid plans)
+    const expirationDate = tier === 'free' ? null : new Date()
+    if (expirationDate && tier !== 'free') {
+      expirationDate.setDate(expirationDate.getDate() + 30)
+    }
+
     await clerkClient.users.updateUserMetadata(userId, {
       publicMetadata: {
         plan: clerkTier
+      },
+      privateMetadata: {
+        subscriptionExpiresAt: expirationDate?.toISOString() || null,
+        subscriptionStartedAt: new Date().toISOString()
       }
     })
   } catch (error) {
     console.error('Error updating user subscription tier:', error)
     throw new Error('Failed to update subscription tier')
+  }
+}
+
+// Check if user's subscription has expired
+export async function checkUserSubscriptionExpiry(userId: string): Promise<boolean> {
+  try {
+    const user = await clerkClient.users.getUser(userId)
+    const expiresAt = user.privateMetadata?.subscriptionExpiresAt as string
+
+    if (!expiresAt) {
+      return false // Free plan or no expiration set
+    }
+
+    const expirationDate = new Date(expiresAt)
+    return new Date() > expirationDate
+  } catch (error) {
+    console.error('Error checking subscription expiry:', error)
+    return false
+  }
+}
+
+// Get user's subscription expiration date
+export async function getUserSubscriptionExpiry(userId: string): Promise<Date | null> {
+  try {
+    const user = await clerkClient.users.getUser(userId)
+    const expiresAt = user.privateMetadata?.subscriptionExpiresAt as string
+
+    return expiresAt ? new Date(expiresAt) : null
+  } catch (error) {
+    console.error('Error getting subscription expiry:', error)
+    return null
+  }
+}
+
+// Downgrade expired subscriptions to free
+export async function downgradeExpiredSubscription(userId: string): Promise<void> {
+  try {
+    const isExpired = await checkUserSubscriptionExpiry(userId)
+
+    if (isExpired) {
+      await clerkClient.users.updateUserMetadata(userId, {
+        publicMetadata: {
+          plan: 'free_plan'
+        },
+        privateMetadata: {
+          subscriptionExpiresAt: null,
+          subscriptionStartedAt: null,
+          lastDowngradedAt: new Date().toISOString()
+        }
+      })
+
+      console.log(`Downgraded expired subscription for user: ${userId}`)
+    }
+  } catch (error) {
+    console.error('Error downgrading expired subscription:', error)
+    throw error
+  }
+}
+
+// Check and downgrade all expired subscriptions (for admin/cron use)
+export async function processExpiredSubscriptions(): Promise<{ downgraded: number; errors: number }> {
+  let downgraded = 0
+  let errors = 0
+
+  try {
+    // Get all users with active subscriptions
+    const users = await clerkClient.users.getUserList({
+      limit: 500 // Adjust as needed
+    })
+
+    for (const user of users.data) {
+      try {
+        const plan = user.publicMetadata?.plan as string
+
+        // Skip free plans
+        if (!plan || plan === 'free_plan') continue
+
+        const isExpired = await checkUserSubscriptionExpiry(user.id)
+        if (isExpired) {
+          await downgradeExpiredSubscription(user.id)
+          downgraded++
+        }
+      } catch (error) {
+        console.error(`Error processing user ${user.id}:`, error)
+        errors++
+      }
+    }
+
+    return { downgraded, errors }
+  } catch (error) {
+    console.error('Error processing expired subscriptions:', error)
+    return { downgraded, errors: errors + 1 }
   }
 }
 
