@@ -243,7 +243,7 @@ src/
 ### Getting Help
 - Check the [GitHub Issues](https://github.com/your-repo/issues)
 - Join our [Discord Community](https://discord.gg/studyflow)
-- Email support: support@studyflow.ai
+- Email support: team@opusautomations.com
 
 ## 🤝 Contributing
 
@@ -290,4 +290,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ for students everywhere**
 
-For questions or support, reach out to us at [support@studyflow.ai](mailto:support@studyflow.ai)
+For questions or support, reach out to us at [team@opusautomations.com](mailto:team@opusautomations.com)

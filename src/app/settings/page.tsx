@@ -370,8 +370,8 @@ export default function SettingsPage() {
               <div>
                 <h4 className="font-medium mb-2">Support</h4>
                 <p className="text-sm text-muted-foreground">
-                  <a href="mailto:support@studyflow.ai" className="text-primary hover:underline">
-                    support@studyflow.ai
+                  <a href="mailto:team@opusautomations.com" className="text-primary hover:underline">
+                    team@opusautomations.com
                   </a>
                 </p>
               </div>

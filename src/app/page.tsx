@@ -227,7 +227,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 StudyFlow AI. All rights reserved.</p>
+            <p>&copy; 2024 StudyFlow AI by Opus Automations. All rights reserved.</p>
           </div>
         </div>
       </footer>
