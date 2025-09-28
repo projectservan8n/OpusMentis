@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -80,7 +80,7 @@ export default function Notes({ studyPackId, initialNotes = [] }: NotesProps) {
       if (!response.ok) throw new Error('Failed to create note')
 
       const newNote = await response.json()
-      setNotes(prev => [newNote, ...prev])
+      setNotes((prev: Note[]) => [newNote, ...prev])
       setNewNoteContent('')
       setNewNoteSection('general')
       setIsAdding(false)
@@ -107,7 +107,7 @@ export default function Notes({ studyPackId, initialNotes = [] }: NotesProps) {
       if (!response.ok) throw new Error('Failed to update note')
 
       const updatedNote = await response.json()
-      setNotes(prev => prev.map(note =>
+      setNotes((prev: Note[]) => prev.map((note: Note) =>
         note.id === noteId ? updatedNote : note
       ))
       setEditingNote(null)
@@ -131,7 +131,7 @@ export default function Notes({ studyPackId, initialNotes = [] }: NotesProps) {
 
       if (!response.ok) throw new Error('Failed to delete note')
 
-      setNotes(prev => prev.filter(note => note.id !== noteId))
+      setNotes((prev: Note[]) => prev.filter((note: Note) => note.id !== noteId))
       toast.success('Note deleted successfully')
     } catch (error) {
       console.error('Error deleting note:', error)
@@ -262,7 +262,7 @@ export default function Notes({ studyPackId, initialNotes = [] }: NotesProps) {
               <label className="text-sm font-medium">Section</label>
               <select
                 value={newNoteSection}
-                onChange={(e) => setNewNoteSection(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setNewNoteSection(e.target.value)}
                 className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
                 {sections.map(section => (
@@ -277,7 +277,7 @@ export default function Notes({ studyPackId, initialNotes = [] }: NotesProps) {
               <label className="text-sm font-medium">Note</label>
               <Textarea
                 value={newNoteContent}
-                onChange={(e) => setNewNoteContent(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewNoteContent(e.target.value)}
                 placeholder="Write your note here..."
                 className="mt-1 min-h-[120px]"
               />
@@ -364,7 +364,7 @@ function EditNoteDialog({
             <label className="text-sm font-medium">Section</label>
             <select
               value={section}
-              onChange={(e) => setSection(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSection(e.target.value)}
               className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               {sections.map(s => (
@@ -379,7 +379,7 @@ function EditNoteDialog({
             <label className="text-sm font-medium">Note</label>
             <Textarea
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value)}
               className="mt-1 min-h-[120px]"
             />
           </div>
