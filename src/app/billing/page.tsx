@@ -12,6 +12,7 @@ import DashboardLayout from '@/components/dashboard-layout'
 import { CheckCircle2, Crown, Zap, Users, CreditCard, Upload, Camera, Copy, QrCode } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useDropzone } from 'react-dropzone'
+import { clerkTierToAppTier } from '@/lib/subscriptions'
 
 interface UserSubscription {
   tier: 'free' | 'pro' | 'premium'
@@ -44,9 +45,10 @@ export default function BillingPage() {
 
   const fetchSubscriptionData = async () => {
     try {
-      // Get subscription tier from Clerk metadata
-      const tier = user?.publicMetadata?.plan as string || 'free'
-      setSubscription({ tier: tier as any })
+      // Get subscription tier from Clerk metadata and convert to app tier
+      const clerkTier = user?.publicMetadata?.plan as string || 'free_plan'
+      const appTier = clerkTierToAppTier(clerkTier)
+      setSubscription({ tier: appTier })
 
       // Check for pending payment proofs
       const response = await fetch('/api/payment-proofs/status')

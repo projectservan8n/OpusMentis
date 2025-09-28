@@ -2,6 +2,7 @@ import { db } from './db'
 import { clerkClient } from '@clerk/nextjs/server'
 
 export type SubscriptionTier = 'free' | 'pro' | 'premium'
+export type ClerkSubscriptionTier = 'free_plan' | 'pro' | 'premium'
 
 export interface PlanLimits {
   maxUploadsPerMonth: number
@@ -9,6 +10,33 @@ export interface PlanLimits {
   maxAudioVideoMinutes: number
   canExportFlashcards: boolean
   canShareTeams: boolean
+}
+
+// Helper functions to convert between Clerk and app naming conventions
+export function clerkTierToAppTier(clerkTier: string): SubscriptionTier {
+  switch (clerkTier) {
+    case 'free_plan':
+      return 'free'
+    case 'pro':
+      return 'pro'
+    case 'premium':
+      return 'premium'
+    default:
+      return 'free'
+  }
+}
+
+export function appTierToClerkTier(appTier: SubscriptionTier): ClerkSubscriptionTier {
+  switch (appTier) {
+    case 'free':
+      return 'free_plan'
+    case 'pro':
+      return 'pro'
+    case 'premium':
+      return 'premium'
+    default:
+      return 'free_plan'
+  }
 }
 
 export const PLAN_LIMITS: Record<SubscriptionTier, PlanLimits> = {
@@ -39,8 +67,8 @@ export const PLAN_LIMITS: Record<SubscriptionTier, PlanLimits> = {
 export async function getUserSubscriptionTier(userId: string): Promise<SubscriptionTier> {
   try {
     const user = await clerkClient.users.getUser(userId)
-    const plan = user.publicMetadata?.plan as SubscriptionTier
-    return plan || 'free'
+    const clerkPlan = user.publicMetadata?.plan as string
+    return clerkTierToAppTier(clerkPlan || 'free_plan')
   } catch (error) {
     console.error('Error getting user subscription tier:', error)
     return 'free'
@@ -50,9 +78,10 @@ export async function getUserSubscriptionTier(userId: string): Promise<Subscript
 // Update user's subscription tier in Clerk metadata
 export async function updateUserSubscriptionTier(userId: string, tier: SubscriptionTier) {
   try {
+    const clerkTier = appTierToClerkTier(tier)
     await clerkClient.users.updateUserMetadata(userId, {
       publicMetadata: {
-        plan: tier
+        plan: clerkTier
       }
     })
   } catch (error) {
