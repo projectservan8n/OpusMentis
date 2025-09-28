@@ -70,15 +70,15 @@ export default function Flashcards({ flashcards }: FlashcardProps) {
   }
 
   const markCorrect = () => {
-    setStudiedCards(prev => new Set([...prev, currentCard.id]))
-    setCorrectCards(prev => new Set([...prev, currentCard.id]))
+    setStudiedCards(prev => new Set(prev).add(currentCard.id))
+    setCorrectCards(prev => new Set(prev).add(currentCard.id))
     if (currentIndex < flashcards.length - 1) {
       nextCard()
     }
   }
 
   const markIncorrect = () => {
-    setStudiedCards(prev => new Set([...prev, currentCard.id]))
+    setStudiedCards(prev => new Set(prev).add(currentCard.id))
     setCorrectCards(prev => {
       const newSet = new Set(prev)
       newSet.delete(currentCard.id) // Remove if it was previously marked correct
