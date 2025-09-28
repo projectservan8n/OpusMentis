@@ -21,9 +21,10 @@ interface UserSubscription {
 
 // GCash Payment Details (configurable)
 const GCASH_PAYMENT_INFO = {
-  number: '+63 917 123 4567',
-  name: 'StudyFlow AI',
-  qrCodeUrl: '/gcash-qr.png' // Placeholder - replace with actual QR code
+  number: '+639559918754',
+  altNumber: '09559918754',
+  name: 'CARL ANTHONY H.',
+  qrCodeUrl: '/gcash-qr.png'
 }
 
 export default function BillingPage() {
@@ -367,7 +368,10 @@ export default function BillingPage() {
                         <div className="flex justify-between items-center">
                           <span>GCash Number:</span>
                           <div className="flex items-center space-x-2">
-                            <span className="font-medium">{GCASH_PAYMENT_INFO.number}</span>
+                            <div className="text-right">
+                              <div className="font-medium">{GCASH_PAYMENT_INFO.number}</div>
+                              <div className="text-xs text-muted-foreground">{GCASH_PAYMENT_INFO.altNumber}</div>
+                            </div>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -393,12 +397,12 @@ export default function BillingPage() {
                   </div>
 
                   <div className="flex flex-col items-center">
-                    <div className="w-48 h-48 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <QrCode className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                        <p className="text-sm text-gray-500">QR Code</p>
-                        <p className="text-xs text-gray-400">Scan to pay</p>
-                      </div>
+                    <div className="w-48 h-48 border-2 border-gray-300 rounded-lg overflow-hidden">
+                      <img
+                        src={GCASH_PAYMENT_INFO.qrCodeUrl}
+                        alt="GCash QR Code"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <p className="text-xs text-muted-foreground mt-2 text-center">
                       Scan this QR code with your GCash app
