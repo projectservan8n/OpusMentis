@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Plus, Edit2, Trash2, FileText, Save, X } from 'lucide-react'
+import { Plus, Edit2, Trash2, FileText, Save } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface Note {
