@@ -12,7 +12,7 @@ import DashboardLayout from '@/components/dashboard-layout'
 import { CheckCircle2, Crown, Zap, Users, CreditCard, Upload, Camera, Copy, QrCode } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useDropzone } from 'react-dropzone'
-import { clerkTierToAppTier, getUserSubscriptionExpiry } from '@/lib/subscriptions'
+import { clerkTierToAppTier } from '@/lib/subscription-utils'
 
 interface UserSubscription {
   tier: 'free' | 'pro' | 'premium'
