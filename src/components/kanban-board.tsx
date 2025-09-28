@@ -67,7 +67,7 @@ function KanbanTask({ task, onMove, onEdit, onDelete }: {
 
   return (
     <div
-      ref={drag}
+      ref={drag as any}
       className={`kanban-card ${isDragging ? 'opacity-50' : ''}`}
     >
       <div className="flex items-start justify-between mb-2">
