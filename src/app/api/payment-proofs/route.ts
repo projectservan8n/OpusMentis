@@ -59,6 +59,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Ensure user exists in our database first (required for foreign key constraint)
+    await db.user.upsert({
+      where: { id: userId },
+      update: {},
+      create: {
+        id: userId,
+        email: '' // Will be updated from Clerk webhook
+      }
+    })
+
     // Save the uploaded file
     const buffer = Buffer.from(await file.arrayBuffer())
     const fileName = `payment_proof_${userId}_${Date.now()}${path.extname(file.name)}`
@@ -73,16 +83,6 @@ export async function POST(request: NextRequest) {
         amount,
         referenceNumber: referenceNumber || null,
         status: 'pending'
-      }
-    })
-
-    // Ensure user exists in our database
-    await db.user.upsert({
-      where: { id: userId },
-      update: {},
-      create: {
-        id: userId,
-        email: '' // Will be updated from Clerk webhook
       }
     })
 
