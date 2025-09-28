@@ -75,7 +75,6 @@ export async function POST(request: NextRequest) {
     const limitCheck = await checkUploadLimits(
       userId,
       fileType,
-      file.size,
       estimatedPages,
       estimatedDuration
     )
