@@ -87,8 +87,7 @@ async function handleUserCreated(userData: any) {
       },
       create: {
         id: userData.id,
-        email,
-        subscriptionTier: 'free'
+        email
       },
     })
 
@@ -109,8 +108,7 @@ async function handleUserUpdated(userData: any) {
       },
       create: {
         id: userData.id,
-        email,
-        subscriptionTier: 'free'
+        email
       },
     })
 
@@ -145,8 +143,7 @@ async function syncUserData(userId: string) {
       await db.user.create({
         data: {
           id: userId,
-          email: '', // Will be updated on next user.updated webhook
-          subscriptionTier: 'free'
+          email: '' // Will be updated on next user.updated webhook
         }
       })
     }
