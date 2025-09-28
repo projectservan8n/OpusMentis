@@ -1,5 +1,5 @@
 import { db } from './db'
-import { clerkClient } from '@clerk/nextjs'
+import { clerkClient } from '@clerk/nextjs/server'
 
 export type SubscriptionTier = 'free' | 'pro' | 'premium'
 
@@ -64,7 +64,6 @@ export async function updateUserSubscriptionTier(userId: string, tier: Subscript
 export async function checkUploadLimits(
   userId: string,
   fileType: string,
-  fileSize: number,
   estimatedPages?: number,
   estimatedDurationMinutes?: number
 ): Promise<{ allowed: boolean; reason?: string; upgradeRequired?: SubscriptionTier }> {
