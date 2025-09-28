@@ -136,7 +136,7 @@ function KanbanColumn({
 
   return (
     <div
-      ref={drop}
+      ref={drop as any}
       className={`kanban-column ${column.color} ${
         isOver && canDrop ? 'ring-2 ring-primary' : ''
       }`}
