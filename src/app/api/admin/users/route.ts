@@ -50,23 +50,19 @@ export async function GET(request: NextRequest) {
             id: true,
             createdAt: true,
             status: true
+          },
+          orderBy: {
+            createdAt: 'desc'
           }
         },
         notes: {
           select: {
             id: true,
             createdAt: true
-          }
-        },
-        usageLog: {
-          select: {
-            createdAt: true,
-            action: true
           },
           orderBy: {
             createdAt: 'desc'
-          },
-          take: 1
+          }
         },
         paymentProofs: {
           select: {
@@ -115,8 +111,12 @@ export async function GET(request: NextRequest) {
         // Get current subscription tier
         const subscriptionTier = await getUserSubscriptionTier(dbUser.id)
 
-        // Calculate last active date
-        const lastActive = dbUser.usageLog[0]?.createdAt || dbUser.createdAt
+        // Calculate last active date (most recent study pack or note creation)
+        const lastStudyPack = dbUser.studyPacks[0]?.createdAt
+        const lastNote = dbUser.notes[0]?.createdAt
+        const lastActive = lastStudyPack && lastNote
+          ? (lastStudyPack > lastNote ? lastStudyPack : lastNote)
+          : lastStudyPack || lastNote || dbUser.createdAt
 
         // Get latest payment status
         const latestPayment = dbUser.paymentProofs[0]
