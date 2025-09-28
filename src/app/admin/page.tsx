@@ -21,7 +21,9 @@ import {
   CreditCard,
   CheckCircle,
   XCircle,
-  Eye
+  Eye,
+  RefreshCw,
+  Clock
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -80,6 +82,8 @@ export default function AdminPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState<'users' | 'payments'>('users')
   const [loading, setLoading] = useState(true)
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
+  const [autoRefresh, setAutoRefresh] = useState(true)
 
   // Check if user is admin
   const isAdmin = user?.emailAddresses?.[0]?.emailAddress === 'tony@opusautomations.com'
@@ -104,54 +108,74 @@ export default function AdminPage() {
     }
   }, [searchTerm, users])
 
+  // Auto-refresh data every 30 seconds
+  useEffect(() => {
+    if (!autoRefresh || !isAdmin) return
+
+    const interval = setInterval(() => {
+      console.log('Auto-refreshing admin data...')
+      fetchAdminData()
+      fetchPaymentProofs()
+      setLastRefresh(new Date())
+    }, 30000) // 30 seconds
+
+    return () => clearInterval(interval)
+  }, [autoRefresh, isAdmin])
+
+  // Refresh on search term change (debounced)
+  useEffect(() => {
+    if (!isAdmin) return
+
+    const timeoutId = setTimeout(() => {
+      fetchAdminData()
+    }, 500) // 500ms debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm])
+
   const fetchAdminData = async () => {
     try {
-      // TODO: Implement actual API calls
-      // For MVP, showing mock data
-      setStats({
-        totalUsers: 1247,
-        totalStudyPacks: 3891,
-        processingPacks: 23,
-        totalNotes: 8942,
-        revenueThisMonth: 18650,
-        activeSubscriptions: 156
-      })
+      // Fetch real stats from API
+      const statsResponse = await fetch('/api/admin/stats')
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json()
+        setStats({
+          totalUsers: statsData.totalUsers,
+          totalStudyPacks: statsData.totalStudyPacks,
+          processingPacks: statsData.processingPacks,
+          totalNotes: statsData.totalNotes,
+          revenueThisMonth: statsData.revenueThisMonth,
+          activeSubscriptions: statsData.activeSubscriptions
+        })
+      } else {
+        console.error('Failed to fetch stats:', await statsResponse.text())
+        toast.error('Failed to load statistics')
+      }
 
-      // Mock users data
-      const mockUsers: AdminUser[] = [
-        {
-          id: '1',
-          email: 'john.doe@email.com',
-          name: 'John Doe',
-          subscriptionTier: 'pro',
-          studyPacksCount: 15,
-          notesCount: 48,
-          joinedAt: '2024-01-15',
-          lastActive: '2024-01-20',
-          status: 'active'
-        },
-        {
-          id: '2',
-          email: 'jane.smith@email.com',
-          name: 'Jane Smith',
-          subscriptionTier: 'free',
-          studyPacksCount: 3,
-          notesCount: 12,
-          joinedAt: '2024-01-18',
-          lastActive: '2024-01-19',
-          status: 'active'
-        },
-        // Add more mock users...
-      ]
-
-      setUsers(mockUsers)
-      setFilteredUsers(mockUsers)
+      // Fetch real users data from API
+      const usersResponse = await fetch(`/api/admin/users?limit=100&search=${encodeURIComponent(searchTerm)}`)
+      if (usersResponse.ok) {
+        const usersData = await usersResponse.json()
+        setUsers(usersData.users)
+        setFilteredUsers(usersData.users)
+      } else {
+        console.error('Failed to fetch users:', await usersResponse.text())
+        toast.error('Failed to load users')
+      }
     } catch (error) {
       console.error('Error fetching admin data:', error)
       toast.error('Failed to load admin data')
     } finally {
       setLoading(false)
+      setLastRefresh(new Date())
     }
+  }
+
+  const handleManualRefresh = async () => {
+    setLoading(true)
+    await Promise.all([fetchAdminData(), fetchPaymentProofs()])
+    setLoading(false)
+    toast.success('Data refreshed successfully')
   }
 
   const fetchPaymentProofs = async () => {
@@ -167,10 +191,28 @@ export default function AdminPage() {
     }
   }
 
-  const handleUserAction = async (userId: string, action: 'ban' | 'unban' | 'upgrade') => {
+  const handleUserAction = async (userId: string, action: 'ban' | 'unban' | 'upgrade', tier?: string) => {
     try {
-      // TODO: Implement actual API calls
-      toast.success(`User ${action} action completed`)
+      const response = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          targetUserId: userId,
+          action,
+          tier
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || `Failed to ${action} user`)
+      }
+
+      const result = await response.json()
+      toast.success(result.message)
+
       // Refresh data
       fetchAdminData()
     } catch (error) {
@@ -324,6 +366,42 @@ export default function AdminPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Refresh Controls */}
+        <Card>
+          <CardContent className="flex items-center justify-between py-4">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  Last updated: {formatDistanceToNow(lastRefresh, { addSuffix: true })}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="auto-refresh"
+                  checked={autoRefresh}
+                  onChange={(e) => setAutoRefresh(e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="auto-refresh" className="text-sm text-muted-foreground">
+                  Auto-refresh (30s)
+                </label>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleManualRefresh}
+              disabled={loading}
+              className="flex items-center space-x-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Tab Navigation */}
         <div className="flex space-x-1 rounded-lg bg-muted p-1">
