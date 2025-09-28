@@ -1,0 +1,502 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useUser } from '@clerk/nextjs'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import DashboardLayout from '@/components/dashboard-layout'
+import { CheckCircle2, Crown, Zap, Users, CreditCard, Upload, Camera, Copy, QrCode } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { useDropzone } from 'react-dropzone'
+
+interface UserSubscription {
+  tier: 'free' | 'pro' | 'premium'
+  pendingProof?: boolean
+  rejectedProof?: boolean
+}
+
+// GCash Payment Details (configurable)
+const GCASH_PAYMENT_INFO = {
+  number: '+63 917 123 4567',
+  name: 'StudyFlow AI',
+  qrCodeUrl: '/gcash-qr.png' // Placeholder - replace with actual QR code
+}
+
+export default function BillingPage() {
+  const { user } = useUser()
+  const [subscription, setSubscription] = useState<UserSubscription>({
+    tier: 'free'
+  })
+  const [loading, setLoading] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const [paymentProof, setPaymentProof] = useState<File | null>(null)
+  const [referenceNumber, setReferenceNumber] = useState('')
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+
+  useEffect(() => {
+    fetchSubscriptionData()
+  }, [])
+
+  const fetchSubscriptionData = async () => {
+    try {
+      // Get subscription tier from Clerk metadata
+      const tier = user?.publicMetadata?.plan as string || 'free'
+      setSubscription({ tier: tier as any })
+
+      // Check for pending payment proofs
+      const response = await fetch('/api/payment-proofs/status')
+      if (response.ok) {
+        const data = await response.json()
+        setSubscription(prev => ({
+          ...prev,
+          pendingProof: data.hasPending,
+          rejectedProof: data.hasRejected
+        }))
+      }
+    } catch (error) {
+      console.error('Error fetching subscription:', error)
+    }
+  }
+
+  const plans = [
+    {
+      id: 'free',
+      name: 'Free',
+      price: '₱0',
+      period: '/month',
+      description: 'Perfect for trying out StudyFlow AI',
+      features: [
+        '3 uploads per month',
+        'PDFs up to 10 pages',
+        'Audio/video up to 10 minutes',
+        'Basic AI summaries',
+        'Flashcards & Kanban boards',
+        'Community support'
+      ],
+      limitations: [
+        'Limited uploads',
+        'Basic features only',
+        'No priority support'
+      ],
+      icon: Zap,
+      color: 'border-gray-200'
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      price: '₱149',
+      period: '/month',
+      description: 'Best for students and regular learners',
+      features: [
+        'Unlimited uploads',
+        'PDFs up to 50 pages',
+        'Audio/video up to 1 hour',
+        'Advanced AI processing',
+        'PDF export functionality',
+        'Priority support',
+        'Custom study settings'
+      ],
+      popular: true,
+      icon: Crown,
+      color: 'border-blue-500'
+    },
+    {
+      id: 'premium',
+      name: 'Premium',
+      price: '₱399',
+      period: '/month',
+      description: 'For power users and teams',
+      features: [
+        'Everything in Pro',
+        'PDFs up to 200 pages',
+        'Audio/video up to 3 hours',
+        'Team sharing capabilities',
+        'Advanced analytics',
+        'Custom integrations',
+        'White-label options',
+        'Dedicated account manager'
+      ],
+      icon: Users,
+      color: 'border-purple-500'
+    }
+  ]
+
+  const handleUpgrade = (planId: string) => {
+    setSelectedPlan(planId)
+    setShowPaymentModal(true)
+  }
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: {
+      'image/*': ['.jpg', '.jpeg', '.png']
+    },
+    maxFiles: 1,
+    onDrop: (acceptedFiles) => {
+      if (acceptedFiles.length > 0) {
+        setPaymentProof(acceptedFiles[0])
+      }
+    }
+  })
+
+  const handleSubmitPaymentProof = async () => {
+    if (!paymentProof || !selectedPlan) {
+      toast.error('Please upload payment proof and enter reference number')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', paymentProof)
+      formData.append('planRequested', selectedPlan)
+      formData.append('referenceNumber', referenceNumber)
+
+      const selectedPlanData = plans.find(p => p.id === selectedPlan)
+      formData.append('amount', selectedPlanData?.price || '')
+
+      const response = await fetch('/api/payment-proofs', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to submit payment proof')
+      }
+
+      toast.success('Payment proof submitted! We will review it within 24 hours.')
+      setShowPaymentModal(false)
+      setPaymentProof(null)
+      setReferenceNumber('')
+      setSelectedPlan(null)
+      fetchSubscriptionData()
+    } catch (error) {
+      console.error('Payment proof submission error:', error)
+      toast.error('Failed to submit payment proof')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    toast.success('Copied to clipboard!')
+  }
+
+  return (
+    <DashboardLayout
+      title="Billing & Subscription"
+      subtitle="Manage your StudyFlow AI subscription with GCash payments"
+    >
+      <div className="space-y-8">
+        {/* Current Plan */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <CreditCard className="h-5 w-5" />
+              <span>Current Plan</span>
+            </CardTitle>
+            <CardDescription>
+              Your current subscription details and payment status
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center space-x-3">
+                  <Badge
+                    variant="secondary"
+                    className={
+                      subscription.tier === 'free'
+                        ? 'bg-gray-100 text-gray-800'
+                        : subscription.tier === 'pro'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-purple-100 text-purple-800'
+                    }
+                  >
+                    {subscription.tier.toUpperCase()}
+                  </Badge>
+                  {subscription.pendingProof && (
+                    <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-300">
+                      Payment Under Review
+                    </Badge>
+                  )}
+                  {subscription.rejectedProof && (
+                    <Badge variant="outline" className="bg-red-50 text-red-800 border-red-300">
+                      Payment Rejected - Please Resubmit
+                    </Badge>
+                  )}
+                </div>
+                {subscription.pendingProof && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    We're reviewing your payment proof. You'll be upgraded within 24 hours.
+                  </p>
+                )}
+                {subscription.rejectedProof && (
+                  <p className="text-sm text-red-600 mt-2">
+                    Your payment proof was rejected. Please check the amount and try again.
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Plans */}
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Choose Your Plan</h2>
+          <p className="text-muted-foreground mb-6">
+            Upgrade with GCash payment - instant activation after verification
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {plans.map((plan) => {
+              const PlanIcon = plan.icon
+              const isCurrentPlan = plan.id === subscription.tier
+              const isPopular = plan.popular
+
+              return (
+                <Card
+                  key={plan.id}
+                  className={`relative ${plan.color} ${isPopular ? 'ring-2 ring-blue-500' : ''}`}
+                >
+                  {isPopular && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <Badge className="bg-blue-500 text-white">Most Popular</Badge>
+                    </div>
+                  )}
+
+                  <CardHeader>
+                    <div className="flex items-center space-x-2">
+                      <PlanIcon className="h-6 w-6 text-primary" />
+                      <CardTitle>{plan.name}</CardTitle>
+                      {isCurrentPlan && (
+                        <Badge variant="outline" className="ml-auto">
+                          Current
+                        </Badge>
+                      )}
+                    </div>
+                    <CardDescription>{plan.description}</CardDescription>
+                    <div className="mt-4">
+                      <span className="text-3xl font-bold">{plan.price}</span>
+                      <span className="text-muted-foreground">{plan.period}</span>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent>
+                    <ul className="space-y-2 mb-6">
+                      {plan.features.map((feature, index) => (
+                        <li key={index} className="flex items-center text-sm">
+                          <CheckCircle2 className="h-4 w-4 text-green-600 mr-2 flex-shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+
+                    {plan.limitations && (
+                      <div className="mb-6">
+                        <h4 className="text-sm font-medium mb-2 text-muted-foreground">
+                          Limitations:
+                        </h4>
+                        <ul className="space-y-1">
+                          {plan.limitations.map((limitation, index) => (
+                            <li key={index} className="text-xs text-muted-foreground">
+                              • {limitation}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {plan.id === 'free' ? (
+                      <Button disabled className="w-full">
+                        Current Plan
+                      </Button>
+                    ) : isCurrentPlan ? (
+                      <Button disabled className="w-full">
+                        Current Plan
+                      </Button>
+                    ) : (
+                      <Button
+                        className="w-full"
+                        onClick={() => handleUpgrade(plan.id)}
+                        disabled={loading || subscription.pendingProof}
+                        variant={isPopular ? "default" : "outline"}
+                      >
+                        {subscription.pendingProof
+                          ? 'Payment Under Review'
+                          : `Upgrade to ${plan.name}`
+                        }
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Payment Modal */}
+        <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>GCash Payment Instructions</DialogTitle>
+              <DialogDescription>
+                Follow these steps to upgrade to {plans.find(p => p.id === selectedPlan)?.name} plan
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              {/* Step 1: Payment Details */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Step 1: Send GCash Payment</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="p-4 border rounded-lg bg-blue-50">
+                      <h4 className="font-medium mb-2">Payment Details</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Amount:</span>
+                          <span className="font-medium">
+                            {plans.find(p => p.id === selectedPlan)?.price}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>GCash Number:</span>
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">{GCASH_PAYMENT_INFO.number}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyToClipboard(GCASH_PAYMENT_INFO.number)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Account Name:</span>
+                          <span className="font-medium">{GCASH_PAYMENT_INFO.name}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-sm text-muted-foreground">
+                      <p>• Send the exact amount to the GCash number above</p>
+                      <p>• Save the transaction receipt/screenshot</p>
+                      <p>• Upload the proof in Step 2 below</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center">
+                    <div className="w-48 h-48 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                      <div className="text-center">
+                        <QrCode className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-500">QR Code</p>
+                        <p className="text-xs text-gray-400">Scan to pay</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                      Scan this QR code with your GCash app
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2: Upload Proof */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Step 2: Upload Payment Proof</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">GCash Reference Number</label>
+                    <Input
+                      value={referenceNumber}
+                      onChange={(e) => setReferenceNumber(e.target.value)}
+                      placeholder="Enter your GCash reference number"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Screenshot/Receipt</label>
+                    <div
+                      {...getRootProps()}
+                      className={`mt-1 border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                        isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300 hover:border-primary/50'
+                      }`}
+                    >
+                      <input {...getInputProps()} />
+                      <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      {paymentProof ? (
+                        <p className="text-sm font-medium">{paymentProof.name}</p>
+                      ) : (
+                        <div>
+                          <p className="text-sm font-medium">Upload payment screenshot</p>
+                          <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setShowPaymentModal(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSubmitPaymentProof}
+                      disabled={loading || !paymentProof || !referenceNumber}
+                    >
+                      {loading ? 'Submitting...' : 'Submit Payment Proof'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* FAQ */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment FAQ</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium mb-2">How long does verification take?</h4>
+                <p className="text-sm text-muted-foreground">
+                  We verify payments within 24 hours during business days. You'll be upgraded immediately after approval.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-2">What if my payment is rejected?</h4>
+                <p className="text-sm text-muted-foreground">
+                  If rejected, you can resubmit with a clearer screenshot or correct amount. Common issues: wrong amount, unclear image.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-2">Can I pay monthly or yearly?</h4>
+                <p className="text-sm text-muted-foreground">
+                  Currently we accept monthly payments only. Annual billing will be available soon with discounts.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-2">Is my payment secure?</h4>
+                <p className="text-sm text-muted-foreground">
+                  Yes, all payments go through GCash's secure platform. We only see your receipt screenshot for verification.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
+  )
+}

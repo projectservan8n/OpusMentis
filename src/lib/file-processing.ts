@@ -1,0 +1,144 @@
+import pdfParse from 'pdf-parse'
+import { createWorker } from 'tesseract.js'
+import path from 'path'
+import fs from 'fs/promises'
+
+export interface ProcessedFile {
+  text: string
+  metadata: {
+    pageCount?: number
+    duration?: number // in seconds for audio/video
+    wordCount: number
+  }
+}
+
+export async function extractTextFromPDF(buffer: Buffer): Promise<ProcessedFile> {
+  try {
+    const data = await pdfParse(buffer)
+
+    return {
+      text: data.text,
+      metadata: {
+        pageCount: data.numpages,
+        wordCount: data.text.split(/\s+/).length
+      }
+    }
+  } catch (error) {
+    console.error('PDF parsing failed:', error)
+    throw new Error('Failed to extract text from PDF')
+  }
+}
+
+export async function extractTextFromImage(buffer: Buffer): Promise<ProcessedFile> {
+  let worker
+
+  try {
+    worker = await createWorker('eng')
+    const { data: { text } } = await worker.recognize(buffer)
+
+    return {
+      text: text.trim(),
+      metadata: {
+        wordCount: text.trim().split(/\s+/).length
+      }
+    }
+  } catch (error) {
+    console.error('OCR processing failed:', error)
+    throw new Error('Failed to extract text from image')
+  } finally {
+    if (worker) {
+      await worker.terminate()
+    }
+  }
+}
+
+// MVP: Basic file type detection
+export function getFileType(filename: string): string {
+  const ext = path.extname(filename).toLowerCase()
+
+  const typeMap: Record<string, string> = {
+    '.pdf': 'pdf',
+    '.doc': 'document',
+    '.docx': 'document',
+    '.txt': 'text',
+    '.mp3': 'audio',
+    '.wav': 'audio',
+    '.m4a': 'audio',
+    '.mp4': 'video',
+    '.mov': 'video',
+    '.avi': 'video',
+    '.webm': 'video',
+    '.jpg': 'image',
+    '.jpeg': 'image',
+    '.png': 'image',
+    '.gif': 'image',
+    '.bmp': 'image'
+  }
+
+  return typeMap[ext] || 'unknown'
+}
+
+export function isValidFileType(filename: string): boolean {
+  const fileType = getFileType(filename)
+  return ['pdf', 'document', 'text', 'audio', 'video', 'image'].includes(fileType)
+}
+
+export function estimateProcessingTime(fileSize: number, fileType: string): number {
+  // Estimates in seconds based on file type and size
+  const baseTime = {
+    pdf: 5,
+    document: 3,
+    text: 1,
+    audio: 30, // Whisper processing time
+    video: 60, // Video + Whisper processing
+    image: 10  // OCR processing
+  }
+
+  const sizeMultiplier = Math.ceil(fileSize / (1024 * 1024)) // Per MB
+  return (baseTime[fileType as keyof typeof baseTime] || 10) * Math.max(1, sizeMultiplier)
+}
+
+// MVP: Simple local file storage (later: cloud storage)
+export async function saveUploadedFile(buffer: Buffer, filename: string): Promise<string> {
+  const uploadsDir = path.join(process.cwd(), 'uploads')
+
+  try {
+    await fs.access(uploadsDir)
+  } catch {
+    await fs.mkdir(uploadsDir, { recursive: true })
+  }
+
+  const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_')
+  const timestamp = Date.now()
+  const savedFilename = `${timestamp}_${sanitizedFilename}`
+  const filePath = path.join(uploadsDir, savedFilename)
+
+  await fs.writeFile(filePath, buffer)
+  return filePath
+}
+
+export async function deleteFile(filePath: string): Promise<void> {
+  try {
+    await fs.unlink(filePath)
+  } catch (error) {
+    console.error('Failed to delete file:', error)
+    // Don't throw - file might already be deleted
+  }
+}
+
+// Get file duration for audio/video (requires ffmpeg)
+export async function getMediaDuration(filePath: string): Promise<number> {
+  // MVP: Return estimated duration, real implementation would use ffprobe
+  try {
+    const stats = await fs.stat(filePath)
+    // Rough estimate: 1MB ≈ 1 minute for audio, 10MB ≈ 1 minute for video
+    return Math.ceil(stats.size / (1024 * 1024))
+  } catch {
+    return 0
+  }
+}
+
+export function validateFileSize(size: number, maxSize: number = 50 * 1024 * 1024): boolean {
+  return size <= maxSize
+}
+

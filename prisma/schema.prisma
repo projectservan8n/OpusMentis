@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// MVP: User data is managed by Clerk, we only store extended user info
+model User {
+  id        String   @id // Clerk user ID
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Usage tracking for plan limits
+  monthlyUploads    Int      @default(0)
+  lastResetDate     DateTime @default(now())
+
+  // Relations
+  studyPacks StudyPack[]
+  notes      Note[]
+  paymentProofs PaymentProof[]
+
+  @@map("users")
+}
+
+model StudyPack {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+
+  // File metadata
+  originalFileName String
+  fileType         String // pdf, audio, video, image
+  fileSize         Int    // in bytes
+  filePath         String? // MVP: local storage path, later: cloud storage URL
+
+  // Processing status
+  status          String   @default("processing") // processing, completed, failed
+  processingError String?
+
+  // AI-generated content (JSON stored as text for MVP)
+  summary     String?  // AI-generated summary
+  topics      String?  // JSON array of topics
+  flashcards  String?  // JSON array of flashcard objects
+  kanbanTasks String?  // JSON array of kanban task objects
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes  Note[]
+
+  @@map("study_packs")
+}
+
+model Note {
+  id      String @id @default(cuid())
+  content String
+
+  // Position/context within study pack
+  section String? // summary, kanban, flashcards, general
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId      String
+  studyPackId String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studyPack   StudyPack @relation(fields: [studyPackId], references: [id], onDelete: Cascade)
+
+  @@map("notes")
+}
+
+// MVP: Simple usage tracking for plan limits
+model UsageLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   // upload, process, export
+  fileType  String?
+  fileSize  Int?
+  createdAt DateTime @default(now())
+
+  @@map("usage_logs")
+}
+
+// GCash Payment Proof for manual payment verification
+model PaymentProof {
+  id           String   @id @default(cuid())
+  userId       String
+  planRequested String  // pro, premium
+  screenshotUrl String  // path to uploaded proof image
+  amount       String  // amount paid (for verification)
+  referenceNumber String? // GCash reference number if provided
+  status       String   @default("pending") // pending, approved, rejected
+  adminNotes   String?  // Admin comments for rejection/approval
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payment_proofs")
+}
+
+// Stretch: Team sharing for Premium users
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  ownerId     String
+  memberIds   String[] // Array of Clerk user IDs
+  createdAt   DateTime @default(now())
+
+  // Shared study packs
+  sharedStudyPackIds String[] // Array of StudyPack IDs
+
+  @@map("teams")
+}
