@@ -25,7 +25,7 @@ export interface StudyPackContent {
 export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
   try {
     // Create a temporary file for OpenAI Whisper
-    const file = new File([audioBuffer], 'audio.mp3', { type: 'audio/mpeg' })
+    const file = new File([new Uint8Array(audioBuffer)], 'audio.mp3', { type: 'audio/mpeg' })
 
     const transcription = await openai.audio.transcriptions.create({
       file: file,

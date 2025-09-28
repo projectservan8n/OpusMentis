@@ -1,4 +1,5 @@
 import { authMiddleware } from '@clerk/nextjs'
+import type { NextRequest } from 'next/server'
 
 export default authMiddleware({
   publicRoutes: [
@@ -13,7 +14,7 @@ export default authMiddleware({
     '/api/webhooks/stripe',
   ],
 
-  afterAuth(auth, req, evt) {
+  afterAuth(auth: any, req: NextRequest, evt: any) {
     // Redirect unauthenticated users to sign-in
     if (!auth.userId && !auth.isPublicRoute) {
       const signInUrl = new URL('/sign-in', req.url)
