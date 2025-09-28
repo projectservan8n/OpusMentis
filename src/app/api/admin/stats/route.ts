@@ -84,18 +84,9 @@ export async function GET(request: NextRequest) {
       return total + amount
     }, 0)
 
-    // Get subscription distribution
-    const subscriptionStats = await db.user.groupBy({
-      by: ['subscriptionTier'],
-      _count: {
-        subscriptionTier: true
-      }
-    })
-
-    // Calculate active subscriptions (non-free users)
-    const activeSubscriptions = subscriptionStats
-      .filter(stat => stat.subscriptionTier !== 'free')
-      .reduce((total, stat) => total + stat._count.subscriptionTier, 0)
+    // Calculate active subscriptions based on approved payments
+    // (Since subscription tiers are stored in Clerk metadata, not database)
+    const activeSubscriptions = approvedPayments
 
     // Get recent activity (uploads this month)
     const currentMonth = new Date()
@@ -117,11 +108,7 @@ export async function GET(request: NextRequest) {
       revenueThisMonth,
       activeSubscriptions,
       pendingPayments,
-      uploadsThisMonth,
-      subscriptionStats: subscriptionStats.reduce((acc, stat) => {
-        acc[stat.subscriptionTier || 'free'] = stat._count.subscriptionTier
-        return acc
-      }, {} as Record<string, number>)
+      uploadsThisMonth
     })
 
   } catch (error) {
