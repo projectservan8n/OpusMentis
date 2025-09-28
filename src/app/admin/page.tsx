@@ -81,8 +81,8 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'users' | 'payments'>('users')
   const [loading, setLoading] = useState(true)
 
-  // Check if user is admin (simple email check for MVP)
-  const isAdmin = user?.emailAddresses?.[0]?.emailAddress?.includes('admin') || false
+  // Check if user is admin
+  const isAdmin = user?.emailAddresses?.[0]?.emailAddress === 'tony@opusautomations.com'
 
   useEffect(() => {
     if (isAdmin) {

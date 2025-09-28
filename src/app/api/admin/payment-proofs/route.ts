@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { updateUserSubscriptionTier } from '@/lib/subscriptions'
 
-// Check if user is admin (simple email check for MVP)
+// Check if user is admin
 async function isAdmin(userId: string): Promise<boolean> {
   try {
     const user = await fetch(`https://api.clerk.dev/v1/users/${userId}`, {
@@ -12,7 +12,7 @@ async function isAdmin(userId: string): Promise<boolean> {
       }
     }).then(res => res.json())
 
-    return user.email_addresses?.[0]?.email_address?.includes('admin') || false
+    return user.email_addresses?.[0]?.email_address === 'tony@opusautomations.com'
   } catch {
     return false
   }

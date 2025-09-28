@@ -29,8 +29,8 @@ export default function Navigation() {
   const pathname = usePathname()
   const { user } = useUser()
 
-  // Check if user is admin (MVP: simple email check)
-  const isAdmin = user?.emailAddresses?.[0]?.emailAddress?.includes('admin') || false
+  // Check if user is admin
+  const isAdmin = user?.emailAddresses?.[0]?.emailAddress === 'tony@opusautomations.com'
 
   return (
     <div className="flex h-screen bg-background">
