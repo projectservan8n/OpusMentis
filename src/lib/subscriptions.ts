@@ -235,6 +235,16 @@ export async function logUsage(
   fileType?: string,
   fileSize?: number
 ) {
+  // Ensure user exists before logging usage (defensive programming)
+  await db.user.upsert({
+    where: { id: userId },
+    update: {},
+    create: {
+      id: userId,
+      email: '' // Will be updated from Clerk webhook
+    }
+  })
+
   await db.usageLog.create({
     data: {
       userId,
