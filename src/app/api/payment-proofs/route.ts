@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { saveUploadedFile } from '@/lib/file-processing'
+import { notifyNewPaymentSubmission } from '@/lib/discord'
 import path from 'path'
 
 export async function POST(request: NextRequest) {
@@ -85,6 +86,30 @@ export async function POST(request: NextRequest) {
         status: 'pending'
       }
     })
+
+    // Send Discord notification for new payment submission
+    try {
+      // Get user data from Clerk for notification
+      const clerkUser = await fetch(`https://api.clerk.dev/v1/users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`
+        }
+      }).then(res => res.json()).catch(() => null)
+
+      const userEmail = clerkUser?.email_addresses?.[0]?.email_address || 'Unknown'
+      const userName = clerkUser ? `${clerkUser.first_name || ''} ${clerkUser.last_name || ''}`.trim() || 'Unknown User' : 'Unknown User'
+
+      await notifyNewPaymentSubmission(
+        userEmail,
+        userName,
+        planRequested,
+        amount,
+        referenceNumber || undefined
+      )
+    } catch (error) {
+      console.error('Failed to send Discord new payment notification:', error)
+      // Don't fail the request if Discord notification fails
+    }
 
     return NextResponse.json({
       message: 'Payment proof submitted successfully',

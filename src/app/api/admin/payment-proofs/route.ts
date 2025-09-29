@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { updateUserSubscriptionTier } from '@/lib/subscriptions'
+import { notifyPaymentApproval, notifyPaymentRejection } from '@/lib/discord'
 
 // Check if user is admin
 async function isAdmin(userId: string): Promise<boolean> {
@@ -133,6 +134,16 @@ export async function PATCH(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Get user data from Clerk for Discord notification
+    const clerkUser = await fetch(`https://api.clerk.dev/v1/users/${paymentProof.userId}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`
+      }
+    }).then(res => res.json()).catch(() => null)
+
+    const userEmail = clerkUser?.email_addresses?.[0]?.email_address || 'Unknown'
+    const userName = clerkUser ? `${clerkUser.first_name || ''} ${clerkUser.last_name || ''}`.trim() || 'Unknown User' : 'Unknown User'
+
     if (action === 'approve') {
       // Update payment proof status
       await db.paymentProof.update({
@@ -145,6 +156,20 @@ export async function PATCH(request: NextRequest) {
 
       // Update user's subscription tier in Clerk metadata
       await updateUserSubscriptionTier(paymentProof.userId, paymentProof.planRequested as any)
+
+      // Send Discord notification
+      try {
+        await notifyPaymentApproval(
+          userEmail,
+          userName,
+          paymentProof.planRequested,
+          paymentProof.amount,
+          paymentProof.referenceNumber || undefined
+        )
+      } catch (error) {
+        console.error('Failed to send Discord approval notification:', error)
+        // Don't fail the request if Discord notification fails
+      }
 
       return NextResponse.json({
         message: 'Payment approved and user upgraded successfully'
@@ -159,6 +184,21 @@ export async function PATCH(request: NextRequest) {
           adminNotes: adminNotes || 'Payment rejected'
         }
       })
+
+      // Send Discord notification
+      try {
+        await notifyPaymentRejection(
+          userEmail,
+          userName,
+          paymentProof.planRequested,
+          paymentProof.amount,
+          adminNotes || 'Payment rejected',
+          paymentProof.referenceNumber || undefined
+        )
+      } catch (error) {
+        console.error('Failed to send Discord rejection notification:', error)
+        // Don't fail the request if Discord notification fails
+      }
 
       return NextResponse.json({
         message: 'Payment rejected successfully'
