@@ -39,7 +39,7 @@ export default function Navigation() {
         <div className="flex flex-col flex-grow pt-5 bg-background border-r overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-4">
             <Brain className="h-8 w-8 text-primary" />
-            <span className="ml-2 text-xl font-bold">StudyFlow AI</span>
+            <span className="ml-2 text-xl font-bold">OpusMentis</span>
           </div>
 
           <div className="mt-5 flex-1 flex flex-col">
@@ -120,7 +120,7 @@ export default function Navigation() {
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center">
             <Brain className="h-6 w-6 text-primary" />
-            <span className="ml-2 text-lg font-bold">StudyFlow AI</span>
+            <span className="ml-2 text-lg font-bold">OpusMentis</span>
           </div>
           <UserButton />
         </div>

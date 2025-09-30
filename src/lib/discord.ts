@@ -78,7 +78,7 @@ export async function notifyPaymentApproval(
     ],
     timestamp: new Date().toISOString(),
     footer: {
-      text: "StudyFlow AI - Payment System"
+      text: "OpusMentis - Payment System"
     }
   }
 
@@ -93,7 +93,7 @@ export async function notifyPaymentApproval(
   return await sendDiscordNotification({
     content: "🎉 **New payment approved!**",
     embeds: [embed],
-    username: "StudyFlow AI Bot",
+    username: "OpusMentis Bot",
     avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png"
   })
 }
@@ -129,7 +129,7 @@ export async function notifyPaymentRejection(
     ],
     timestamp: new Date().toISOString(),
     footer: {
-      text: "StudyFlow AI - Payment System"
+      text: "OpusMentis - Payment System"
     }
   }
 
@@ -152,7 +152,7 @@ export async function notifyPaymentRejection(
   return await sendDiscordNotification({
     content: "⚠️ **Payment rejected**",
     embeds: [embed],
-    username: "StudyFlow AI Bot",
+    username: "OpusMentis Bot",
     avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png"
   })
 }
@@ -187,7 +187,7 @@ export async function notifyNewPaymentSubmission(
     ],
     timestamp: new Date().toISOString(),
     footer: {
-      text: "StudyFlow AI - Payment System"
+      text: "OpusMentis - Payment System"
     }
   }
 
@@ -202,7 +202,7 @@ export async function notifyNewPaymentSubmission(
   return await sendDiscordNotification({
     content: "🔔 **New payment submission requires approval**",
     embeds: [embed],
-    username: "StudyFlow AI Bot",
+    username: "OpusMentis Bot",
     avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png"
   })
 }

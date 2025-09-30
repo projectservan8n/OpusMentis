@@ -1,4 +1,4 @@
-# StudyFlow AI - AI-Powered Study Assistant
+# OpusMentis - AI-Powered Study Assistant
 
 Transform your study materials into interactive summaries, flashcards, and kanban boards with AI-powered processing.
 
@@ -46,7 +46,7 @@ Transform your study materials into interactive summaries, flashcards, and kanba
 ### 1. Clone Repository
 ```bash
 git clone <repository-url>
-cd studyflow-ai
+cd opusmentis
 npm install
 ```
 
@@ -151,7 +151,7 @@ NODE_ENV=production
 **Why:** Railway has ephemeral filesystem - uploaded files will be deleted on redeploy without a volume.
 
 **Steps:**
-1. In Railway dashboard, go to your StudyFlow AI service
+1. In Railway dashboard, go to your OpusMentis service
 2. Click **"Variables"** tab
 3. Scroll down to **"Volumes"** section
 4. Click **"+ New Volume"**
@@ -258,7 +258,7 @@ src/
 
 ### Getting Help
 - Check the [GitHub Issues](https://github.com/your-repo/issues)
-- Join our [Discord Community](https://discord.gg/studyflow)
+- Join our [Discord Community](https://discord.gg/opusmentis)
 - Email support: team@opusautomations.com
 
 ## 🤝 Contributing

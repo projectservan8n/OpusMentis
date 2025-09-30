@@ -82,7 +82,7 @@ export default function BillingPage() {
       name: 'Free',
       price: '₱0',
       period: '/month',
-      description: 'Perfect for trying out StudyFlow AI',
+      description: 'Perfect for trying out OpusMentis',
       features: [
         '3 uploads per month',
         'PDFs up to 10 pages',
@@ -203,7 +203,7 @@ export default function BillingPage() {
   return (
     <DashboardLayout
       title="Billing & Subscription"
-      subtitle="Manage your StudyFlow AI subscription with GCash payments"
+      subtitle="Manage your OpusMentis subscription with GCash payments"
     >
       <div className="space-y-8">
         {/* Current Plan */}

@@ -107,7 +107,7 @@ export default function SettingsPage() {
   return (
     <DashboardLayout
       title="Settings"
-      subtitle="Customize your StudyFlow AI experience"
+      subtitle="Customize your OpusMentis experience"
     >
       <div className="space-y-8">
         {/* Profile Section */}
@@ -358,7 +358,7 @@ export default function SettingsPage() {
         {/* App Info */}
         <Card>
           <CardHeader>
-            <CardTitle>About StudyFlow AI</CardTitle>
+            <CardTitle>About OpusMentis</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-6">

@@ -12,17 +12,17 @@ export default function TermsOfService() {
 
           <div className="prose prose-gray max-w-none">
             <p className="text-lg text-gray-700 mb-6">
-              Welcome to StudyFlow AI, operated by Opus Automations. By accessing and using our platform, you agree to be bound by these Terms of Service. Please read them carefully.
+              Welcome to OpusMentis, operated by Opus Automations. By accessing and using our platform, you agree to be bound by these Terms of Service. Please read them carefully.
             </p>
 
             <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">1. Acceptance of Terms</h2>
             <p className="text-gray-700 mb-4">
-              By creating an account, accessing, or using StudyFlow AI, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree to these terms, please do not use our service.
+              By creating an account, accessing, or using OpusMentis, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree to these terms, please do not use our service.
             </p>
 
             <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">2. Description of Service</h2>
             <p className="text-gray-700 mb-4">
-              StudyFlow AI is an AI-powered study platform that helps users generate study materials from uploaded content. Our services include:
+              OpusMentis is an AI-powered study platform that helps users generate study materials from uploaded content. Our services include:
             </p>
             <ul className="list-disc pl-6 mb-4 text-gray-700">
               <li>AI-generated summaries from PDFs, audio, video, and images</li>
@@ -93,7 +93,7 @@ export default function TermsOfService() {
 
             <h3 className="text-xl font-medium text-gray-900 mt-6 mb-3">Our Platform</h3>
             <ul className="list-disc pl-6 mb-4 text-gray-700">
-              <li>StudyFlow AI platform and technology are owned by Opus Automations</li>
+              <li>OpusMentis platform and technology are owned by Opus Automations</li>
               <li>You may not copy, distribute, or create derivative works</li>
               <li>Our trademarks and logos are protected intellectual property</li>
             </ul>
@@ -115,7 +115,7 @@ export default function TermsOfService() {
 
             <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">9. Limitation of Liability</h2>
             <p className="text-gray-700 mb-4">
-              To the maximum extent permitted by law, Opus Automations and StudyFlow AI shall not be liable for any indirect, incidental, special, or consequential damages resulting from your use of our service. Our total liability shall not exceed the amount you paid for the service in the past 12 months.
+              To the maximum extent permitted by law, Opus Automations and OpusMentis shall not be liable for any indirect, incidental, special, or consequential damages resulting from your use of our service. Our total liability shall not exceed the amount you paid for the service in the past 12 months.
             </p>
 
             <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">10. Disclaimer of Warranties</h2>
@@ -151,7 +151,7 @@ export default function TermsOfService() {
 
             <div className="mt-8 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-500">
-                StudyFlow AI is a product of{' '}
+                OpusMentis is a product of{' '}
                 <span className="font-medium text-gray-700">Opus Automations</span>
               </p>
             </div>

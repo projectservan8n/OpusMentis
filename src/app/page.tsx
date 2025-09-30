@@ -11,7 +11,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Brain className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold">StudyFlow AI</span>
+            <span className="text-2xl font-bold">OpusMentis</span>
           </div>
           <div className="flex items-center space-x-4">
             <Link href="/sign-in">
@@ -51,7 +51,7 @@ export default function HomePage() {
       {/* Features Section */}
       <section className="py-16 bg-muted/50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">How StudyFlow AI Works</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">How OpusMentis Works</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <Card>
               <CardHeader>
@@ -119,7 +119,7 @@ export default function HomePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Free</CardTitle>
-                <CardDescription>Perfect for trying out StudyFlow AI</CardDescription>
+                <CardDescription>Perfect for trying out OpusMentis</CardDescription>
                 <div className="text-3xl font-bold">₱0<span className="text-sm font-normal">/month</span></div>
               </CardHeader>
               <CardContent>
@@ -195,7 +195,7 @@ export default function HomePage() {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Brain className="h-6 w-6 text-primary" />
-                <span className="text-lg font-bold">StudyFlow AI</span>
+                <span className="text-lg font-bold">OpusMentis</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Transforming education with AI-powered study tools for students worldwide.
@@ -227,7 +227,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 StudyFlow AI by Opus Automations. All rights reserved.</p>
+            <p>&copy; 2024 OpusMentis by Opus Automations. All rights reserved.</p>
           </div>
         </div>
       </footer>

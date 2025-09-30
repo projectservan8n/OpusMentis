@@ -7,19 +7,19 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "StudyFlow AI - AI-Powered Study Assistant",
+  title: "OpusMentis - AI-Powered Study Assistant",
   description: "Transform your study materials into interactive summaries, flashcards, and kanban boards with AI-powered processing.",
   keywords: ["study", "AI", "education", "flashcards", "summarization", "learning"],
-  authors: [{ name: "StudyFlow AI Team" }],
+  authors: [{ name: "OpusMentis Team" }],
   openGraph: {
-    title: "StudyFlow AI - AI-Powered Study Assistant",
+    title: "OpusMentis - AI-Powered Study Assistant",
     description: "Transform your study materials into interactive summaries, flashcards, and kanban boards with AI-powered processing.",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "StudyFlow AI - AI-Powered Study Assistant",
+    title: "OpusMentis - AI-Powered Study Assistant",
     description: "Transform your study materials into interactive summaries, flashcards, and kanban boards with AI-powered processing.",
   },
   robots: {

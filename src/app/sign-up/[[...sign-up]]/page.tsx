@@ -9,7 +9,7 @@ export default function Page() {
             Get Started
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Create your StudyFlow AI account and start learning smarter
+            Create your OpusMentis account and start learning smarter
           </p>
         </div>
         <SignUp

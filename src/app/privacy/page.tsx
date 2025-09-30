@@ -12,7 +12,7 @@ export default function PrivacyPolicy() {
 
           <div className="prose prose-gray max-w-none">
             <p className="text-lg text-gray-700 mb-6">
-              At StudyFlow AI (operated by Opus Automations), we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you use our platform.
+              At OpusMentis (operated by Opus Automations), we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you use our platform.
             </p>
 
             <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">Information We Collect</h2>
@@ -108,7 +108,7 @@ export default function PrivacyPolicy() {
 
             <div className="mt-8 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-500">
-                StudyFlow AI is a product of{' '}
+                OpusMentis is a product of{' '}
                 <span className="font-medium text-gray-700">Opus Automations</span>
               </p>
             </div>
