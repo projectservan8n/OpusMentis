@@ -159,7 +159,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
   },
   {
     name: 'Process Payment Proof',
-    method: 'POST',
+    method: 'PATCH',
     path: '/api/admin/payment-proofs',
     description: 'Approve or reject payment proof (admin only)',
     category: 'admin',

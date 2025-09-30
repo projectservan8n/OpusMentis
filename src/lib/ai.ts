@@ -103,8 +103,16 @@ Return only valid JSON, no additional text.
       throw new Error('No response from OpenAI')
     }
 
+    // Clean response - remove markdown code blocks if present
+    let cleanedResponse = response.trim()
+    if (cleanedResponse.startsWith('```json')) {
+      cleanedResponse = cleanedResponse.replace(/^```json\s*/, '').replace(/```\s*$/, '')
+    } else if (cleanedResponse.startsWith('```')) {
+      cleanedResponse = cleanedResponse.replace(/^```\s*/, '').replace(/```\s*$/, '')
+    }
+
     // Parse and validate JSON response
-    const studyContent = JSON.parse(response) as StudyPackContent
+    const studyContent = JSON.parse(cleanedResponse) as StudyPackContent
 
     // Add IDs if missing
     studyContent.flashcards = studyContent.flashcards.map((card, index) => ({
