@@ -8,7 +8,13 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhooks(.*)',
 ])
 
-export default clerkMiddleware((auth, req) => {
+export default clerkMiddleware({
+  // PRODUCTION SECURITY: Prevent CSRF and subdomain cookie attacks
+  // Update this to your production domain when deploying
+  authorizedParties: process.env.NODE_ENV === 'production'
+    ? ['https://opusmentis.app']
+    : undefined
+}, (auth, req) => {
   if (!isPublicRoute(req)) {
     auth().protect()
   }

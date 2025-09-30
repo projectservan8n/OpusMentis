@@ -124,27 +124,49 @@ The application will be available at `http://localhost:3000`.
 
 ## 🚀 Railway Deployment
 
-### One-Click Deploy
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template)
+### Quick Production Deployment
 
-### Manual Deploy
+🎯 **For complete production deployment with custom domain (opusmentis.app):**
+- **[PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md)** - 30-minute quick start guide
+- **[CLERK_PRODUCTION_SETUP.md](./CLERK_PRODUCTION_SETUP.md)** - Comprehensive Clerk configuration
+
+### Development/Testing Deployment
+
 1. Connect your GitHub repository to Railway
 2. Set up environment variables in Railway dashboard
 3. Deploy automatically triggers on push to main branch
 
 ### Required Environment Variables on Railway
-```
+
+**Development (Testing):**
+```bash
 DATABASE_URL (automatically provided by Railway Postgres)
-CLERK_PUBLISHABLE_KEY
-CLERK_SECRET_KEY
-OPENAI_API_KEY
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+CLERK_PUBLISHABLE_KEY=pk_test_xxx
+CLERK_SECRET_KEY=sk_test_xxx
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxx
+OPENAI_API_KEY=sk-proj-xxx
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
 NODE_ENV=production
 ```
+
+**Production (opusmentis.app):**
+```bash
+DATABASE_URL (automatically provided by Railway Postgres)
+CLERK_PUBLISHABLE_KEY=pk_live_xxx  ← Production keys
+CLERK_SECRET_KEY=sk_live_xxx       ← Production keys
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxx  ← Must match above
+OPENAI_API_KEY=sk-proj-xxx
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
+NODE_ENV=production
+```
+
+See [PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md) for step-by-step production setup.
 
 ### 📁 **Railway Volume Setup (REQUIRED)**
 
@@ -198,6 +220,12 @@ src/
 
 ## 🔌 API Endpoints
 
+### Interactive API Testing
+- **[/api-playground](./src/app/api-playground/page.tsx)** - Test all endpoints in browser
+- **[/api-keys](./src/app/api-keys/page.tsx)** - Manage API keys for integrations
+- **[API_TESTING_GUIDE.md](./API_TESTING_GUIDE.md)** - Complete API documentation
+- **[QUICK_TEST.md](./QUICK_TEST.md)** - 30-minute testing checklist
+
 ### Study Packs
 - `POST /api/upload` - Upload and process files
 - `GET /api/study-packs` - List user's study packs
@@ -206,15 +234,24 @@ src/
 - `DELETE /api/study-packs/[id]` - Delete study pack
 - `POST /api/study-packs/[id]/export` - Export to PDF
 
+### Subscription Management
+- `GET /api/subscription/status` - Check subscription status
+- `POST /api/subscription/payment-proof` - Submit GCash payment proof
+- `POST /api/subscription/expire` - Process expired subscriptions (cron)
+
 ### Notes
 - `GET /api/study-packs/[id]/notes` - Get notes for study pack
 - `POST /api/study-packs/[id]/notes` - Create new note
 - `PATCH /api/notes/[id]` - Update note
 - `DELETE /api/notes/[id]` - Delete note
 
+### Admin (tony@opusautomations.com only)
+- `GET /api/admin/stats` - Dashboard statistics
+- `GET /api/admin/users` - List all users
+- `PATCH /api/admin/payment-proofs` - Approve/reject payment proofs
+
 ### Webhooks
 - `POST /api/webhooks/clerk` - Clerk user events
-- `POST /api/webhooks/stripe` - Stripe payment events
 
 ## 🎯 Usage Guide
 
