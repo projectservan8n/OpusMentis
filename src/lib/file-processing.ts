@@ -98,9 +98,12 @@ export function estimateProcessingTime(fileSize: number, fileType: string): numb
   return (baseTime[fileType as keyof typeof baseTime] || 10) * Math.max(1, sizeMultiplier)
 }
 
-// MVP: Simple local file storage (later: cloud storage)
+// File storage using Railway Volume (mounted at /app/uploads)
 export async function saveUploadedFile(buffer: Buffer, filename: string): Promise<string> {
-  const uploadsDir = path.join(process.cwd(), 'uploads')
+  // Use /app/uploads for Railway Volume, fallback to local for development
+  const uploadsDir = process.env.NODE_ENV === 'production'
+    ? '/app/uploads'
+    : path.join(process.cwd(), 'uploads')
 
   try {
     await fs.access(uploadsDir)
@@ -114,6 +117,8 @@ export async function saveUploadedFile(buffer: Buffer, filename: string): Promis
   const filePath = path.join(uploadsDir, savedFilename)
 
   await fs.writeFile(filePath, buffer)
+
+  console.log(`File saved to: ${filePath}`)
   return filePath
 }
 

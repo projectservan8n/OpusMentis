@@ -137,15 +137,31 @@ The application will be available at `http://localhost:3000`.
 DATABASE_URL (automatically provided by Railway Postgres)
 CLERK_PUBLISHABLE_KEY
 CLERK_SECRET_KEY
-STRIPE_SECRET_KEY
-STRIPE_WEBHOOK_SECRET
 OPENAI_API_KEY
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
+NODE_ENV=production
 ```
+
+### 📁 **Railway Volume Setup (REQUIRED)**
+
+**Why:** Railway has ephemeral filesystem - uploaded files will be deleted on redeploy without a volume.
+
+**Steps:**
+1. In Railway dashboard, go to your StudyFlow AI service
+2. Click **"Variables"** tab
+3. Scroll down to **"Volumes"** section
+4. Click **"+ New Volume"**
+5. Set **Mount Path**: `/app/uploads`
+6. Set **Size**: 5-10 GB (recommended for MVP)
+7. Click **"Add"**
+
+**Cost:** ~$0.25/GB/month (~$1.25-2.50/month for 5-10GB)
+
+**Result:** All uploaded PDFs, audio, video, and payment proof screenshots will persist across deployments.
 
 ### Railway Setup Steps
 1. Create a new project on Railway
