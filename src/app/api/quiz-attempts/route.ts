@@ -204,6 +204,82 @@ Return ONLY a JSON object:
 }
 
 /**
+ * GET - Get all quiz attempts for current user
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Fetch all quiz attempts for the user, ordered by most recent first
+    const attempts = await prisma.quizAttempt.findMany({
+      where: {
+        userId
+      },
+      include: {
+        quiz: {
+          select: {
+            id: true,
+            title: true,
+            difficulty: true,
+            questions: true,
+            totalPoints: true,
+            studyPack: {
+              select: {
+                id: true,
+                title: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        completedAt: 'desc'
+      }
+    })
+
+    // Calculate additional stats for each attempt
+    const attemptsWithStats = attempts.map(attempt => {
+      const answers = attempt.answers as any[]
+      const feedback = attempt.feedback as any[]
+      const correctAnswers = feedback.filter((f: any) => f.isCorrect).length
+      const totalQuestions = answers.length
+
+      return {
+        id: attempt.id,
+        quizId: attempt.quizId,
+        score: attempt.totalPoints, // Points earned
+        totalPoints: attempt.quiz.totalPoints, // Max possible points
+        timeSpent: attempt.timeSpent,
+        completedAt: attempt.completedAt,
+        quiz: {
+          id: attempt.quiz.id,
+          title: attempt.quiz.title,
+          difficulty: attempt.quiz.difficulty,
+          studyPack: attempt.quiz.studyPack
+        },
+        correctAnswers,
+        totalQuestions
+      }
+    })
+
+    return NextResponse.json({
+      attempts: attemptsWithStats,
+      total: attempts.length
+    })
+  } catch (error: any) {
+    console.error('Error fetching quiz attempts:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch quiz attempts' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
  * POST - Submit quiz attempt and get AI grading
  */
 export async function POST(request: NextRequest) {

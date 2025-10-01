@@ -17,12 +17,14 @@ import {
   Code,
   Key,
   Menu,
-  X
+  X,
+  History
 } from 'lucide-react'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Upload', href: '/upload', icon: Upload },
+  { name: 'Quiz History', href: '/quiz-history', icon: History },
   { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'Billing', href: '/billing', icon: CreditCard },
 ]
