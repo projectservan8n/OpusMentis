@@ -11,6 +11,8 @@ import DashboardLayout from '@/components/dashboard-layout'
 import KanbanBoard from '@/components/kanban-board'
 import Flashcards from '@/components/flashcards'
 import Notes from '@/components/notes'
+import PDFViewer from '@/components/pdf-viewer'
+import HighlightSidebar from '@/components/highlight-sidebar'
 import { formatBytes } from '@/lib/utils'
 import {
   FileText,
@@ -28,6 +30,23 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+interface Highlight {
+  id: string
+  pageNumber: number
+  coordinates: {
+    x: number
+    y: number
+    width: number
+    height: number
+    pageHeight: number
+    pageWidth: number
+  }
+  color: string
+  text: string
+  note?: string
+  createdAt: string
+}
+
 interface StudyPack {
   id: string
   title: string
@@ -35,6 +54,7 @@ interface StudyPack {
   originalFileName: string
   fileType: string
   fileSize: number
+  filePath?: string
   status: string
   processingError?: string
   summary?: string
@@ -61,13 +81,15 @@ export default function StudyPackPage() {
   const studyPackId = params.id as string
 
   const [studyPack, setStudyPack] = useState<StudyPack | null>(null)
+  const [highlights, setHighlights] = useState<Highlight[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState('summary')
+  const [activeTab, setActiveTab] = useState('pdf')
 
   useEffect(() => {
     if (studyPackId) {
       fetchStudyPack()
+      fetchHighlights()
     }
   }, [studyPackId])
 
@@ -140,6 +162,87 @@ export default function StudyPackPage() {
       console.error('Export error:', error)
       toast.error('Failed to export PDF', { id: 'export' })
     }
+  }
+
+  // Highlight management functions
+  const fetchHighlights = async () => {
+    try {
+      const response = await fetch(`/api/highlights?studyPackId=${studyPackId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setHighlights(data)
+      }
+    } catch (error) {
+      console.error('Error fetching highlights:', error)
+    }
+  }
+
+  const handleHighlightCreate = async (highlight: Omit<Highlight, 'id' | 'createdAt'>) => {
+    try {
+      const response = await fetch('/api/highlights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studyPackId,
+          ...highlight
+        })
+      })
+
+      if (response.ok) {
+        const newHighlight = await response.json()
+        setHighlights(prev => [...prev, newHighlight])
+        toast.success('Highlight created')
+      }
+    } catch (error) {
+      console.error('Error creating highlight:', error)
+      toast.error('Failed to create highlight')
+    }
+  }
+
+  const handleHighlightUpdate = async (highlightId: string, note: string) => {
+    try {
+      const response = await fetch(`/api/highlights?id=${highlightId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note })
+      })
+
+      if (response.ok) {
+        const updated = await response.json()
+        setHighlights(prev => prev.map(h => h.id === highlightId ? updated : h))
+        toast.success('Note updated')
+      }
+    } catch (error) {
+      console.error('Error updating highlight:', error)
+      toast.error('Failed to update note')
+    }
+  }
+
+  const handleHighlightDelete = async (highlightId: string) => {
+    try {
+      const response = await fetch(`/api/highlights?id=${highlightId}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        setHighlights(prev => prev.filter(h => h.id !== highlightId))
+        toast.success('Highlight deleted')
+      }
+    } catch (error) {
+      console.error('Error deleting highlight:', error)
+      toast.error('Failed to delete highlight')
+    }
+  }
+
+  const handleHighlightClick = (highlight: Highlight) => {
+    // Jump to the page in PDF viewer
+    // This is handled by the PDF viewer component
+    setActiveTab('pdf')
+  }
+
+  const handleGenerateQuiz = (highlightIds: string[]) => {
+    // TODO: Implement in Phase 4
+    toast.success(`Will generate quiz from ${highlightIds.length} highlights`)
   }
 
   if (loading) {
@@ -285,7 +388,10 @@ export default function StudyPackPage() {
         <Card>
           <CardContent className="p-0">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
+                <TabsTrigger value="pdf">
+                  PDF {studyPack.fileType === 'pdf' && `(${highlights.length})`}
+                </TabsTrigger>
                 <TabsTrigger value="summary">Summary</TabsTrigger>
                 <TabsTrigger value="kanban">Kanban</TabsTrigger>
                 <TabsTrigger value="flashcards">
@@ -297,6 +403,41 @@ export default function StudyPackPage() {
               </TabsList>
 
               <div className="p-6">
+                <TabsContent value="pdf" className="mt-0">
+                  {studyPack.fileType === 'pdf' && studyPack.filePath ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      <div className="lg:col-span-2">
+                        <PDFViewer
+                          filePath={studyPack.filePath}
+                          studyPackId={studyPackId}
+                          highlights={highlights}
+                          onHighlightCreate={handleHighlightCreate}
+                          onHighlightClick={handleHighlightClick}
+                        />
+                      </div>
+                      <div className="lg:col-span-1">
+                        <HighlightSidebar
+                          highlights={highlights}
+                          onHighlightClick={handleHighlightClick}
+                          onHighlightDelete={handleHighlightDelete}
+                          onHighlightUpdate={handleHighlightUpdate}
+                          onGenerateQuiz={handleGenerateQuiz}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">PDF Viewer Not Available</h3>
+                        <p className="text-muted-foreground">
+                          This file is not a PDF or the PDF file is not available.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
+
                 <TabsContent value="summary" className="mt-0">
                   <div className="space-y-6">
                     <div>
