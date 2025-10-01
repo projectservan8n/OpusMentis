@@ -6,12 +6,9 @@ async function setupDatabase() {
   try {
     console.log('🔧 Setting up database...');
 
-    // First, try to connect to the database
-    console.log('📡 Testing database connection...');
-    execSync('npx prisma db pull || true', { stdio: 'inherit' });
-
-    // Push the schema to create tables
-    console.log('📋 Creating database tables...');
+    // Skip db pull - it would overwrite our schema with only existing tables
+    // Instead, just push our schema to create any missing tables
+    console.log('📋 Creating database tables from schema...');
     execSync('npx prisma db push --accept-data-loss', { stdio: 'inherit' });
 
     console.log('✅ Database setup completed successfully!');
