@@ -14,7 +14,8 @@ import {
   Minimize2,
   Loader2,
   FileText,
-  Highlighter
+  Highlighter,
+  X
 } from 'lucide-react'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
@@ -47,9 +48,13 @@ export default function PDFViewer({
   const [error, setError] = useState<string | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [containerWidth, setContainerWidth] = useState<number>(0)
+  const [showColorPicker, setShowColorPicker] = useState(false)
+  const [colorPickerPosition, setColorPickerPosition] = useState<{ x: number; y: number } | null>(null)
+  const [isCreatingHighlight, setIsCreatingHighlight] = useState(false)
 
   const pageRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const colorPickerRef = useRef<HTMLDivElement>(null)
 
   // Measure container width for responsive scaling
   useEffect(() => {
@@ -114,10 +119,33 @@ export default function PDFViewer({
   const zoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.5))
   const resetZoom = () => setScale(1.0)
 
-  // Handle text selection and highlighting
+  // Handle text selection and show color picker
   const handleMouseUp = useCallback(() => {
     if (!isSelecting) return
 
+    const selection = window.getSelection()
+    if (!selection || selection.toString().trim() === '') {
+      setShowColorPicker(false)
+      return
+    }
+
+    try {
+      const range = selection.getRangeAt(0)
+      const rect = range.getBoundingClientRect()
+
+      // Show color picker near the selection
+      setColorPickerPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top - 50 // Above the selection
+      })
+      setShowColorPicker(true)
+    } catch (error) {
+      console.error('Error showing color picker:', error)
+    }
+  }, [isSelecting])
+
+  // Create highlight with selected color
+  const createHighlight = useCallback((color: string) => {
     const selection = window.getSelection()
     if (!selection || selection.toString().trim() === '') {
       return
@@ -162,21 +190,28 @@ export default function PDFViewer({
       const highlight: Omit<Highlight, 'id'> = {
         pageNumber,
         coordinates,
-        color: selectedColor,
+        color: color,
         text: selection.toString()
       }
 
       console.log('Creating highlight:', highlight)
+
+      // Show creating animation
+      setIsCreatingHighlight(true)
+
       onHighlightCreate?.(highlight)
 
-      // Clear selection after a small delay to show visual feedback
+      // Clear selection and hide picker with smooth transition
       setTimeout(() => {
+        setIsCreatingHighlight(false)
         selection.removeAllRanges()
-      }, 100)
+        setShowColorPicker(false)
+        setColorPickerPosition(null)
+      }, 150)
     } catch (error) {
       console.error('Error creating highlight:', error)
     }
-  }, [isSelecting, pageNumber, selectedColor, onHighlightCreate])
+  }, [pageNumber, onHighlightCreate])
 
   useEffect(() => {
     if (isSelecting) {
@@ -184,6 +219,41 @@ export default function PDFViewer({
       return () => document.removeEventListener('mouseup', handleMouseUp)
     }
   }, [isSelecting, handleMouseUp])
+
+  // Handle keyboard shortcuts and click outside
+  useEffect(() => {
+    if (!showColorPicker) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowColorPicker(false)
+        setColorPickerPosition(null)
+        window.getSelection()?.removeAllRanges()
+      }
+      // Quick color selection with number keys 1-5
+      if (e.key >= '1' && e.key <= '5') {
+        const index = parseInt(e.key) - 1
+        if (colors[index]) {
+          createHighlight(colors[index].name)
+        }
+      }
+    }
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (colorPickerRef.current && !colorPickerRef.current.contains(e.target as Node)) {
+        setShowColorPicker(false)
+        setColorPickerPosition(null)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('mousedown', handleClickOutside)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showColorPicker, createHighlight, colors])
 
   // Render highlights on canvas
   const renderHighlights = () => {
@@ -226,7 +296,7 @@ export default function PDFViewer({
       return (
         <div
           key={highlight.id}
-          className="absolute cursor-pointer hover:opacity-90 transition-opacity pointer-events-auto"
+          className="absolute cursor-pointer hover:opacity-90 transition-all duration-200 pointer-events-auto animate-in fade-in zoom-in-95"
           style={{
             left: `${leftPercent}%`,
             top: `${topPercent}%`,
@@ -312,30 +382,33 @@ export default function PDFViewer({
               </Button>
             </div>
 
-            {/* Color Picker */}
+            {/* Highlighting Toggle */}
             <div className="flex items-center gap-2">
-              <div className="flex gap-1">
-                {colors.map(color => (
-                  <button
-                    key={color.name}
-                    onClick={() => setSelectedColor(color.name)}
-                    className={`
-                      w-6 h-6 sm:w-8 sm:h-8 rounded border-2 transition-all
-                      ${color.class}
-                      ${selectedColor === color.name ? 'border-primary ring-2 ring-primary/20' : 'border-transparent'}
-                    `}
-                    title={`Highlight with ${color.name}`}
-                  />
-                ))}
-              </div>
               <Button
                 variant={isSelecting ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setIsSelecting(!isSelecting)}
+                onClick={() => {
+                  setIsSelecting(!isSelecting)
+                  if (isSelecting) {
+                    setShowColorPicker(false)
+                  }
+                }}
+                className="gap-2"
               >
-                <Highlighter className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">{isSelecting ? 'Enabled' : 'Highlight'}</span>
+                <Highlighter className="h-4 w-4" />
+                <span className="hidden sm:inline">{isSelecting ? 'Highlighting On' : 'Enable Highlighting'}</span>
+                <span className="sm:hidden">{isSelecting ? 'On' : 'Off'}</span>
               </Button>
+              {isSelecting && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground hidden md:inline">Select text to highlight</span>
+                  {/* Show current color */}
+                  <div className="flex items-center gap-1 px-2 py-1 rounded border bg-muted">
+                    <div className={`w-4 h-4 rounded ${colors.find(c => c.name === selectedColor)?.class}`} />
+                    <span className="text-xs capitalize hidden sm:inline">{selectedColor}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -400,6 +473,61 @@ export default function PDFViewer({
               {highlights.filter(h => h.pageNumber === pageNumber).length} highlight(s) on this page
             </span>
           )}
+        </div>
+      )}
+
+      {/* Floating Color Picker on Text Selection */}
+      {showColorPicker && colorPickerPosition && (
+        <div
+          ref={colorPickerRef}
+          className="fixed z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+          style={{
+            left: `${colorPickerPosition.x}px`,
+            top: `${colorPickerPosition.y}px`,
+            transform: 'translateX(-50%)'
+          }}
+        >
+          <Card className="p-2 shadow-lg border-2 bg-background/95 backdrop-blur-sm">
+            <div className="flex items-center gap-2">
+              {colors.map((color, index) => (
+                <button
+                  key={color.name}
+                  onClick={() => {
+                    setSelectedColor(color.name)
+                    createHighlight(color.name)
+                  }}
+                  disabled={isCreatingHighlight}
+                  className={`
+                    w-8 h-8 rounded-full border-2 transition-all duration-200
+                    hover:scale-110 active:scale-95
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    ${color.class}
+                    ${selectedColor === color.name ? 'border-primary ring-2 ring-primary/20 scale-110' : 'border-white shadow-sm'}
+                    ${isCreatingHighlight ? 'animate-pulse' : ''}
+                  `}
+                  title={`Highlight with ${color.name} (${index + 1})`}
+                  aria-label={`Highlight with ${color.name}, press ${index + 1}`}
+                />
+              ))}
+              <div className="w-px h-6 bg-border mx-1" />
+              <button
+                onClick={() => {
+                  setShowColorPicker(false)
+                  setColorPickerPosition(null)
+                  window.getSelection()?.removeAllRanges()
+                }}
+                disabled={isCreatingHighlight}
+                className="p-1.5 hover:bg-muted rounded transition-colors disabled:opacity-50"
+                title="Cancel (Esc)"
+                aria-label="Cancel highlighting"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="text-xs text-muted-foreground text-center mt-2 px-1">
+              Press 1-5 or click to select color
+            </div>
+          </Card>
         </div>
       )}
     </>
