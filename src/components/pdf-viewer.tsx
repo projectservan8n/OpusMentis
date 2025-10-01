@@ -141,14 +141,22 @@ export default function PDFViewer({
         return
       }
 
-      // Calculate relative coordinates with scroll offset
+      // Calculate relative coordinates as percentages (scale-independent)
+      const x = rect.left - pageRect.left
+      const y = rect.top - pageRect.top
+
       const coordinates = {
-        x: rect.left - pageRect.left + pageElement.scrollLeft,
-        y: rect.top - pageRect.top + pageElement.scrollTop,
+        x: x,
+        y: y,
         width: rect.width,
         height: rect.height,
         pageHeight: pageRect.height,
-        pageWidth: pageRect.width
+        pageWidth: pageRect.width,
+        // Store as percentages for scale independence
+        xPercent: (x / pageRect.width) * 100,
+        yPercent: (y / pageRect.height) * 100,
+        widthPercent: (rect.width / pageRect.width) * 100,
+        heightPercent: (rect.height / pageRect.height) * 100
       }
 
       const highlight: Omit<Highlight, 'id'> = {
@@ -187,17 +195,33 @@ export default function PDFViewer({
       const color = colors.find(c => c.name === highlight.color)
 
       // Ensure coordinates exist and are valid
-      if (!highlight.coordinates ||
-          !highlight.coordinates.pageWidth ||
-          !highlight.coordinates.pageHeight) {
+      if (!highlight.coordinates) {
         console.warn('Invalid highlight coordinates:', highlight)
         return null
       }
 
-      const leftPercent = (highlight.coordinates.x / highlight.coordinates.pageWidth) * 100
-      const topPercent = (highlight.coordinates.y / highlight.coordinates.pageHeight) * 100
-      const widthPercent = (highlight.coordinates.width / highlight.coordinates.pageWidth) * 100
-      const heightPercent = (highlight.coordinates.height / highlight.coordinates.pageHeight) * 100
+      const coords = highlight.coordinates as any
+
+      // Use stored percentages if available (new format), otherwise calculate from pixels (legacy)
+      let leftPercent, topPercent, widthPercent, heightPercent
+
+      if (coords.xPercent !== undefined && coords.yPercent !== undefined) {
+        // New format: use pre-calculated percentages (scale-independent)
+        leftPercent = coords.xPercent
+        topPercent = coords.yPercent
+        widthPercent = coords.widthPercent
+        heightPercent = coords.heightPercent
+      } else {
+        // Legacy format: calculate from pixel coordinates
+        if (!coords.pageWidth || !coords.pageHeight) {
+          console.warn('Missing page dimensions for legacy highlight:', highlight)
+          return null
+        }
+        leftPercent = (coords.x / coords.pageWidth) * 100
+        topPercent = (coords.y / coords.pageHeight) * 100
+        widthPercent = (coords.width / coords.pageWidth) * 100
+        heightPercent = (coords.height / coords.pageHeight) * 100
+      }
 
       return (
         <div

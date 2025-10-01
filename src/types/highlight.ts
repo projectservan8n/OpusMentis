@@ -8,6 +8,11 @@ export interface Highlight {
     height: number
     pageHeight: number
     pageWidth: number
+    // Scale-independent percentage coordinates (preferred)
+    xPercent?: number
+    yPercent?: number
+    widthPercent?: number
+    heightPercent?: number
   }
   color: string
   text: string
