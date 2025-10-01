@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import DashboardLayout from '@/components/dashboard-layout'
 import { CheckCircle2, Crown, Zap, Users, CreditCard, Upload, Camera, Copy, QrCode } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -39,6 +41,7 @@ export default function BillingPage() {
   const [paymentProof, setPaymentProof] = useState<File | null>(null)
   const [referenceNumber, setReferenceNumber] = useState('')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [isAnnual, setIsAnnual] = useState(false)
 
   useEffect(() => {
     fetchSubscriptionData()
@@ -80,8 +83,8 @@ export default function BillingPage() {
     {
       id: 'free',
       name: 'Free',
-      price: '₱0',
-      period: '/month',
+      monthlyPrice: 0,
+      annualPrice: 0,
       description: 'Perfect for trying out OpusMentis',
       features: [
         '3 uploads per month',
@@ -102,8 +105,8 @@ export default function BillingPage() {
     {
       id: 'pro',
       name: 'Pro',
-      price: '₱149',
-      period: '/month',
+      monthlyPrice: 149,
+      annualPrice: 1490, // 10 months price = 2 months free
       description: 'Best for students and regular learners',
       features: [
         'Unlimited uploads',
@@ -121,8 +124,8 @@ export default function BillingPage() {
     {
       id: 'premium',
       name: 'Premium',
-      price: '₱399',
-      period: '/month',
+      monthlyPrice: 399,
+      annualPrice: 3990, // 10 months price = 2 months free
       description: 'For power users and teams',
       features: [
         'Everything in Pro',
@@ -138,6 +141,29 @@ export default function BillingPage() {
       color: 'border-purple-500'
     }
   ]
+
+  // Calculate display price based on billing period
+  const getDisplayPrice = (plan: typeof plans[0]) => {
+    if (plan.id === 'free') return '₱0'
+
+    if (isAnnual) {
+      return `₱${plan.annualPrice.toLocaleString()}`
+    }
+    return `₱${plan.monthlyPrice}`
+  }
+
+  const getDisplayPeriod = (plan: typeof plans[0]) => {
+    if (plan.id === 'free') return '/month'
+    return isAnnual ? '/year' : '/month'
+  }
+
+  const getSavingsText = (plan: typeof plans[0]) => {
+    if (plan.id === 'free' || !isAnnual) return null
+    const monthlyCost = plan.monthlyPrice * 12
+    const annualCost = plan.annualPrice
+    const savings = monthlyCost - annualCost
+    return `Save ₱${savings}`
+  }
 
   const handleUpgrade = (planId: string) => {
     setSelectedPlan(planId)
@@ -168,9 +194,13 @@ export default function BillingPage() {
       formData.append('file', paymentProof)
       formData.append('planRequested', selectedPlan)
       formData.append('referenceNumber', referenceNumber)
+      formData.append('billingPeriod', isAnnual ? 'annual' : 'monthly')
 
       const selectedPlanData = plans.find(p => p.id === selectedPlan)
-      formData.append('amount', selectedPlanData?.price || '')
+      const amount = isAnnual
+        ? `₱${selectedPlanData?.annualPrice.toLocaleString()}`
+        : `₱${selectedPlanData?.monthlyPrice}`
+      formData.append('amount', amount)
 
       const response = await fetch('/api/payment-proofs', {
         method: 'POST',
@@ -287,10 +317,32 @@ export default function BillingPage() {
 
         {/* Plans */}
         <div>
-          <h2 className="text-2xl font-bold mb-2">Choose Your Plan</h2>
-          <p className="text-muted-foreground mb-6">
-            Upgrade with GCash payment - instant activation after verification
-          </p>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Choose Your Plan</h2>
+              <p className="text-muted-foreground">
+                Upgrade with GCash payment - instant activation after verification
+              </p>
+            </div>
+
+            {/* Billing Toggle */}
+            <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-lg">
+              <Label htmlFor="billing-toggle" className={`text-sm font-medium cursor-pointer ${!isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
+                Monthly
+              </Label>
+              <Switch
+                id="billing-toggle"
+                checked={isAnnual}
+                onCheckedChange={setIsAnnual}
+              />
+              <Label htmlFor="billing-toggle" className={`text-sm font-medium cursor-pointer ${isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
+                Annual
+                <Badge variant="secondary" className="ml-2 bg-green-100 text-green-700">
+                  Save 17%
+                </Badge>
+              </Label>
+            </div>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {plans.map((plan) => {
@@ -327,8 +379,15 @@ export default function BillingPage() {
                     </div>
                     <CardDescription>{plan.description}</CardDescription>
                     <div className="mt-4">
-                      <span className="text-3xl font-bold">{plan.price}</span>
-                      <span className="text-muted-foreground">{plan.period}</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-bold">{getDisplayPrice(plan)}</span>
+                        <span className="text-muted-foreground">{getDisplayPeriod(plan)}</span>
+                      </div>
+                      {getSavingsText(plan) && (
+                        <Badge variant="secondary" className="mt-2 bg-green-100 text-green-700">
+                          {getSavingsText(plan)}
+                        </Badge>
+                      )}
                     </div>
                   </CardHeader>
 
@@ -391,7 +450,7 @@ export default function BillingPage() {
             <DialogHeader>
               <DialogTitle>GCash Payment Instructions</DialogTitle>
               <DialogDescription>
-                Follow these steps to upgrade to {plans.find(p => p.id === selectedPlan)?.name} plan
+                Follow these steps to upgrade to {plans.find(p => p.id === selectedPlan)?.name} plan ({isAnnual ? 'Annual' : 'Monthly'})
               </DialogDescription>
             </DialogHeader>
 
@@ -407,8 +466,15 @@ export default function BillingPage() {
                         <div className="flex justify-between">
                           <span>Amount:</span>
                           <span className="font-medium">
-                            {plans.find(p => p.id === selectedPlan)?.price}
+                            {(() => {
+                              const plan = plans.find(p => p.id === selectedPlan)
+                              return plan ? getDisplayPrice(plan) : '₱0'
+                            })()}
                           </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Billing Period:</span>
+                          <span className="font-medium">{isAnnual ? 'Annual' : 'Monthly'}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span>GCash Number:</span>
@@ -532,7 +598,7 @@ export default function BillingPage() {
               <div>
                 <h4 className="font-medium mb-2">Can I pay monthly or yearly?</h4>
                 <p className="text-sm text-muted-foreground">
-                  Currently we accept monthly payments only. Annual billing will be available soon with discounts.
+                  Yes! We offer both monthly and annual billing. Annual subscriptions save you 17% (2 months free). Use the toggle above to switch between billing periods.
                 </p>
               </div>
 
