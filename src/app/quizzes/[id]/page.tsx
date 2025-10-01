@@ -264,52 +264,69 @@ export default function QuizTakingPage() {
             />
 
             {/* Navigation */}
-            <div className="flex items-center justify-between pt-4 border-t">
-              <Button
-                variant="outline"
-                onClick={handlePrevious}
-                disabled={currentQuestion === 0}
-              >
-                Previous
-              </Button>
-
-              <div className="flex items-center gap-2">
-                {quiz.questions.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentQuestion(index)}
-                    className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
-                      index === currentQuestion
-                        ? 'bg-primary text-primary-foreground'
-                        : answers[index]
-                        ? 'bg-green-500 text-white'
-                        : 'bg-muted hover:bg-muted/80'
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
+            <div className="flex flex-col gap-4 pt-4 border-t">
+              {/* Quick Jump Navigation - Hidden on mobile, scrollable on larger screens */}
+              <div className="hidden lg:block overflow-x-auto">
+                <div className="flex items-center gap-2 min-w-min px-1 py-2">
+                  {quiz.questions.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentQuestion(index)}
+                      className={`w-10 h-10 rounded-full text-sm font-medium transition-colors flex-shrink-0 ${
+                        index === currentQuestion
+                          ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2'
+                          : answers[index]
+                          ? 'bg-green-500 text-white hover:bg-green-600'
+                          : 'bg-muted hover:bg-muted/80'
+                      }`}
+                      title={`Question ${index + 1}${answers[index] ? ' (Answered)' : ''}`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {currentQuestion === quiz.questions.length - 1 ? (
-                <Button onClick={handleSubmit} disabled={submitting}>
-                  {submitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4 mr-2" />
-                      Submit Quiz
-                    </>
-                  )}
+              {/* Previous/Next Buttons */}
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={currentQuestion === 0}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Previous</span>
+                  <span className="sm:hidden">Prev</span>
                 </Button>
-              ) : (
-                <Button onClick={handleNext}>
-                  Next
-                </Button>
-              )}
+
+                <div className="text-sm text-muted-foreground font-medium">
+                  {currentQuestion + 1} / {quiz.questions.length}
+                </div>
+
+                {currentQuestion === quiz.questions.length - 1 ? (
+                  <Button onClick={handleSubmit} disabled={submitting}>
+                    {submitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <span className="hidden sm:inline">Submitting...</span>
+                        <span className="sm:hidden">Submit</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Submit Quiz</span>
+                        <span className="sm:hidden">Submit</span>
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button onClick={handleNext}>
+                    <span className="hidden sm:inline mr-2">Next</span>
+                    <span className="sm:hidden mr-2">Next</span>
+                    <ArrowLeft className="h-4 w-4 rotate-180" />
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -320,12 +337,16 @@ export default function QuizTakingPage() {
             <CardTitle className="text-sm">Answer Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-10 gap-2">
+            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
               {quiz.questions.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentQuestion(index)}
                   className={`aspect-square rounded flex items-center justify-center text-xs font-medium transition-colors ${
+                    index === currentQuestion
+                      ? 'ring-2 ring-primary ring-offset-2'
+                      : ''
+                  } ${
                     answers[index]
                       ? 'bg-green-500 text-white hover:bg-green-600'
                       : 'bg-muted hover:bg-muted/80'
