@@ -167,51 +167,10 @@ export default function PDFViewer({
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <Card className="p-4">
-        <div className="flex items-center justify-between gap-4">
-          {/* Color Picker */}
-          <div className="flex items-center gap-2">
-            <Highlighter className="h-4 w-4 text-muted-foreground" />
-            <div className="flex gap-1">
-              {colors.map(color => (
-                <button
-                  key={color.name}
-                  onClick={() => setSelectedColor(color.name)}
-                  className={`
-                    w-8 h-8 rounded border-2 transition-all
-                    ${color.class}
-                    ${selectedColor === color.name ? 'border-primary ring-2 ring-primary/20' : 'border-transparent'}
-                  `}
-                  title={`Highlight with ${color.name}`}
-                />
-              ))}
-            </div>
-            <Button
-              variant={isSelecting ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setIsSelecting(!isSelecting)}
-              className="ml-2"
-            >
-              {isSelecting ? 'Highlighting Enabled' : 'Enable Highlighting'}
-            </Button>
-          </div>
-
-          {/* Zoom Controls */}
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={zoomOut}>
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <Badge variant="secondary">{Math.round(scale * 100)}%</Badge>
-            <Button variant="outline" size="sm" onClick={zoomIn}>
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={resetZoom}>
-              <Maximize2 className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Page Navigation */}
-          <div className="flex items-center gap-2">
+      <Card className="p-3 sm:p-4">
+        <div className="flex flex-col gap-3 sm:gap-4">
+          {/* Top Row: Page Navigation (always visible) */}
+          <div className="flex items-center justify-between gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -219,6 +178,7 @@ export default function PDFViewer({
               disabled={pageNumber <= 1}
             >
               <ChevronLeft className="h-4 w-4" />
+              <span className="hidden sm:inline ml-1">Prev</span>
             </Button>
             <div className="text-sm font-medium whitespace-nowrap">
               Page {pageNumber} of {numPages || '...'}
@@ -229,8 +189,52 @@ export default function PDFViewer({
               onClick={nextPage}
               disabled={pageNumber >= numPages}
             >
+              <span className="hidden sm:inline mr-1">Next</span>
               <ChevronRight className="h-4 w-4" />
             </Button>
+          </div>
+
+          {/* Bottom Row: Zoom and Highlighting */}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            {/* Zoom Controls */}
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Button variant="outline" size="sm" onClick={zoomOut}>
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <Badge variant="secondary" className="text-xs">{Math.round(scale * 100)}%</Badge>
+              <Button variant="outline" size="sm" onClick={zoomIn}>
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={resetZoom} className="hidden sm:flex">
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Color Picker */}
+            <div className="flex items-center gap-2">
+              <div className="flex gap-1">
+                {colors.map(color => (
+                  <button
+                    key={color.name}
+                    onClick={() => setSelectedColor(color.name)}
+                    className={`
+                      w-6 h-6 sm:w-8 sm:h-8 rounded border-2 transition-all
+                      ${color.class}
+                      ${selectedColor === color.name ? 'border-primary ring-2 ring-primary/20' : 'border-transparent'}
+                    `}
+                    title={`Highlight with ${color.name}`}
+                  />
+                ))}
+              </div>
+              <Button
+                variant={isSelecting ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setIsSelecting(!isSelecting)}
+              >
+                <Highlighter className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{isSelecting ? 'Enabled' : 'Highlight'}</span>
+              </Button>
+            </div>
           </div>
         </div>
       </Card>

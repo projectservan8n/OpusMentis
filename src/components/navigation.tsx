@@ -174,18 +174,7 @@ export default function Navigation() {
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-background border-b">
         <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center">
-            <Brain className="h-6 w-6 text-primary" />
-            <span className="ml-2 text-lg font-bold">OpusMentis</span>
-          </div>
           <div className="flex items-center gap-3">
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-8 h-8"
-                }
-              }}
-            />
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="lg:hidden">
@@ -209,7 +198,18 @@ export default function Navigation() {
                 </div>
               </SheetContent>
             </Sheet>
+            <div className="flex items-center">
+              <Brain className="h-6 w-6 text-primary" />
+              <span className="ml-2 text-lg font-bold">OpusMentis</span>
+            </div>
           </div>
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: "w-8 h-8"
+              }
+            }}
+          />
         </div>
       </div>
     </>

@@ -404,21 +404,28 @@ export default function StudyPackPage() {
         <Card>
           <CardContent className="p-0">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="pdf">
-                  PDF {studyPack.fileType === 'pdf' && `(${highlights.length})`}
+              <TabsList className="w-full inline-flex h-10 items-center justify-start rounded-none border-b bg-transparent p-0 overflow-x-auto">
+                <TabsTrigger value="pdf" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
+                  <span className="hidden sm:inline">PDF</span>
+                  <span className="sm:hidden">PDF</span>
+                  {studyPack.fileType === 'pdf' && highlights.length > 0 && ` (${highlights.length})`}
                 </TabsTrigger>
-                <TabsTrigger value="summary">Summary</TabsTrigger>
-                <TabsTrigger value="kanban">Kanban</TabsTrigger>
-                <TabsTrigger value="flashcards">
-                  Flashcards ({studyPack.flashcards?.length || 0})
+                <TabsTrigger value="summary" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
+                  Summary
                 </TabsTrigger>
-                <TabsTrigger value="notes">
+                <TabsTrigger value="kanban" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
+                  Kanban
+                </TabsTrigger>
+                <TabsTrigger value="flashcards" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
+                  <span className="hidden sm:inline">Flashcards ({studyPack.flashcards?.length || 0})</span>
+                  <span className="sm:hidden">Cards ({studyPack.flashcards?.length || 0})</span>
+                </TabsTrigger>
+                <TabsTrigger value="notes" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
                   Notes ({studyPack.notes?.length || 0})
                 </TabsTrigger>
               </TabsList>
 
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <TabsContent value="pdf" className="mt-0">
                   {studyPack.fileType === 'pdf' && studyPack.filePath ? (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
