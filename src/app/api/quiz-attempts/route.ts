@@ -251,7 +251,7 @@ export async function GET(request: NextRequest) {
       return {
         id: attempt.id,
         quizId: attempt.quizId,
-        score: attempt.totalPoints, // Points earned
+        score: attempt.score, // Points earned by the user
         totalPoints: attempt.quiz.totalPoints, // Max possible points
         timeSpent: attempt.timeSpent,
         completedAt: attempt.completedAt,
