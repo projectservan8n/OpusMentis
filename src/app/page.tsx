@@ -204,16 +204,16 @@ export default function HomePage() {
             <div>
               <h3 className="font-semibold mb-4">Product</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/dashboard">Dashboard</Link></li>
-                <li><Link href="/upload">Upload</Link></li>
-                <li><Link href="/billing">Billing</Link></li>
+                <li><Link href="/features">Features</Link></li>
+                <li><Link href="/pricing">Pricing</Link></li>
+                <li><Link href="/api-docs">API</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Developer</h3>
+              <h3 className="font-semibold mb-4">Support</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/api-keys">API Keys</Link></li>
-                <li><Link href="/api-playground">API Playground</Link></li>
+                <li><Link href="/contact">Contact</Link></li>
+                <li><Link href="/dashboard">Dashboard</Link></li>
               </ul>
             </div>
             <div>
