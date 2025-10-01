@@ -138,6 +138,150 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     pathParams: [{ name: 'id', example: 'clxxxxx' }]
   },
 
+  // Quiz endpoints
+  {
+    name: 'Generate Quiz',
+    method: 'POST',
+    path: '/api/quizzes/generate',
+    description: 'Generate a quiz from highlights, chapters, pages, or full document',
+    category: 'quizzes',
+    requiresAuth: true,
+    bodyExample: JSON.stringify({
+      studyPackId: 'clxxxxx',
+      title: 'Chapter 3 Quiz',
+      source: 'highlights',
+      sourceDetails: { highlightIds: ['clxxxxx'] },
+      difficulty: 'medium',
+      questionCount: 10,
+      questionTypes: {
+        multipleChoice: true,
+        trueFalse: true,
+        shortAnswer: false,
+        essay: false
+      }
+    }, null, 2)
+  },
+  {
+    name: 'Get Quiz',
+    method: 'GET',
+    path: '/api/quizzes/:id',
+    description: 'Get a quiz by ID',
+    category: 'quizzes',
+    requiresAuth: true,
+    pathParams: [{ name: 'id', example: 'clxxxxx' }]
+  },
+  {
+    name: 'Delete Quiz',
+    method: 'DELETE',
+    path: '/api/quizzes/:id',
+    description: 'Delete a quiz',
+    category: 'quizzes',
+    requiresAuth: true,
+    pathParams: [{ name: 'id', example: 'clxxxxx' }]
+  },
+  {
+    name: 'Submit Quiz Attempt',
+    method: 'POST',
+    path: '/api/quiz-attempts',
+    description: 'Submit quiz answers and get AI grading',
+    category: 'quizzes',
+    requiresAuth: true,
+    bodyExample: JSON.stringify({
+      quizId: 'clxxxxx',
+      answers: [
+        { questionIndex: 0, answer: 'A' },
+        { questionIndex: 1, answer: 'True' }
+      ],
+      timeSpent: 300
+    }, null, 2)
+  },
+  {
+    name: 'Get Quiz Attempt',
+    method: 'GET',
+    path: '/api/quiz-attempts/:id',
+    description: 'Get quiz attempt results with AI feedback',
+    category: 'quizzes',
+    requiresAuth: true,
+    pathParams: [{ name: 'id', example: 'clxxxxx' }]
+  },
+
+  // Highlights endpoints
+  {
+    name: 'Get Highlights',
+    method: 'GET',
+    path: '/api/highlights?studyPackId=:studyPackId',
+    description: 'Get all highlights for a study pack',
+    category: 'highlights',
+    requiresAuth: true,
+    pathParams: [{ name: 'studyPackId', example: 'clxxxxx' }]
+  },
+  {
+    name: 'Create Highlight',
+    method: 'POST',
+    path: '/api/highlights',
+    description: 'Create a new highlight on a PDF',
+    category: 'highlights',
+    requiresAuth: true,
+    bodyExample: JSON.stringify({
+      studyPackId: 'clxxxxx',
+      pageNumber: 5,
+      coordinates: {
+        x: 100,
+        y: 200,
+        width: 300,
+        height: 20,
+        pageHeight: 800,
+        pageWidth: 600
+      },
+      color: 'yellow',
+      text: 'Highlighted text here',
+      note: 'Optional note'
+    }, null, 2)
+  },
+  {
+    name: 'Update Highlight',
+    method: 'PATCH',
+    path: '/api/highlights',
+    description: 'Update a highlight note',
+    category: 'highlights',
+    requiresAuth: true,
+    bodyExample: JSON.stringify({
+      id: 'clxxxxx',
+      note: 'Updated note'
+    }, null, 2)
+  },
+  {
+    name: 'Delete Highlight',
+    method: 'DELETE',
+    path: '/api/highlights?id=:id',
+    description: 'Delete a highlight',
+    category: 'highlights',
+    requiresAuth: true,
+    pathParams: [{ name: 'id', example: 'clxxxxx' }]
+  },
+
+  // Document Structure endpoints
+  {
+    name: 'Analyze Document Structure',
+    method: 'POST',
+    path: '/api/document-structure',
+    description: 'Analyze PDF structure with AI (chapters, sections, key terms)',
+    category: 'document',
+    requiresAuth: true,
+    bodyExample: JSON.stringify({
+      studyPackId: 'clxxxxx'
+    }, null, 2)
+  },
+  {
+    name: 'Get Document Structure',
+    method: 'GET',
+    path: '/api/document-structure?studyPackId=:studyPackId',
+    description: 'Get document structure for a study pack',
+    category: 'document',
+    requiresAuth: true,
+    pathParams: [{ name: 'studyPackId', example: 'clxxxxx' }]
+  },
+
   // Admin endpoints
   {
     name: 'Get Admin Stats',
@@ -187,6 +331,9 @@ export default function ApiPlaygroundPage() {
   const categories = [
     { id: 'subscription', name: 'Subscription', icon: '💳' },
     { id: 'study-packs', name: 'Study Packs', icon: '📚' },
+    { id: 'quizzes', name: 'Quizzes', icon: '🎯' },
+    { id: 'highlights', name: 'Highlights', icon: '🖍️' },
+    { id: 'document', name: 'Document', icon: '📄' },
     { id: 'notes', name: 'Notes', icon: '📝' },
     { id: 'admin', name: 'Admin', icon: '👑' }
   ]
@@ -328,8 +475,8 @@ export default function ApiPlaygroundPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <Tabs defaultValue="subscription" className="w-full">
-                <TabsList className="w-full grid grid-cols-4 rounded-none border-b">
+              <Tabs defaultValue="quizzes" className="w-full">
+                <TabsList className="w-full grid grid-cols-7 rounded-none border-b">
                   {categories.map(cat => (
                     <TabsTrigger key={cat.id} value={cat.id} className="text-xs">
                       {cat.icon}
