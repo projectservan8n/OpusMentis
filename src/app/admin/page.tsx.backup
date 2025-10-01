@@ -23,29 +23,9 @@ import {
   XCircle,
   Eye,
   RefreshCw,
-  Clock,
-  Mail,
-  Trash2,
-  Download,
-  UserX
+  Clock
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 
 interface AdminStats {
   totalUsers: number
@@ -66,9 +46,6 @@ interface AdminUser {
   joinedAt: string
   lastActive?: string
   status: 'active' | 'banned'
-  profileImageUrl?: string
-  processingPacks?: number
-  totalUploads?: number
 }
 
 interface PaymentProof {
@@ -107,10 +84,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
   const [autoRefresh, setAutoRefresh] = useState(true)
-
-  // User details modal
-  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
-  const [showUserDetailsModal, setShowUserDetailsModal] = useState(false)
 
   // Check if user is admin
   const isAdmin = user?.emailAddresses?.[0]?.emailAddress === 'tony@opusautomations.com'
@@ -245,111 +218,6 @@ export default function AdminPage() {
     } catch (error) {
       console.error(`Error performing ${action}:`, error)
       toast.error(`Failed to ${action} user`)
-    }
-  }
-
-  const handleViewUserDetails = (user: AdminUser) => {
-    setSelectedUser(user)
-    setShowUserDetailsModal(true)
-  }
-
-  const handleResetUserData = async (userId: string) => {
-    const confirmed = window.confirm(
-      'Are you sure you want to reset this user\'s data? This will delete all their study packs and notes but keep their account.'
-    )
-
-    if (!confirmed) return
-
-    try {
-      toast.loading('Resetting user data...', { id: 'reset-user' })
-
-      // Delete all study packs
-      await fetch('/api/admin/users/reset-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId })
-      })
-
-      toast.success('User data reset successfully', { id: 'reset-user' })
-      fetchAdminData()
-    } catch (error) {
-      toast.error('Failed to reset user data', { id: 'reset-user' })
-    }
-  }
-
-  const handleExportUserData = async (userId: string) => {
-    try {
-      toast.loading('Exporting user data...', { id: 'export-user' })
-
-      const response = await fetch(`/api/admin/users/export?userId=${userId}`)
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `user-${userId}-data.json`
-        a.click()
-        window.URL.revokeObjectURL(url)
-
-        toast.success('User data exported successfully', { id: 'export-user' })
-      } else {
-        throw new Error('Export failed')
-      }
-    } catch (error) {
-      toast.error('Failed to export user data', { id: 'export-user' })
-    }
-  }
-
-  const handleDeleteUser = async (userId: string) => {
-    const confirmed = window.confirm(
-      'Are you sure you want to permanently delete this user and all their data? This action cannot be undone.'
-    )
-
-    if (!confirmed) return
-
-    const doubleConfirm = window.prompt('Type "DELETE" to confirm:')
-
-    if (doubleConfirm !== 'DELETE') {
-      toast.error('Deletion cancelled')
-      return
-    }
-
-    try {
-      toast.loading('Deleting user...', { id: 'delete-user' })
-
-      await fetch('/api/admin/users/delete', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId })
-      })
-
-      toast.success('User deleted successfully', { id: 'delete-user' })
-      fetchAdminData()
-    } catch (error) {
-      toast.error('Failed to delete user', { id: 'delete-user' })
-    }
-  }
-
-  const handleExportAllUsers = async () => {
-    try {
-      toast.loading('Exporting all users...', { id: 'export-all' })
-
-      const response = await fetch('/api/admin/users/export-all')
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `all-users-${new Date().toISOString().split('T')[0]}.csv`
-        a.click()
-        window.URL.revokeObjectURL(url)
-
-        toast.success('Users exported successfully', { id: 'export-all' })
-      } else {
-        throw new Error('Export failed')
-      }
-    } catch (error) {
-      toast.error('Failed to export users', { id: 'export-all' })
     }
   }
 
@@ -587,8 +455,7 @@ export default function AdminPage() {
                   className="pl-10"
                 />
               </div>
-              <Button variant="outline" onClick={handleExportAllUsers}>
-                <Download className="h-4 w-4 mr-2" />
+              <Button variant="outline">
                 Export Users
               </Button>
             </div>
@@ -611,22 +478,9 @@ export default function AdminPage() {
                     {filteredUsers.map((user) => (
                       <tr key={user.id} className="border-b hover:bg-muted/50">
                         <td className="p-4">
-                          <div className="flex items-center space-x-3">
-                            {user.profileImageUrl ? (
-                              <img
-                                src={user.profileImageUrl}
-                                alt={user.name || 'User'}
-                                className="w-8 h-8 rounded-full"
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                                <Users className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                            )}
-                            <div>
-                              <div className="font-medium">{user.name || 'Unknown'}</div>
-                              <div className="text-sm text-muted-foreground">{user.email}</div>
-                            </div>
+                          <div>
+                            <div className="font-medium">{user.name || 'Unknown'}</div>
+                            <div className="text-sm text-muted-foreground">{user.email}</div>
                           </div>
                         </td>
                         <td className="p-4">
@@ -671,96 +525,38 @@ export default function AdminPage() {
                         </td>
                         <td className="p-4">
                           <div className="flex items-center space-x-2">
+                            {user.status === 'active' ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUserAction(user.id, 'ban')}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Ban className="h-3 w-3 mr-1" />
+                                Ban
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUserAction(user.id, 'unban')}
+                              >
+                                Unban
+                              </Button>
+                            )}
                             {user.subscriptionTier === 'free' && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleUserAction(user.id, 'upgrade', 'pro')}
+                                onClick={() => handleUserAction(user.id, 'upgrade')}
                               >
                                 <Crown className="h-3 w-3 mr-1" />
                                 Upgrade
                               </Button>
                             )}
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuLabel>User Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => handleViewUserDetails(user)}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Details
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => window.open(`mailto:${user.email}`, '_blank')}>
-                                  <Mail className="mr-2 h-4 w-4" />
-                                  Send Email
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                {user.subscriptionTier === 'free' && (
-                                  <>
-                                    <DropdownMenuItem onClick={() => handleUserAction(user.id, 'upgrade', 'pro')}>
-                                      <Crown className="mr-2 h-4 w-4" />
-                                      Upgrade to Pro
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleUserAction(user.id, 'upgrade', 'premium')}>
-                                      <Crown className="mr-2 h-4 w-4 text-purple-600" />
-                                      Upgrade to Premium
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                  </>
-                                )}
-                                {user.subscriptionTier === 'pro' && (
-                                  <>
-                                    <DropdownMenuItem onClick={() => handleUserAction(user.id, 'upgrade', 'premium')}>
-                                      <Crown className="mr-2 h-4 w-4 text-purple-600" />
-                                      Upgrade to Premium
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                  </>
-                                )}
-                                {user.status === 'active' ? (
-                                  <DropdownMenuItem
-                                    onClick={() => handleUserAction(user.id, 'ban')}
-                                    className="text-orange-600"
-                                  >
-                                    <Ban className="mr-2 h-4 w-4" />
-                                    Ban User
-                                  </DropdownMenuItem>
-                                ) : (
-                                  <DropdownMenuItem
-                                    onClick={() => handleUserAction(user.id, 'unban')}
-                                    className="text-green-600"
-                                  >
-                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                    Unban User
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem
-                                  onClick={() => handleExportUserData(user.id)}
-                                >
-                                  <Download className="mr-2 h-4 w-4" />
-                                  Export User Data
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={() => handleResetUserData(user.id)}
-                                  className="text-orange-600"
-                                >
-                                  <RefreshCw className="mr-2 h-4 w-4" />
-                                  Reset User Data
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleDeleteUser(user.id)}
-                                  className="text-red-600"
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete User
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-3 w-3" />
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -891,120 +687,29 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-4 gap-4">
-              <Button variant="outline" className="h-20 flex flex-col" onClick={handleExportAllUsers}>
-                <Download className="h-6 w-6 mb-2" />
+              <Button variant="outline" className="h-20 flex flex-col">
+                <Users className="h-6 w-6 mb-2" />
                 <span className="text-sm">Export Users</span>
               </Button>
 
-              <Button variant="outline" className="h-20 flex flex-col" onClick={() => window.open('/api-playground', '_blank')}>
+              <Button variant="outline" className="h-20 flex flex-col">
                 <FileText className="h-6 w-6 mb-2" />
-                <span className="text-sm">API Playground</span>
+                <span className="text-sm">System Logs</span>
               </Button>
 
-              <Button variant="outline" className="h-20 flex flex-col" onClick={handleManualRefresh}>
-                <RefreshCw className="h-6 w-6 mb-2" />
-                <span className="text-sm">Refresh Data</span>
+              <Button variant="outline" className="h-20 flex flex-col">
+                <Brain className="h-6 w-6 mb-2" />
+                <span className="text-sm">AI Status</span>
               </Button>
 
-              <Button variant="outline" className="h-20 flex flex-col" onClick={() => setActiveTab('payments')}>
-                <CreditCard className="h-6 w-6 mb-2" />
-                <span className="text-sm">View Payments</span>
+              <Button variant="outline" className="h-20 flex flex-col">
+                <TrendingUp className="h-6 w-6 mb-2" />
+                <span className="text-sm">Analytics</span>
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* User Details Modal */}
-      <Dialog open={showUserDetailsModal} onOpenChange={setShowUserDetailsModal}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>User Details</DialogTitle>
-            <DialogDescription>
-              Complete information about this user
-            </DialogDescription>
-          </DialogHeader>
-          {selectedUser && (
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                {selectedUser.profileImageUrl ? (
-                  <img
-                    src={selectedUser.profileImageUrl}
-                    alt={selectedUser.name || 'User'}
-                    className="w-16 h-16 rounded-full"
-                  />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                    <Users className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                )}
-                <div>
-                  <h3 className="text-lg font-semibold">{selectedUser.name || 'Unknown'}</h3>
-                  <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
-                  <Badge
-                    variant="secondary"
-                    className={
-                      selectedUser.subscriptionTier === 'free'
-                        ? 'bg-gray-100 text-gray-800'
-                        : selectedUser.subscriptionTier === 'pro'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-purple-100 text-purple-800'
-                    }
-                  >
-                    {selectedUser.subscriptionTier.toUpperCase()}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Study Packs</h4>
-                  <p className="text-2xl font-bold">{selectedUser.studyPacksCount}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Notes</h4>
-                  <p className="text-2xl font-bold">{selectedUser.notesCount}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Processing</h4>
-                  <p className="text-2xl font-bold">{selectedUser.processingPacks || 0}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Status</h4>
-                  <Badge variant={selectedUser.status === 'active' ? 'default' : 'destructive'}>
-                    {selectedUser.status}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t">
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">Account Info</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">User ID:</span>
-                    <span className="font-mono text-xs">{selectedUser.id}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Joined:</span>
-                    <span>{new Date(selectedUser.joinedAt).toLocaleDateString()}</span>
-                  </div>
-                  {selectedUser.lastActive && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Last Active:</span>
-                      <span>{formatDistanceToNow(new Date(selectedUser.lastActive), { addSuffix: true })}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowUserDetailsModal(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </DashboardLayout>
   )
 }
