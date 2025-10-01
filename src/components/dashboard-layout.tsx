@@ -14,27 +14,29 @@ export default function DashboardLayout({
   subtitle
 }: DashboardLayoutProps) {
   return (
-    <div className="h-screen flex bg-background">
+    <div className="min-h-screen bg-background">
       <Navigation />
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {title && (
-          <div className="bg-background border-b px-4 py-4 sm:px-6">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-              {subtitle && (
-                <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
-              )}
+      {/* Main content - offset for mobile header and desktop sidebar */}
+      <div className="lg:pl-64">
+        <div className="pt-16 lg:pt-0 min-h-screen flex flex-col">
+          {title && (
+            <div className="bg-background border-b px-4 py-4 sm:px-6 lg:px-8">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">{title}</h1>
+                {subtitle && (
+                  <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 sm:p-6">
-            {children}
-          </div>
-        </main>
+          <main className="flex-1">
+            <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   )

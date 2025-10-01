@@ -341,17 +341,18 @@ export default function StudyPackPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex items-start space-x-2 sm:space-x-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => router.push('/dashboard')}
+              className="flex-shrink-0"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+              <span className="hidden sm:inline">Back</span>
             </Button>
             <div className="p-3 bg-primary/10 rounded-lg">
               <FileIcon className="h-6 w-6 text-primary" />
@@ -372,18 +373,20 @@ export default function StudyPackPage() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Button onClick={handleGenerateQuiz}>
-              <Sparkles className="h-4 w-4 mr-2" />
-              Generate Quiz
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button onClick={handleGenerateQuiz} size="sm">
+              <Sparkles className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Generate Quiz</span>
+              <span className="sm:hidden ml-1">Quiz</span>
             </Button>
-            <Button variant="outline" onClick={exportToPDF}>
-              <Download className="h-4 w-4 mr-2" />
-              Export PDF
+            <Button variant="outline" onClick={exportToPDF} size="sm">
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Export PDF</span>
+              <span className="sm:hidden ml-1">Export</span>
             </Button>
-            <Button variant="outline">
-              <Share2 className="h-4 w-4 mr-2" />
-              Share
+            <Button variant="outline" size="sm">
+              <Share2 className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Share</span>
             </Button>
           </div>
         </div>

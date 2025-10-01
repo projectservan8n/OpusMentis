@@ -151,27 +151,31 @@ export default function Flashcards({ flashcards, studyPackId, onFlashcardsUpdate
     <div className="space-y-6">
       {/* Header with progress */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h3 className="text-lg font-semibold">Flashcards</h3>
             <p className="text-sm text-muted-foreground">
               Study with AI-generated flashcards
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {studyPackId && (
               <Button
                 variant="default"
                 onClick={regenerateFlashcards}
                 disabled={isRegenerating}
+                className="text-sm"
+                size="sm"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
-                {isRegenerating ? 'Regenerating...' : 'Regenerate'}
+                <span className="hidden sm:inline">{isRegenerating ? 'Regenerating...' : 'Regenerate'}</span>
+                <span className="sm:hidden">Regen</span>
               </Button>
             )}
-            <Button variant="outline" onClick={resetProgress}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Reset Progress
+            <Button variant="outline" onClick={resetProgress} className="text-sm" size="sm">
+              <RotateCcw className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Reset Progress</span>
+              <span className="sm:hidden">Reset</span>
             </Button>
           </div>
         </div>
