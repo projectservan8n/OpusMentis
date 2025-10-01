@@ -29,6 +29,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# sensitive documentation
+CLERK_PRODUCTION_KEYS.md
+
 # vercel
 .vercel
 
