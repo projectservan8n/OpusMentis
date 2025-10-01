@@ -49,14 +49,33 @@
 
 ---
 
+## ✅ Phase 2: PDF Viewer & Highlighting (CORE COMPLETE)
+
+### Components Created
+- ✅ `src/components/pdf-viewer.tsx` - Full PDF viewer with highlighting
+- ✅ `src/components/highlight-sidebar.tsx` - Highlight management
+- ✅ `src/app/api/highlights/route.ts` - CRUD API
+
+### Features Implemented
+- ✅ PDF rendering with react-pdf
+- ✅ Multi-color highlighting (5 colors)
+- ✅ Text selection with coordinate capture
+- ✅ Zoom controls (50%-250%)
+- ✅ Highlight overlays with click interactions
+- ✅ Filter by color/page
+- ✅ Add/edit notes on highlights
+- ✅ Generate quiz from highlights button
+
+### Remaining Phase 2 Tasks
+- [ ] Integrate PDF viewer into study pack page
+- [ ] Update study pack tabs layout
+- [ ] Test highlighting end-to-end
+
+---
+
 ## 📋 Next Steps
 
-### Phase 2: PDF Viewer & Highlighting (Week 1-2)
-- [ ] Create PDF viewer component
-- [ ] Implement highlighting tools (5 colors)
-- [ ] Create highlight sidebar
-- [ ] Build highlights API routes
-- [ ] Save/render highlights with coordinates
+### Phase 2 Integration (Current)
 
 ### Phase 3: Document Intelligence (Week 2)
 - [ ] Create document analyzer using GPT-4o-mini
@@ -147,4 +166,4 @@
 ---
 
 **Last Updated:** 2025-10-01
-**Status:** Phase 1 Complete ✅ | Phase 2 In Progress 🚀
+**Status:** Phase 1 Complete ✅ | Phase 2 Core Components Done ✅ | Integration Next 🚀
