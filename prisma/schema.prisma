@@ -47,7 +47,7 @@ model StudyPack {
   // AI-generated content (JSON stored as text for MVP)
   summary     String?  // AI-generated summary
   topics      String?  // JSON array of topics
-  flashcards  String?  // JSON array of flashcard objects
+  flashcards  String?  // JSON array of flashcard objects (kept for backward compatibility)
   kanbanTasks String?  // JSON array of kanban task objects
 
   // Metadata
@@ -58,6 +58,9 @@ model StudyPack {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   notes  Note[]
+  highlights        Highlight[]
+  documentStructure DocumentStructure?
+  quizzes           Quiz[]
 
   @@map("study_packs")
 }
@@ -124,4 +127,77 @@ model Team {
   sharedStudyPackIds String[] // Array of StudyPack IDs
 
   @@map("teams")
+}
+
+// Quiz System: PDF Highlights with coordinates
+model Highlight {
+  id          String    @id @default(cuid())
+  studyPackId String
+  studyPack   StudyPack @relation(fields: [studyPackId], references: [id], onDelete: Cascade)
+  userId      String
+  pageNumber  Int       // 1-indexed page number
+  coordinates Json      // {x, y, width, height, pageHeight, pageWidth} for rendering
+  color       String    // 'yellow', 'green', 'blue', 'pink', 'red'
+  text        String    @db.Text // highlighted text content
+  note        String?   @db.Text // optional user note
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([studyPackId])
+  @@index([userId])
+  @@index([pageNumber])
+  @@map("highlights")
+}
+
+// AI-analyzed document structure (chapters, sections)
+model DocumentStructure {
+  id          String    @id @default(cuid())
+  studyPackId String    @unique
+  studyPack   StudyPack @relation(fields: [studyPackId], references: [id], onDelete: Cascade)
+  chapters    Json      // [{title, startPage, endPage}, ...]
+  sections    Json      // [{title, chapter, startPage, endPage}, ...]
+  keyTerms    Json?     // [{term, definition, page}, ...] optional
+  totalPages  Int
+  createdAt   DateTime  @default(now())
+
+  @@map("document_structures")
+}
+
+// Quiz (replaces flashcards functionality)
+model Quiz {
+  id            String        @id @default(cuid())
+  studyPackId   String
+  studyPack     StudyPack     @relation(fields: [studyPackId], references: [id], onDelete: Cascade)
+  userId        String
+  title         String
+  source        String        // "All Highlights", "Chapter 5", "Pages 10-20", "Yellow Highlights"
+  sourceDetails Json?         // {type, highlightIds?, pages?, chapter?} for regeneration
+  questions     Json          // [{id, type, question, options?, correctAnswer?, points}, ...]
+  totalPoints   Int           // sum of all question points
+  difficulty    String        @default("medium") // 'easy', 'medium', 'hard'
+  createdAt     DateTime      @default(now())
+  attempts      QuizAttempt[]
+
+  @@index([studyPackId])
+  @@index([userId])
+  @@map("quizzes")
+}
+
+// Quiz attempt with AI grading and feedback
+model QuizAttempt {
+  id          String    @id @default(cuid())
+  quizId      String
+  quiz        Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId      String
+  answers     Json      // [{questionId, userAnswer, isCorrect?, pointsEarned}, ...]
+  score       Float     // 0-100 percentage
+  totalPoints Int       // points earned out of quiz.totalPoints
+  feedback    Json      // [{questionId, feedback, suggestions?, pdfReferences?}, ...]
+  timeSpent   Int?      // seconds
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([quizId])
+  @@index([userId])
+  @@map("quiz_attempts")
 }
