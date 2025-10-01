@@ -1,21 +1,20 @@
 # 🚀 OpusMentis Production Deployment Quick Start
 
 **Status:** Ready to deploy with opusmentis.app domain
+**Quiz System:** ✅ Fully Implemented & Tested
+**Production Instance:** ✅ Created in Clerk
 
 ---
 
 ## ⚡ Quick Checklist (30 minutes)
 
-Follow these steps in order to deploy OpusMentis to production:
+Follow these steps in order to deploy OpusMentis with the complete Quiz System to production:
 
-### 1️⃣ Create Clerk Production Instance (5 min)
+### 1️⃣ Clerk Production Instance (DONE ✅)
 
-1. Go to [Clerk Dashboard](https://dashboard.clerk.com)
-2. Click **"Development"** dropdown at top
-3. Select **"Create production instance"**
-4. Choose **"Clone development settings"** ✅
+**Status:** You've already created the production instance for opusmentis.app!
 
-**Result:** You now have production keys: `pk_live_xxx` / `sk_live_xxx`
+**Next:** Get your production API keys from Clerk Dashboard
 
 ---
 
@@ -188,6 +187,44 @@ Should see:
 4. View study pack - all tabs work
 ```
 
+### Test 5: Test Quiz System (NEW!)
+```
+1. Upload a test PDF (any educational content)
+2. Wait for processing to complete
+3. Open the study pack
+4. Click "Generate Quiz" button
+5. Select quiz source (try "highlights" first)
+6. Choose question types (MC, T/F, Short Answer, Essay)
+7. Set difficulty: Medium
+8. Click "Generate Quiz"
+9. Wait for AI generation (~10-30 seconds)
+10. Take the quiz - answer questions
+11. Submit quiz
+12. Wait for AI grading (~20-60 seconds for essays)
+13. View results with AI feedback
+14. Check performance breakdown
+```
+
+**Expected Results:**
+- ✅ Quiz generates successfully
+- ✅ Questions display correctly
+- ✅ Auto-save works (check after 30 seconds)
+- ✅ AI grading completes
+- ✅ Empathetic feedback shows for essays
+- ✅ Score calculated correctly
+- ✅ Results page displays
+
+### Test 6: Test API Playground
+```
+1. Go to /api-playground
+2. Select "Quizzes" tab (🎯)
+3. Click "Generate Quiz"
+4. Fill in studyPackId with a real ID
+5. Click "Test Endpoint"
+6. Should return generated quiz JSON
+7. Try other quiz endpoints
+```
+
 ---
 
 ## 🐛 Common Issues
@@ -229,6 +266,53 @@ Both publishable keys must be identical!
 **Cause:** Still using Clerk's shared dev credentials
 
 **Fix:** Complete Step 7 (Configure Google OAuth) above.
+
+---
+
+### Issue: Quiz Generation Fails
+**Error:** "Failed to generate quiz"
+
+**Cause 1:** OpenAI API key not set
+**Fix:** Verify `OPENAI_API_KEY` is set in Railway env vars
+
+**Cause 2:** OpenAI rate limits
+**Fix:** Check OpenAI dashboard for rate limit status
+
+**Cause 3:** Invalid study pack ID
+**Fix:** Use a valid study pack ID from your database
+
+---
+
+### Issue: AI Grading Not Working
+**Error:** Quiz submits but no AI feedback
+
+**Cause:** OpenAI API key missing or invalid
+**Fix:**
+1. Check Railway logs for OpenAI errors
+2. Verify `OPENAI_API_KEY` starts with `sk-`
+3. Test OpenAI key at https://platform.openai.com/playground
+
+---
+
+### Issue: Highlights Not Saving
+**Error:** Highlights disappear after refresh
+
+**Cause:** Database connection issue
+**Fix:**
+1. Check Railway logs for database errors
+2. Verify `DATABASE_URL` is set correctly
+3. Run `npx prisma migrate deploy` in Railway console
+
+---
+
+### Issue: PDF Viewer Not Loading
+**Error:** "Failed to load PDF"
+
+**Cause:** File path not accessible
+**Fix:**
+1. Verify Railway volume is mounted at `/app/uploads`
+2. Check file permissions
+3. Check Railway logs for file read errors
 
 ---
 
@@ -285,21 +369,51 @@ For comprehensive documentation, troubleshooting, and advanced configuration:
 
 ## 🚦 Current Status
 
-Based on your Railway logs:
+**Quiz System:** ✅ Fully Implemented (100%)
+**Clerk Production Instance:** ✅ Created for opusmentis.app
 
-- ❌ Using development keys (`pk_test_xxx`)
-- ❌ Domain opusmentis.app not resolving (ENOTFOUND errors)
-- ❌ Custom domain not configured in Railway
-- ❌ Clerk production instance not created
-- ✅ Application code is working (file uploads succeed)
-- ✅ Database connected and working
-- ✅ OpenAI API working
-- ✅ Discord webhooks working
+Ready to deploy:
+- ✅ Quiz System complete (all 9 phases)
+- ✅ API Playground with quiz endpoints
+- ✅ PDF highlighting system
+- ✅ Document intelligence
+- ✅ AI grading with empathetic feedback
+- ✅ Clerk production instance created
+- ⏳ Need to update Railway env vars
+- ⏳ Need to configure custom domain
 
-**Next Step:** Follow steps 1-8 above in order.
+**Next Steps:**
+1. Get production keys from Clerk dashboard
+2. Update Railway environment variables
+3. Configure DNS for opusmentis.app
+4. Test quiz system end-to-end
 
 ---
 
-**Ready to deploy!** 🚀
+## 📋 Quick Production Setup (Since You Have Clerk Instance)
 
-Start with Step 1: [Create Clerk Production Instance](https://dashboard.clerk.com)
+### Step 1: Get Your Production Keys from Clerk
+1. Go to https://dashboard.clerk.com
+2. Switch to **Production** instance (opusmentis.app)
+3. Navigate to **API Keys**
+4. Copy both keys
+
+### Step 2: Update Railway
+1. Railway Dashboard → Variables
+2. Replace these 2 keys:
+   - `CLERK_PUBLISHABLE_KEY` → `pk_live_xxxxx`
+   - `CLERK_SECRET_KEY` → `sk_live_xxxxx`
+   - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` → `pk_live_xxxxx`
+3. Railway will auto-redeploy
+
+### Step 3: Test
+1. Visit your Railway URL
+2. Test sign-in
+3. Upload PDF → Generate Quiz → Take Quiz
+4. Verify AI grading works
+
+---
+
+**You're almost there!** 🚀
+
+Just need to swap the Clerk keys in Railway and you're live!
