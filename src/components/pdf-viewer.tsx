@@ -123,33 +123,51 @@ export default function PDFViewer({
       return
     }
 
-    const range = selection.getRangeAt(0)
-    const rect = range.getBoundingClientRect()
-    const pageElement = pageRef.current
+    try {
+      const range = selection.getRangeAt(0)
+      const rect = range.getBoundingClientRect()
+      const pageElement = pageRef.current
 
-    if (!pageElement) return
+      if (!pageElement) {
+        console.warn('Page element not found')
+        return
+      }
 
-    const pageRect = pageElement.getBoundingClientRect()
+      const pageRect = pageElement.getBoundingClientRect()
 
-    // Calculate relative coordinates
-    const coordinates = {
-      x: rect.left - pageRect.left,
-      y: rect.top - pageRect.top,
-      width: rect.width,
-      height: rect.height,
-      pageHeight: pageRect.height,
-      pageWidth: pageRect.width
+      // Ensure we have valid dimensions
+      if (pageRect.width === 0 || pageRect.height === 0) {
+        console.warn('Invalid page dimensions')
+        return
+      }
+
+      // Calculate relative coordinates with scroll offset
+      const coordinates = {
+        x: rect.left - pageRect.left + pageElement.scrollLeft,
+        y: rect.top - pageRect.top + pageElement.scrollTop,
+        width: rect.width,
+        height: rect.height,
+        pageHeight: pageRect.height,
+        pageWidth: pageRect.width
+      }
+
+      const highlight: Omit<Highlight, 'id'> = {
+        pageNumber,
+        coordinates,
+        color: selectedColor,
+        text: selection.toString()
+      }
+
+      console.log('Creating highlight:', highlight)
+      onHighlightCreate?.(highlight)
+
+      // Clear selection after a small delay to show visual feedback
+      setTimeout(() => {
+        selection.removeAllRanges()
+      }, 100)
+    } catch (error) {
+      console.error('Error creating highlight:', error)
     }
-
-    const highlight: Omit<Highlight, 'id'> = {
-      pageNumber,
-      coordinates,
-      color: selectedColor,
-      text: selection.toString()
-    }
-
-    onHighlightCreate?.(highlight)
-    selection.removeAllRanges()
   }, [isSelecting, pageNumber, selectedColor, onHighlightCreate])
 
   useEffect(() => {
@@ -163,22 +181,41 @@ export default function PDFViewer({
   const renderHighlights = () => {
     const pageHighlights = highlights.filter(h => h.pageNumber === pageNumber)
 
+    if (pageHighlights.length === 0) return null
+
     return pageHighlights.map(highlight => {
       const color = colors.find(c => c.name === highlight.color)
+
+      // Ensure coordinates exist and are valid
+      if (!highlight.coordinates ||
+          !highlight.coordinates.pageWidth ||
+          !highlight.coordinates.pageHeight) {
+        console.warn('Invalid highlight coordinates:', highlight)
+        return null
+      }
+
+      const leftPercent = (highlight.coordinates.x / highlight.coordinates.pageWidth) * 100
+      const topPercent = (highlight.coordinates.y / highlight.coordinates.pageHeight) * 100
+      const widthPercent = (highlight.coordinates.width / highlight.coordinates.pageWidth) * 100
+      const heightPercent = (highlight.coordinates.height / highlight.coordinates.pageHeight) * 100
 
       return (
         <div
           key={highlight.id}
-          className="absolute cursor-pointer hover:opacity-75 transition-opacity"
+          className="absolute cursor-pointer hover:opacity-90 transition-opacity pointer-events-auto"
           style={{
-            left: `${(highlight.coordinates.x / highlight.coordinates.pageWidth) * 100}%`,
-            top: `${(highlight.coordinates.y / highlight.coordinates.pageHeight) * 100}%`,
-            width: `${(highlight.coordinates.width / highlight.coordinates.pageWidth) * 100}%`,
-            height: `${(highlight.coordinates.height / highlight.coordinates.pageHeight) * 100}%`,
+            left: `${leftPercent}%`,
+            top: `${topPercent}%`,
+            width: `${widthPercent}%`,
+            height: `${heightPercent}%`,
             backgroundColor: color?.hex || '#fde047',
-            opacity: 0.4
+            opacity: 0.4,
+            zIndex: 10
           }}
-          onClick={() => onHighlightClick?.(highlight)}
+          onClick={(e) => {
+            e.stopPropagation()
+            onHighlightClick?.(highlight)
+          }}
           title={highlight.note || highlight.text.substring(0, 50)}
         />
       )
@@ -294,34 +331,39 @@ export default function PDFViewer({
         >
           <div
             ref={pageRef}
-            className="relative inline-block touch-pan-x touch-pan-y"
+            className="relative inline-block"
             style={{
               cursor: isSelecting ? 'text' : 'default',
               userSelect: isSelecting ? 'text' : 'none',
-              touchAction: 'pan-x pan-y pinch-zoom'
+              touchAction: isSelecting ? 'none' : 'pan-x pan-y pinch-zoom'
             }}
           >
-            <Document
-              file={filePath}
-              onLoadSuccess={onDocumentLoadSuccess}
-              onLoadError={onDocumentLoadError}
-              loading={
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              }
-            >
-              <Page
-                pageNumber={pageNumber}
-                scale={getResponsiveScale()}
-                width={isFullscreen && containerWidth > 0 ? Math.min(containerWidth - 32, 800) : undefined}
-                renderTextLayer={true}
-                renderAnnotationLayer={true}
-              />
-            </Document>
+            <div className="relative">
+              <Document
+                file={filePath}
+                onLoadSuccess={onDocumentLoadSuccess}
+                onLoadError={onDocumentLoadError}
+                loading={
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                }
+              >
+                <Page
+                  pageNumber={pageNumber}
+                  scale={getResponsiveScale()}
+                  width={isFullscreen && containerWidth > 0 ? Math.min(containerWidth - 32, 800) : undefined}
+                  renderTextLayer={true}
+                  renderAnnotationLayer={true}
+                  className="pdf-page"
+                />
+              </Document>
 
-            {/* Render highlights overlay */}
-            {renderHighlights()}
+              {/* Render highlights overlay - positioned absolutely over the PDF */}
+              <div className="absolute inset-0 pointer-events-none">
+                {renderHighlights()}
+              </div>
+            </div>
           </div>
         </div>
       </Card>
