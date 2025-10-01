@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize2,
+  Minimize2,
   Loader2,
   FileText,
   Highlighter
@@ -44,8 +45,38 @@ export default function PDFViewer({
   const [selectedColor, setSelectedColor] = useState<string>('yellow')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [containerWidth, setContainerWidth] = useState<number>(0)
 
   const pageRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Measure container width for responsive scaling
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth)
+      }
+    }
+    updateWidth()
+    window.addEventListener('resize', updateWidth)
+    return () => window.removeEventListener('resize', updateWidth)
+  }, [])
+
+  // Calculate responsive scale based on container width
+  const getResponsiveScale = () => {
+    if (typeof window === 'undefined') return scale
+
+    // On mobile (< 640px), auto-fit to width
+    if (window.innerWidth < 640) {
+      return containerWidth > 0 ? (containerWidth - 32) / 612 : 0.5 // 612 is standard PDF width
+    }
+    return scale
+  }
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen)
+  }
 
   const colors = [
     { name: 'yellow', class: 'bg-yellow-300', hex: '#fde047' },
@@ -164,38 +195,48 @@ export default function PDFViewer({
     )
   }
 
-  return (
-    <div className="space-y-4">
+  const pdfContent = (
+    <>
       {/* Toolbar */}
-      <Card className="p-3 sm:p-4">
+      <Card className={`p-3 sm:p-4 ${isFullscreen ? 'rounded-none' : ''}`}>
         <div className="flex flex-col gap-3 sm:gap-4">
           {/* Top Row: Page Navigation (always visible) */}
           <div className="flex items-center justify-between gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={previousPage}
-              disabled={pageNumber <= 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span className="hidden sm:inline ml-1">Prev</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={previousPage}
+                disabled={pageNumber <= 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="hidden sm:inline ml-1">Prev</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={nextPage}
+                disabled={pageNumber >= numPages}
+              >
+                <span className="hidden sm:inline mr-1">Next</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
             <div className="text-sm font-medium whitespace-nowrap">
               Page {pageNumber} of {numPages || '...'}
             </div>
             <Button
               variant="outline"
               size="sm"
-              onClick={nextPage}
-              disabled={pageNumber >= numPages}
+              onClick={toggleFullscreen}
+              title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
             >
-              <span className="hidden sm:inline mr-1">Next</span>
-              <ChevronRight className="h-4 w-4" />
+              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </Button>
           </div>
 
-          {/* Bottom Row: Zoom and Highlighting */}
-          <div className="flex items-center justify-between gap-2 flex-wrap">
+          {/* Bottom Row: Zoom and Highlighting (hidden on mobile for space) */}
+          <div className="hidden sm:flex items-center justify-between gap-2 flex-wrap">
             {/* Zoom Controls */}
             <div className="flex items-center gap-1 sm:gap-2">
               <Button variant="outline" size="sm" onClick={zoomOut}>
@@ -205,8 +246,8 @@ export default function PDFViewer({
               <Button variant="outline" size="sm" onClick={zoomIn}>
                 <ZoomIn className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm" onClick={resetZoom} className="hidden sm:flex">
-                <Maximize2 className="h-4 w-4" />
+              <Button variant="outline" size="sm" onClick={resetZoom}>
+                Reset
               </Button>
             </div>
 
@@ -240,7 +281,7 @@ export default function PDFViewer({
       </Card>
 
       {/* PDF Document */}
-      <Card className="relative overflow-hidden">
+      <Card className={`relative ${isFullscreen ? 'rounded-none flex-1 overflow-auto' : 'overflow-hidden'}`}>
         {loading && (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -248,44 +289,67 @@ export default function PDFViewer({
         )}
 
         <div
-          ref={pageRef}
-          className="relative"
-          style={{
-            cursor: isSelecting ? 'text' : 'default',
-            userSelect: isSelecting ? 'text' : 'none'
-          }}
+          ref={containerRef}
+          className={`${isFullscreen ? 'h-full flex items-center justify-center overflow-auto' : ''}`}
         >
-          <Document
-            file={filePath}
-            onLoadSuccess={onDocumentLoadSuccess}
-            onLoadError={onDocumentLoadError}
-            loading={
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            }
+          <div
+            ref={pageRef}
+            className="relative inline-block touch-pan-x touch-pan-y"
+            style={{
+              cursor: isSelecting ? 'text' : 'default',
+              userSelect: isSelecting ? 'text' : 'none',
+              touchAction: 'pan-x pan-y pinch-zoom'
+            }}
           >
-            <Page
-              pageNumber={pageNumber}
-              scale={scale}
-              renderTextLayer={true}
-              renderAnnotationLayer={true}
-            />
-          </Document>
+            <Document
+              file={filePath}
+              onLoadSuccess={onDocumentLoadSuccess}
+              onLoadError={onDocumentLoadError}
+              loading={
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              }
+            >
+              <Page
+                pageNumber={pageNumber}
+                scale={getResponsiveScale()}
+                width={isFullscreen && containerWidth > 0 ? Math.min(containerWidth - 32, 800) : undefined}
+                renderTextLayer={true}
+                renderAnnotationLayer={true}
+              />
+            </Document>
 
-          {/* Render highlights overlay */}
-          {renderHighlights()}
+            {/* Render highlights overlay */}
+            {renderHighlights()}
+          </div>
         </div>
       </Card>
 
       {/* Page Info */}
-      <div className="text-center text-sm text-muted-foreground">
-        {highlights.filter(h => h.pageNumber === pageNumber).length > 0 && (
-          <span>
-            {highlights.filter(h => h.pageNumber === pageNumber).length} highlight(s) on this page
-          </span>
-        )}
+      {!isFullscreen && (
+        <div className="text-center text-sm text-muted-foreground">
+          {highlights.filter(h => h.pageNumber === pageNumber).length > 0 && (
+            <span>
+              {highlights.filter(h => h.pageNumber === pageNumber).length} highlight(s) on this page
+            </span>
+          )}
+        </div>
+      )}
+    </>
+  )
+
+  if (isFullscreen) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background flex flex-col">
+        {pdfContent}
       </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {pdfContent}
     </div>
   )
 }
