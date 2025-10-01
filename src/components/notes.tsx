@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import ConfirmDialog from '@/components/confirm-dialog'
 import { Plus, Edit2, Trash2, FileText, Save } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -43,6 +44,7 @@ export default function Notes({ studyPackId, initialNotes = [] }: NotesProps) {
   const [newNoteContent, setNewNoteContent] = useState('')
   const [newNoteSection, setNewNoteSection] = useState('general')
   const [loading, setLoading] = useState(false)
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null)
 
   useEffect(() => {
     fetchNotes()
@@ -120,24 +122,25 @@ export default function Notes({ studyPackId, initialNotes = [] }: NotesProps) {
     }
   }
 
-  const deleteNote = async (noteId: string) => {
-    if (!confirm('Are you sure you want to delete this note?')) return
+  const confirmDelete = async () => {
+    if (!noteToDelete) return
 
     setLoading(true)
     try {
-      const response = await fetch(`/api/notes/${noteId}`, {
+      const response = await fetch(`/api/notes/${noteToDelete}`, {
         method: 'DELETE',
       })
 
       if (!response.ok) throw new Error('Failed to delete note')
 
-      setNotes((prev: Note[]) => prev.filter((note: Note) => note.id !== noteId))
+      setNotes((prev: Note[]) => prev.filter((note: Note) => note.id !== noteToDelete))
       toast.success('Note deleted successfully')
     } catch (error) {
       console.error('Error deleting note:', error)
       toast.error('Failed to delete note')
     } finally {
       setLoading(false)
+      setNoteToDelete(null)
     }
   }
 
@@ -203,7 +206,7 @@ export default function Notes({ studyPackId, initialNotes = [] }: NotesProps) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => deleteNote(note.id)}
+                            onClick={() => setNoteToDelete(note.id)}
                             disabled={loading}
                             className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
                           >
@@ -325,6 +328,18 @@ export default function Notes({ studyPackId, initialNotes = [] }: NotesProps) {
           loading={loading}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={!!noteToDelete}
+        onOpenChange={(open) => !open && setNoteToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Note"
+        description="Are you sure you want to delete this note? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
+        loading={loading}
+      />
     </div>
   )
 }

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import DashboardLayout from '@/components/dashboard-layout'
 import StudyPackCard from '@/components/study-pack-card'
+import ConfirmDialog from '@/components/confirm-dialog'
 import { Plus, Brain, BookOpen, Zap, TrendingUp } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -42,6 +43,8 @@ export default function DashboardPage() {
     totalNotes: 0
   })
   const [loading, setLoading] = useState(true)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetchStudyPacks()
@@ -74,11 +77,12 @@ export default function DashboardPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this study pack?')) return
+  const confirmDelete = async () => {
+    if (!deleteId) return
 
+    setDeleting(true)
     try {
-      const response = await fetch(`/api/study-packs/${id}`, {
+      const response = await fetch(`/api/study-packs/${deleteId}`, {
         method: 'DELETE'
       })
 
@@ -89,6 +93,9 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Error deleting study pack:', error)
       toast.error('Failed to delete study pack')
+    } finally {
+      setDeleting(false)
+      setDeleteId(null)
     }
   }
 
@@ -278,13 +285,24 @@ export default function DashboardPage() {
               <StudyPackCard
                 key={studyPack.id}
                 studyPack={studyPack}
-                onDelete={handleDelete}
+                onDelete={setDeleteId}
                 onExport={handleExport}
               />
             ))}
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        onConfirm={confirmDelete}
+        title="Delete Study Pack"
+        description="Are you sure you want to delete this study pack? This will permanently delete all associated notes, flashcards, and progress. This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
+        loading={deleting}
+      />
     </DashboardLayout>
   )
 }
