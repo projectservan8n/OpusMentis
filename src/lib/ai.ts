@@ -95,7 +95,8 @@ Return only valid JSON, no additional text.
         }
       ],
       temperature: 0.7,
-      max_tokens: 2000
+      max_tokens: 4000,
+      response_format: { type: 'json_object' }
     })
 
     const response = completion.choices[0]?.message?.content
@@ -112,7 +113,14 @@ Return only valid JSON, no additional text.
     }
 
     // Parse and validate JSON response
-    const studyContent = JSON.parse(cleanedResponse) as StudyPackContent
+    let studyContent: StudyPackContent
+    try {
+      studyContent = JSON.parse(cleanedResponse) as StudyPackContent
+    } catch (parseError) {
+      console.error('JSON parsing failed. Response was:', cleanedResponse.substring(0, 500))
+      console.error('Parse error:', parseError)
+      throw new Error(`Failed to parse AI response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`)
+    }
 
     // Add IDs if missing
     studyContent.flashcards = studyContent.flashcards.map((card, index) => ({
