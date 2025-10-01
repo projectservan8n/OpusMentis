@@ -298,6 +298,12 @@ export default function BillingPage() {
               const isCurrentPlan = plan.id === subscription.tier
               const isPopular = plan.popular
 
+              // Determine if this plan is a downgrade
+              const tierOrder = { free: 0, pro: 1, premium: 2 }
+              const currentTierLevel = tierOrder[subscription.tier]
+              const planTierLevel = tierOrder[plan.id as keyof typeof tierOrder]
+              const isDowngrade = planTierLevel < currentTierLevel
+
               return (
                 <Card
                   key={plan.id}
@@ -351,13 +357,13 @@ export default function BillingPage() {
                       </div>
                     )}
 
-                    {plan.id === 'free' ? (
+                    {isCurrentPlan ? (
                       <Button disabled className="w-full">
                         Current Plan
                       </Button>
-                    ) : isCurrentPlan ? (
-                      <Button disabled className="w-full">
-                        Current Plan
+                    ) : isDowngrade ? (
+                      <Button disabled className="w-full" variant="outline">
+                        Lower Tier
                       </Button>
                     ) : (
                       <Button
