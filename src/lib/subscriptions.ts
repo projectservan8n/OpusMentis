@@ -168,18 +168,14 @@ export async function checkUploadLimits(
   const limits = PLAN_LIMITS[subscriptionTier]
 
   // Ensure user exists in our database for usage tracking
-  let user = await db.user.findUnique({
-    where: { id: userId }
+  const user = await db.user.upsert({
+    where: { id: userId },
+    update: {}, // Don't update anything if user exists
+    create: {
+      id: userId,
+      email: `user-${userId}@placeholder.local`, // Temporary placeholder, will be updated by Clerk webhook
+    }
   })
-
-  if (!user) {
-    user = await db.user.create({
-      data: {
-        id: userId,
-        email: '', // Will be updated from Clerk webhook
-      }
-    })
-  }
 
   // Check monthly upload limits (for free tier)
   if (limits.maxUploadsPerMonth > 0) {
