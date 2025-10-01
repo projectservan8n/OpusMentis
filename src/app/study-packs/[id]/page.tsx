@@ -495,7 +495,13 @@ export default function StudyPackPage() {
                 </TabsContent>
 
                 <TabsContent value="flashcards" className="mt-0">
-                  <Flashcards flashcards={studyPack.flashcards || []} />
+                  <Flashcards
+                    flashcards={studyPack.flashcards || []}
+                    studyPackId={studyPackId}
+                    onFlashcardsUpdated={(newFlashcards) => {
+                      setStudyPack(prev => prev ? { ...prev, flashcards: newFlashcards } : null)
+                    }}
+                  />
                 </TabsContent>
 
                 <TabsContent value="notes" className="mt-0">

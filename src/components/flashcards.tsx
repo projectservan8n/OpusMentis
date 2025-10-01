@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import toast from 'react-hot-toast'
 import {
   ChevronLeft,
   ChevronRight,
@@ -13,7 +14,8 @@ import {
   EyeOff,
   CheckCircle2,
   XCircle,
-  Brain
+  Brain,
+  Sparkles
 } from 'lucide-react'
 
 interface Flashcard {
@@ -25,6 +27,8 @@ interface Flashcard {
 
 interface FlashcardProps {
   flashcards: Flashcard[]
+  studyPackId?: string
+  onFlashcardsUpdated?: (flashcards: Flashcard[]) => void
 }
 
 const difficultyColors = {
@@ -33,11 +37,12 @@ const difficultyColors = {
   hard: 'bg-red-100 text-red-800'
 }
 
-export default function Flashcards({ flashcards }: FlashcardProps) {
+export default function Flashcards({ flashcards, studyPackId, onFlashcardsUpdated }: FlashcardProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
   const [studiedCards, setStudiedCards] = useState<Set<string>>(new Set())
   const [correctCards, setCorrectCards] = useState<Set<string>>(new Set())
+  const [isRegenerating, setIsRegenerating] = useState(false)
 
   if (!flashcards || flashcards.length === 0) {
     return (
@@ -101,6 +106,47 @@ export default function Flashcards({ flashcards }: FlashcardProps) {
     setShowAnswer(false)
   }
 
+  const regenerateFlashcards = async () => {
+    if (!studyPackId) {
+      toast.error('Cannot regenerate flashcards')
+      return
+    }
+
+    try {
+      setIsRegenerating(true)
+      toast.loading('Regenerating flashcards with AI...', { id: 'regenerate' })
+
+      const response = await fetch(`/api/study-packs/${studyPackId}/regenerate-flashcards`, {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to regenerate flashcards')
+      }
+
+      const data = await response.json()
+
+      // Reset progress when flashcards are regenerated
+      setStudiedCards(new Set())
+      setCorrectCards(new Set())
+      setCurrentIndex(0)
+      setShowAnswer(false)
+
+      // Update parent component with new flashcards
+      if (onFlashcardsUpdated) {
+        onFlashcardsUpdated(data.flashcards)
+      }
+
+      toast.success(`${data.count} new flashcards generated!`, { id: 'regenerate' })
+    } catch (error: any) {
+      console.error('Regenerate flashcards error:', error)
+      toast.error(error.message || 'Failed to regenerate flashcards', { id: 'regenerate' })
+    } finally {
+      setIsRegenerating(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header with progress */}
@@ -112,10 +158,22 @@ export default function Flashcards({ flashcards }: FlashcardProps) {
               Study with AI-generated flashcards
             </p>
           </div>
-          <Button variant="outline" onClick={resetProgress}>
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset
-          </Button>
+          <div className="flex items-center gap-2">
+            {studyPackId && (
+              <Button
+                variant="default"
+                onClick={regenerateFlashcards}
+                disabled={isRegenerating}
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                {isRegenerating ? 'Regenerating...' : 'Regenerate'}
+              </Button>
+            )}
+            <Button variant="outline" onClick={resetProgress}>
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset Progress
+            </Button>
+          </div>
         </div>
 
         {/* Progress indicators */}
