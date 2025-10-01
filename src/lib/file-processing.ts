@@ -119,7 +119,10 @@ export async function saveUploadedFile(buffer: Buffer, filename: string): Promis
   await fs.writeFile(filePath, buffer)
 
   console.log(`File saved to: ${filePath}`)
-  return filePath
+
+  // Return relative path for database storage (e.g., "uploads/123_file.pdf")
+  const relativePath = `uploads/${savedFilename}`
+  return relativePath
 }
 
 export async function deleteFile(filePath: string): Promise<void> {

@@ -39,8 +39,10 @@ export async function GET(
       return NextResponse.json({ error: 'File not found or access denied' }, { status: 404 })
     }
 
-    // Construct absolute file path
-    const absolutePath = path.join(process.cwd(), filePath)
+    // Construct absolute file path based on environment
+    const absolutePath = process.env.NODE_ENV === 'production'
+      ? path.join('/app', filePath)  // Railway volume mounted at /app/uploads
+      : path.join(process.cwd(), filePath)  // Local development
 
     // Check if file exists
     if (!fs.existsSync(absolutePath)) {
