@@ -13,6 +13,7 @@ import Flashcards from '@/components/flashcards'
 import Notes from '@/components/notes'
 import PDFViewer from '@/components/pdf-viewer'
 import HighlightSidebar from '@/components/highlight-sidebar'
+import QuizGeneratorModal from '@/components/quiz-generator-modal'
 import { formatBytes } from '@/lib/utils'
 import {
   FileText,
@@ -26,10 +27,12 @@ import {
   Clock,
   Brain,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Sparkles
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Highlight } from '@/types/highlight'
+import { DocumentStructure } from '@/lib/document-analyzer'
 
 interface StudyPack {
   id: string
@@ -66,14 +69,17 @@ export default function StudyPackPage() {
 
   const [studyPack, setStudyPack] = useState<StudyPack | null>(null)
   const [highlights, setHighlights] = useState<Highlight[]>([])
+  const [documentStructure, setDocumentStructure] = useState<DocumentStructure | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('pdf')
+  const [showQuizGenerator, setShowQuizGenerator] = useState(false)
 
   useEffect(() => {
     if (studyPackId) {
       fetchStudyPack()
       fetchHighlights()
+      fetchDocumentStructure()
     }
   }, [studyPackId])
 
@@ -224,9 +230,25 @@ export default function StudyPackPage() {
     setActiveTab('pdf')
   }
 
-  const handleGenerateQuiz = (highlightIds: string[]) => {
-    // TODO: Implement in Phase 4
-    toast.success(`Will generate quiz from ${highlightIds.length} highlights`)
+  const fetchDocumentStructure = async () => {
+    try {
+      const response = await fetch(`/api/document-structure?studyPackId=${studyPackId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setDocumentStructure(data)
+      }
+    } catch (error) {
+      console.error('Error fetching document structure:', error)
+    }
+  }
+
+  const handleGenerateQuiz = () => {
+    setShowQuizGenerator(true)
+  }
+
+  const handleQuizGenerated = (quizId: string) => {
+    toast.success('Quiz generated successfully!')
+    router.push(`/quizzes/${quizId}`)
   }
 
   if (loading) {
@@ -348,6 +370,10 @@ export default function StudyPackPage() {
           </div>
 
           <div className="flex items-center space-x-2">
+            <Button onClick={handleGenerateQuiz}>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Generate Quiz
+            </Button>
             <Button variant="outline" onClick={exportToPDF}>
               <Download className="h-4 w-4 mr-2" />
               Export PDF
@@ -480,6 +506,16 @@ export default function StudyPackPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Quiz Generator Modal */}
+      <QuizGeneratorModal
+        open={showQuizGenerator}
+        onClose={() => setShowQuizGenerator(false)}
+        studyPackId={studyPackId}
+        highlights={highlights}
+        documentStructure={documentStructure || undefined}
+        onQuizGenerated={handleQuizGenerated}
+      />
     </DashboardLayout>
   )
 }
