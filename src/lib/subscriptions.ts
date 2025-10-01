@@ -237,7 +237,7 @@ export async function logUsage(
     update: {},
     create: {
       id: userId,
-      email: '' // Will be updated from Clerk webhook
+      email: `user-${userId}@placeholder.local` // Unique placeholder, will be updated from Clerk webhook
     }
   })
 
