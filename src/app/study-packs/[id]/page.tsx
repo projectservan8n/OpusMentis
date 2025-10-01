@@ -236,6 +236,9 @@ export default function StudyPackPage() {
       if (response.ok) {
         const data = await response.json()
         setDocumentStructure(data)
+      } else if (response.status === 404) {
+        // Document structure hasn't been analyzed yet - this is okay
+        console.log('Document structure not yet analyzed')
       }
     } catch (error) {
       console.error('Error fetching document structure:', error)
@@ -418,7 +421,7 @@ export default function StudyPackPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       <div className="lg:col-span-2">
                         <PDFViewer
-                          filePath={studyPack.filePath}
+                          filePath={`/api/files/${studyPack.filePath}`}
                           studyPackId={studyPackId}
                           highlights={highlights}
                           onHighlightCreate={handleHighlightCreate}
