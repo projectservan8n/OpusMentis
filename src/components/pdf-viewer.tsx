@@ -17,25 +17,10 @@ import {
 } from 'lucide-react'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
+import { Highlight } from '@/types/highlight'
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
-
-interface Highlight {
-  id: string
-  pageNumber: number
-  coordinates: {
-    x: number
-    y: number
-    width: number
-    height: number
-    pageHeight: number
-    pageWidth: number
-  }
-  color: string
-  text: string
-  note?: string
-}
 
 interface PDFViewerProps {
   filePath: string // Path to PDF file

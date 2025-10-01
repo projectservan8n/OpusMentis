@@ -29,23 +29,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-
-interface Highlight {
-  id: string
-  pageNumber: number
-  coordinates: {
-    x: number
-    y: number
-    width: number
-    height: number
-    pageHeight: number
-    pageWidth: number
-  }
-  color: string
-  text: string
-  note?: string
-  createdAt: string
-}
+import { Highlight } from '@/types/highlight'
 
 interface StudyPack {
   id: string

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@/lib/db'
+import { db as prisma } from '@/lib/db'
 
 // GET /api/highlights?studyPackId=xxx - Get all highlights for a study pack
 export async function GET(request: NextRequest) {
