@@ -527,11 +527,9 @@ export default function PDFViewer({
                 />
               </Document>
 
-              {/* Render highlights overlay - allow clicks on highlights, block everything else */}
-              <div className="absolute inset-0" style={{ pointerEvents: 'none' }}>
-                <div style={{ pointerEvents: 'auto' }}>
-                  {renderHighlights()}
-                </div>
+              {/* Render highlights overlay - only allow clicks when NOT selecting */}
+              <div className="absolute inset-0" style={{ pointerEvents: isSelecting ? 'none' : 'auto' }}>
+                {renderHighlights()}
               </div>
             </div>
           </div>
