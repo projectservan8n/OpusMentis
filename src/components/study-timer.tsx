@@ -326,11 +326,13 @@ export default function StudyTimer({ studyPackId, onSessionComplete }: StudyTime
             <Timer className="h-5 w-5" />
             Study Timer
           </span>
-          {synced ? (
-            <Wifi className="h-4 w-4 text-green-500" title="Synced" />
-          ) : (
-            <WifiOff className="h-4 w-4 text-red-500" title="Not synced" />
-          )}
+          <span title={synced ? "Synced" : "Not synced"}>
+            {synced ? (
+              <Wifi className="h-4 w-4 text-green-500" />
+            ) : (
+              <WifiOff className="h-4 w-4 text-red-500" />
+            )}
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
