@@ -32,16 +32,21 @@ export async function GET(request: NextRequest) {
         completed: true
       },
       orderBy: { createdAt: 'desc' },
-      take: 10,
-      include: {
-        studyPack: {
-          select: {
-            id: true,
-            title: true
-          }
-        }
-      }
+      take: 10
     })
+
+    // Fetch study pack details separately
+    const studyPackIds = [...new Set(recentSessions.map(s => s.studyPackId))]
+    const studyPacks = await prisma.studyPack.findMany({
+      where: { id: { in: studyPackIds } },
+      select: { id: true, title: true }
+    })
+    const studyPackMap = new Map(studyPacks.map(sp => [sp.id, sp]))
+
+    const sessionsWithPacks = recentSessions.map(session => ({
+      ...session,
+      studyPack: studyPackMap.get(session.studyPackId)
+    }))
 
     // Calculate weekly stats
     const weekAgo = new Date()
@@ -105,7 +110,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       progress,
       achievements,
-      recentSessions,
+      recentSessions: sessionsWithPacks,
       weeklyStats: {
         studyTime: weeklyStudyTime,
         sessions: weekSessions.length,
