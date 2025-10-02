@@ -40,23 +40,23 @@ export function appTierToClerkTier(appTier: SubscriptionTier): ClerkSubscription
 
 export const PLAN_LIMITS: Record<SubscriptionTier, PlanLimits> = {
   free: {
-    maxUploadsPerMonth: 3,
-    maxPdfPages: 10,
-    maxAudioVideoMinutes: 10,
+    maxUploadsPerMonth: 20,
+    maxPdfPages: 50,
+    maxAudioVideoMinutes: 30,
     canExportFlashcards: false,
     canShareTeams: false
   },
   pro: {
-    maxUploadsPerMonth: 50, // Changed from unlimited to prevent abuse
-    maxPdfPages: 50,
-    maxAudioVideoMinutes: 60,
+    maxUploadsPerMonth: 200,
+    maxPdfPages: 200,
+    maxAudioVideoMinutes: 180,
     canExportFlashcards: true,
     canShareTeams: false
   },
   premium: {
-    maxUploadsPerMonth: 200, // Changed from unlimited to prevent abuse
-    maxPdfPages: 200,
-    maxAudioVideoMinutes: 180,
+    maxUploadsPerMonth: 1000,
+    maxPdfPages: 500,
+    maxAudioVideoMinutes: 600,
     canExportFlashcards: true,
     canShareTeams: true
   }
@@ -65,9 +65,9 @@ export const PLAN_LIMITS: Record<SubscriptionTier, PlanLimits> = {
 // Get file size limit based on subscription tier
 export function getMaxFileSizeForPlan(subscriptionTier: SubscriptionTier): number {
   const limits = {
-    free: 50 * 1024 * 1024,   // 50MB - reasonable for phone recordings
-    pro: 100 * 1024 * 1024,    // 100MB
-    premium: 200 * 1024 * 1024 // 200MB
+    free: 100 * 1024 * 1024,   // 100MB
+    pro: 250 * 1024 * 1024,    // 250MB
+    premium: 500 * 1024 * 1024 // 500MB
   }
 
   return limits[subscriptionTier] || limits.free

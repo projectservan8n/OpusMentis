@@ -10,22 +10,22 @@ export interface RateLimitConfig {
 
 export const RATE_LIMITS: Record<string, RateLimitConfig> = {
   free: {
-    maxUploadsPerHour: 2,
-    maxUploadsPerDay: 3,
-    maxFileSizePerHour: 150 * 1024 * 1024, // 150MB per hour
-    suspiciousThreshold: 3 // 3 uploads in quick succession
+    maxUploadsPerHour: 10,
+    maxUploadsPerDay: 20,
+    maxFileSizePerHour: 500 * 1024 * 1024, // 500MB per hour
+    suspiciousThreshold: 15 // 15 uploads in quick succession
   },
   pro: {
-    maxUploadsPerHour: 10,
-    maxUploadsPerDay: 50, // Changed from unlimited
-    maxFileSizePerHour: 1024 * 1024 * 1024, // 1GB per hour
-    suspiciousThreshold: 20
+    maxUploadsPerHour: 50,
+    maxUploadsPerDay: 200,
+    maxFileSizePerHour: 5 * 1024 * 1024 * 1024, // 5GB per hour
+    suspiciousThreshold: 50
   },
   premium: {
-    maxUploadsPerHour: 30,
-    maxUploadsPerDay: 200, // Changed from unlimited
-    maxFileSizePerHour: 3 * 1024 * 1024 * 1024, // 3GB per hour
-    suspiciousThreshold: 50
+    maxUploadsPerHour: 100,
+    maxUploadsPerDay: 500,
+    maxFileSizePerHour: 10 * 1024 * 1024 * 1024, // 10GB per hour
+    suspiciousThreshold: 100
   }
 }
 
