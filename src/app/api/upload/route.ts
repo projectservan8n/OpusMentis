@@ -22,6 +22,11 @@ import {
   generateStudyContent,
   chunkText
 } from '@/lib/ai'
+import {
+  checkRateLimit,
+  detectDuplicateUpload,
+  detectSuspiciousFile
+} from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,7 +55,32 @@ export async function POST(request: NextRequest) {
     // Get user's subscription tier from Clerk
     const subscriptionTier = await getUserSubscriptionTier(userId)
 
-    // Validate file size for user's plan
+    // 1. Check rate limits (prevent abuse)
+    const rateLimitCheck = await checkRateLimit(userId, subscriptionTier, file.size)
+    if (!rateLimitCheck.allowed) {
+      return NextResponse.json({
+        error: rateLimitCheck.reason,
+        retryAfter: rateLimitCheck.retryAfter
+      }, { status: 429 })
+    }
+
+    // 2. Check for duplicate uploads
+    const duplicateCheck = await detectDuplicateUpload(userId, file.name, file.size)
+    if (duplicateCheck.isDuplicate) {
+      return NextResponse.json({
+        error: 'You uploaded this exact file in the last 24 hours. Please check your existing study packs.',
+        existingStudyPackId: duplicateCheck.existingStudyPackId
+      }, { status: 409 })
+    }
+
+    // 3. Detect suspicious files
+    const suspiciousCheck = detectSuspiciousFile(fileType, file.size, file.name)
+    if (suspiciousCheck.suspicious) {
+      console.warn(`[SUSPICIOUS FILE] User ${userId}: ${suspiciousCheck.reason}`)
+      // Don't block, but log for review
+    }
+
+    // 4. Validate file size for user's plan
     const maxFileSize = getMaxFileSizeForPlan(subscriptionTier)
     if (!validateFileSize(file.size, maxFileSize)) {
       return NextResponse.json({

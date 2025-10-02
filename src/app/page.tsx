@@ -150,7 +150,7 @@ export default function HomePage() {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm">
-                  <li>• Unlimited uploads</li>
+                  <li>• 50 uploads/month</li>
                   <li>• PDFs up to 50 pages</li>
                   <li>• Audio/video up to 1 hour</li>
                   <li>• Advanced AI processing</li>

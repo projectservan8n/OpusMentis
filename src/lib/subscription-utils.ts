@@ -47,14 +47,14 @@ export const PLAN_LIMITS: Record<SubscriptionTier, PlanLimits> = {
     canShareTeams: false
   },
   pro: {
-    maxUploadsPerMonth: -1, // unlimited
+    maxUploadsPerMonth: 50, // Changed from unlimited to prevent abuse
     maxPdfPages: 50,
     maxAudioVideoMinutes: 60,
     canExportFlashcards: true,
     canShareTeams: false
   },
   premium: {
-    maxUploadsPerMonth: -1, // unlimited
+    maxUploadsPerMonth: 200, // Changed from unlimited to prevent abuse
     maxPdfPages: 200,
     maxAudioVideoMinutes: 180,
     canExportFlashcards: true,

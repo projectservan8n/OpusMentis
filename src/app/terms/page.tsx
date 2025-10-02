@@ -46,8 +46,8 @@ export default function TermsOfService() {
             <h3 className="text-xl font-medium text-gray-900 mt-6 mb-3">Plan Types</h3>
             <ul className="list-disc pl-6 mb-4 text-gray-700">
               <li><strong>Free Plan (₱0):</strong> 3 uploads/month, 10 PDF pages max, 10 minutes audio/video</li>
-              <li><strong>Pro Plan (₱149/month):</strong> Unlimited uploads, 50 PDF pages max, 60 minutes audio/video</li>
-              <li><strong>Premium Plan (₱399/month):</strong> Unlimited uploads, 200 PDF pages max, 180 minutes audio/video</li>
+              <li><strong>Pro Plan (₱149/month):</strong> 50 uploads/month, 50 PDF pages max, 60 minutes audio/video, max 100MB per file</li>
+              <li><strong>Premium Plan (₱399/month):</strong> 200 uploads/month, 200 PDF pages max, 180 minutes audio/video, max 200MB per file</li>
             </ul>
 
             <h3 className="text-xl font-medium text-gray-900 mt-6 mb-3">Payment Terms</h3>

@@ -109,7 +109,7 @@ export default function BillingPage() {
       annualPrice: 1490, // 10 months price = 2 months free
       description: 'Best for students and regular learners',
       features: [
-        'Unlimited uploads',
+        '50 uploads/month',
         'PDFs up to 50 pages',
         'Audio/video up to 1 hour',
         'Advanced AI processing',

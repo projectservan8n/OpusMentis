@@ -39,7 +39,7 @@ export default function PricingPage() {
       annualSavings: '₱298',
       description: 'Best for students and regular learners',
       features: [
-        'Unlimited uploads',
+        '50 uploads per month',
         'PDFs up to 50 pages',
         'Audio/video up to 1 hour',
         'Max file size: 100MB',
@@ -62,7 +62,7 @@ export default function PricingPage() {
       annualSavings: '₱798',
       description: 'For power users and teams',
       features: [
-        'Everything in Pro',
+        '200 uploads per month',
         'PDFs up to 200 pages',
         'Audio/video up to 3 hours',
         'Max file size: 200MB',
