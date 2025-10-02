@@ -21,6 +21,8 @@ interface StudyPack {
   status: string
   processingError?: string
   createdAt: string
+  userId?: string
+  organizationId?: string
   _count?: {
     notes: number
   }

@@ -51,6 +51,11 @@ interface StudyPack {
   createdAt: string
   updatedAt: string
   notes: any[]
+  userId?: string
+  organizationId?: string
+  isOwner?: boolean
+  isTeamMember?: boolean
+  isShared?: boolean
 }
 
 const fileTypeIcons = {
@@ -74,6 +79,7 @@ export default function StudyPackPage() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('pdf')
   const [showQuizGenerator, setShowQuizGenerator] = useState(false)
+  const [isSharing, setIsSharing] = useState(false)
 
   useEffect(() => {
     if (studyPackId) {
@@ -254,6 +260,44 @@ export default function StudyPackPage() {
     router.push(`/quizzes/${quizId}`)
   }
 
+  const handleShareWithTeam = async () => {
+    if (!studyPack?.isOwner) {
+      toast.error('Only the owner can share this study pack')
+      return
+    }
+
+    try {
+      setIsSharing(true)
+      toast.loading(studyPack.isShared ? 'Unsharing from team...' : 'Sharing with team...', { id: 'share' })
+
+      const endpoint = `/api/study-packs/${studyPackId}/share`
+      const response = await fetch(endpoint, {
+        method: studyPack.isShared ? 'DELETE' : 'POST'
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        if (data.upgradeRequired) {
+          toast.error(data.error, { id: 'share', duration: 5000 })
+          router.push('/billing')
+          return
+        }
+        throw new Error(data.error || 'Failed to share')
+      }
+
+      // Refresh study pack to get updated sharing status
+      await fetchStudyPack()
+
+      toast.success(data.message, { id: 'share' })
+    } catch (error: any) {
+      console.error('Share error:', error)
+      toast.error(error.message || 'Failed to share study pack', { id: 'share' })
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
   if (loading) {
     return (
       <DashboardLayout title="Loading...">
@@ -358,7 +402,14 @@ export default function StudyPackPage() {
               <FileIcon className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">{studyPack.title}</h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl font-bold">{studyPack.title}</h1>
+                {studyPack.isShared && (
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    Team Pack
+                  </Badge>
+                )}
+              </div>
               <p className="text-muted-foreground">{studyPack.originalFileName}</p>
               <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
                 <span>{formatBytes(studyPack.fileSize)}</span>
@@ -369,6 +420,11 @@ export default function StudyPackPage() {
                 <Badge variant="secondary" className="bg-green-100 text-green-800">
                   {studyPack.status}
                 </Badge>
+                {studyPack.isTeamMember && !studyPack.isOwner && (
+                  <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                    Shared with you
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
@@ -384,10 +440,26 @@ export default function StudyPackPage() {
               <span className="hidden sm:inline">Export PDF</span>
               <span className="sm:hidden ml-1">Export</span>
             </Button>
-            <Button variant="outline" size="sm">
-              <Share2 className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Share</span>
-            </Button>
+            {studyPack.isOwner && (
+              <Button
+                variant={studyPack.isShared ? "default" : "outline"}
+                onClick={handleShareWithTeam}
+                size="sm"
+                disabled={isSharing}
+              >
+                {isSharing ? (
+                  <Loader2 className="h-4 w-4 animate-spin sm:mr-2" />
+                ) : (
+                  <Share2 className="h-4 w-4 sm:mr-2" />
+                )}
+                <span className="hidden sm:inline">
+                  {studyPack.isShared ? 'Unshare from Team' : 'Share with Team'}
+                </span>
+                <span className="sm:hidden ml-1">
+                  {studyPack.isShared ? 'Unshare' : 'Share'}
+                </span>
+              </Button>
+            )}
           </div>
         </div>
 

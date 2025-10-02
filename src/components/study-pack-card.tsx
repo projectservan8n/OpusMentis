@@ -17,7 +17,8 @@ import {
   Clock,
   AlertCircle,
   CheckCircle2,
-  Loader2
+  Loader2,
+  Users
 } from 'lucide-react'
 
 interface StudyPackCardProps {
@@ -31,6 +32,8 @@ interface StudyPackCardProps {
     status: string
     processingError?: string
     createdAt: string
+    userId?: string
+    organizationId?: string
     _count?: {
       notes: number
     }
@@ -79,20 +82,28 @@ export default function StudyPackCard({ studyPack, onDelete, onExport }: StudyPa
     <Card className="study-pack-card">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
+          <div className="flex items-center space-x-3 flex-1 min-w-0">
+            <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
               <FileIcon className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg font-semibold line-clamp-1">
-                {studyPack.title}
-              </CardTitle>
+              <div className="flex items-center gap-2 flex-wrap">
+                <CardTitle className="text-lg font-semibold line-clamp-1">
+                  {studyPack.title}
+                </CardTitle>
+                {studyPack.organizationId && (
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs flex-shrink-0">
+                    <Users className="h-3 w-3 mr-1" />
+                    Team
+                  </Badge>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground line-clamp-1">
                 {studyPack.originalFileName}
               </p>
             </div>
           </div>
-          <Badge variant="secondary" className={statusConfig.color}>
+          <Badge variant="secondary" className={`${statusConfig.color} flex-shrink-0`}>
             <StatusIcon className={`h-3 w-3 mr-1 ${statusConfig.iconClass}`} />
             {studyPack.status}
           </Badge>
