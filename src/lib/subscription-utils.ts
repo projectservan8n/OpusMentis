@@ -65,8 +65,8 @@ export const PLAN_LIMITS: Record<SubscriptionTier, PlanLimits> = {
 // Get file size limit based on subscription tier
 export function getMaxFileSizeForPlan(subscriptionTier: SubscriptionTier): number {
   const limits = {
-    free: 10 * 1024 * 1024,   // 10MB
-    pro: 50 * 1024 * 1024,    // 50MB
+    free: 50 * 1024 * 1024,   // 50MB - reasonable for phone recordings
+    pro: 100 * 1024 * 1024,    // 100MB
     premium: 200 * 1024 * 1024 // 200MB
   }
 

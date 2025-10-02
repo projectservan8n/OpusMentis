@@ -338,6 +338,7 @@ export default function FeaturesPage() {
                   { feature: 'Monthly Uploads', free: '3', pro: 'Unlimited', premium: 'Unlimited' },
                   { feature: 'PDF Pages', free: '10', pro: '50', premium: '200' },
                   { feature: 'Audio/Video Length', free: '10 min', pro: '1 hour', premium: '3 hours' },
+                  { feature: 'Max File Size', free: '50MB', pro: '100MB', premium: '200MB' },
                   { feature: 'AI Summaries', free: '✓', pro: '✓', premium: '✓' },
                   { feature: 'Flashcards', free: '✓', pro: '✓', premium: '✓' },
                   { feature: 'Kanban Boards', free: '✓', pro: '✓', premium: '✓' },

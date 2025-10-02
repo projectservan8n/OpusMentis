@@ -21,6 +21,7 @@ export default function PricingPage() {
         '3 uploads per month',
         'PDFs up to 10 pages',
         'Audio/video up to 10 minutes',
+        'Max file size: 50MB',
         'Basic AI summaries',
         'Flashcards & Kanban boards',
         'Community support'
@@ -41,6 +42,7 @@ export default function PricingPage() {
         'Unlimited uploads',
         'PDFs up to 50 pages',
         'Audio/video up to 1 hour',
+        'Max file size: 100MB',
         'Advanced AI processing',
         'PDF export functionality',
         'Priority support',
@@ -63,6 +65,7 @@ export default function PricingPage() {
         'Everything in Pro',
         'PDFs up to 200 pages',
         'Audio/video up to 3 hours',
+        'Max file size: 200MB',
         'Team sharing capabilities',
         'Advanced analytics',
         'Custom integrations',

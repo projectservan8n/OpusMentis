@@ -68,7 +68,7 @@ export default function UploadPage() {
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     onDrop,
     accept: acceptedFileTypes,
-    maxSize: 200 * 1024 * 1024, // 200MB max
+    maxSize: 200 * 1024 * 1024, // 200MB (Premium max, will be validated server-side per tier)
     multiple: true
   })
 
@@ -212,7 +212,7 @@ export default function UploadPage() {
               <div>
                 <p className="text-lg font-medium">Drop files here or click to browse</p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Maximum file size: 200MB per file
+                  Maximum file size: 50MB (Free), 100MB (Pro), 200MB (Premium)
                 </p>
                 <div className="flex items-center justify-center space-x-4 mt-4 text-xs text-muted-foreground">
                   <div className="flex items-center">
