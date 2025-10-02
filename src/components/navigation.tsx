@@ -18,12 +18,14 @@ import {
   Key,
   Menu,
   X,
-  History
+  History,
+  TrendingUp
 } from 'lucide-react'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Upload', href: '/upload', icon: Upload },
+  { name: 'Progress', href: '/progress', icon: TrendingUp },
   { name: 'Quiz History', href: '/quiz-history', icon: History },
   { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'Billing', href: '/billing', icon: CreditCard },

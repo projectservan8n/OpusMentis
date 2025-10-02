@@ -245,3 +245,88 @@ model ApiKey {
   @@index([key])
   @@map("api_keys")
 }
+
+// Study Timer & Pomodoro Sessions
+model StudySession {
+  id           String   @id @default(cuid())
+  userId       String
+  studyPackId  String
+  startedAt    DateTime @default(now())
+  endedAt      DateTime?
+  duration     Int      @default(0) // in seconds
+  sessionType  String   @default("focus") // focus, short_break, long_break
+  completed    Boolean  @default(false)
+  pausedTime   Int      @default(0) // total paused time in seconds
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([studyPackId])
+  @@index([userId, studyPackId])
+  @@index([createdAt])
+  @@map("study_sessions")
+}
+
+// Flashcard Review System with Spaced Repetition
+model FlashcardReview {
+  id                String   @id @default(cuid())
+  userId            String
+  studyPackId       String
+  flashcardId       String   // reference to flashcard in StudyPack.flashcards JSON
+  easeFactor        Float    @default(2.5) // SM-2 algorithm ease factor
+  interval          Int      @default(1) // days until next review
+  repetitions       Int      @default(0) // number of successful repetitions
+  nextReviewDate    DateTime @default(now())
+  lastReviewDate    DateTime?
+  lastReviewRating  String?  // again, hard, good, easy
+  totalReviews      Int      @default(0)
+  correctReviews    Int      @default(0)
+  masteryLevel      String   @default("learning") // learning, young, mature, mastered
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+  @@index([studyPackId])
+  @@index([userId, studyPackId])
+  @@index([userId, nextReviewDate])
+  @@index([masteryLevel])
+  @@unique([userId, studyPackId, flashcardId])
+  @@map("flashcard_reviews")
+}
+
+// User Achievements & Progress Tracking
+model Achievement {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // study_streak, flashcard_master, kanban_warrior, quiz_ace, etc.
+  title       String
+  description String
+  icon        String   // emoji or icon name
+  unlockedAt  DateTime @default(now())
+  progress    Int      @default(0) // for progress-based achievements
+  goal        Int      @default(100) // target for progress-based achievements
+  tier        String   @default("bronze") // bronze, silver, gold, platinum
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@index([type])
+  @@map("achievements")
+}
+
+// User Study Statistics & Progress
+model UserProgress {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  totalStudyTime       Int      @default(0) // in seconds
+  currentStreak        Int      @default(0) // days
+  longestStreak        Int      @default(0) // days
+  lastStudyDate        DateTime?
+  totalFlashcardsReviewed Int   @default(0)
+  totalFlashcardsMastered Int   @default(0)
+  totalKanbanCompleted    Int   @default(0)
+  totalQuizzesTaken       Int   @default(0)
+  totalQuizScore          Float @default(0) // average quiz score
+  pomodorosCompleted      Int   @default(0)
+  updatedAt            DateTime @updatedAt
+
+  @@map("user_progress")
+}
