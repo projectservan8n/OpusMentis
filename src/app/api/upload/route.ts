@@ -58,24 +58,33 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Estimate file metadata for limit checking
-    let estimatedPages: number | undefined
+    // Get actual file metadata for limit checking
+    let actualPages: number | undefined
     let estimatedDuration: number | undefined
+    const buffer = Buffer.from(await file.arrayBuffer())
 
     if (fileType === 'pdf') {
-      // Rough estimate: 1 page per 2KB for text-heavy PDFs
-      estimatedPages = Math.ceil(file.size / 2048)
+      // Get ACTUAL page count from PDF
+      try {
+        const pdfResult = await extractTextFromPDF(buffer)
+        actualPages = pdfResult.metadata?.pageCount
+      } catch (error) {
+        console.error('Failed to get PDF page count:', error)
+        return NextResponse.json({
+          error: 'Failed to read PDF file. File may be corrupted.'
+        }, { status: 400 })
+      }
     } else if (fileType === 'audio' || fileType === 'video') {
       // Rough estimate: 1MB ≈ 1 minute for audio, 10MB ≈ 1 minute for video
       const multiplier = fileType === 'audio' ? 1 : 10
       estimatedDuration = Math.ceil(file.size / (1024 * 1024 * multiplier))
     }
 
-    // Check upload limits
+    // Check upload limits with ACTUAL page count
     const limitCheck = await checkUploadLimits(
       userId,
       fileType,
-      estimatedPages,
+      actualPages,
       estimatedDuration
     )
 
@@ -86,8 +95,7 @@ export async function POST(request: NextRequest) {
       }, { status: 403 })
     }
 
-    // Save file
-    const buffer = Buffer.from(await file.arrayBuffer())
+    // Save file (buffer already created above for PDF parsing)
     const filePath = await saveUploadedFile(buffer, file.name)
 
     // Create study pack record
