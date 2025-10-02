@@ -57,16 +57,38 @@ export default function PDFViewer({
   // Suppress PDF.js worker termination warnings (happens during normal cleanup)
   useEffect(() => {
     const originalError = console.error
+    const originalWarn = console.warn
+
     console.error = (...args: any[]) => {
       const msg = args[0]?.message || args[0] || ''
-      // Ignore worker termination warnings
-      if (typeof msg === 'string' && msg.includes('Worker task was terminated')) {
+      const msgStr = typeof msg === 'string' ? msg : String(msg)
+
+      // Ignore worker termination warnings and transport errors
+      if (
+        msgStr.includes('Worker task was terminated') ||
+        msgStr.includes('Transport destroyed') ||
+        msgStr.includes('sendWithPromise') ||
+        msgStr.includes('getOptionalContentConfig')
+      ) {
         return
       }
       originalError.apply(console, args)
     }
+
+    console.warn = (...args: any[]) => {
+      const msg = args[0] || ''
+      const msgStr = String(msg)
+
+      // Ignore worker termination warnings
+      if (msgStr.includes('Worker task was terminated') || msgStr.includes('GetTextContent')) {
+        return
+      }
+      originalWarn.apply(console, args)
+    }
+
     return () => {
       console.error = originalError
+      console.warn = originalWarn
     }
   }, [])
 
@@ -133,9 +155,27 @@ export default function PDFViewer({
   const previousPage = () => changePage(-1)
   const nextPage = () => changePage(1)
 
-  const zoomIn = () => setScale(prev => Math.min(prev + 0.2, 2.5))
-  const zoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.5))
-  const resetZoom = () => setScale(1.0)
+  // Debounce zoom changes to prevent rapid worker recreation
+  const zoomTimeoutRef = useRef<NodeJS.Timeout>()
+
+  const zoomIn = () => {
+    if (zoomTimeoutRef.current) clearTimeout(zoomTimeoutRef.current)
+    zoomTimeoutRef.current = setTimeout(() => {
+      setScale(prev => Math.min(prev + 0.2, 2.5))
+    }, 50)
+  }
+
+  const zoomOut = () => {
+    if (zoomTimeoutRef.current) clearTimeout(zoomTimeoutRef.current)
+    zoomTimeoutRef.current = setTimeout(() => {
+      setScale(prev => Math.max(prev - 0.2, 0.5))
+    }, 50)
+  }
+
+  const resetZoom = () => {
+    if (zoomTimeoutRef.current) clearTimeout(zoomTimeoutRef.current)
+    setScale(1.0)
+  }
 
   // Create highlight with selected color
   const createHighlight = useCallback((color: string) => {
@@ -423,13 +463,18 @@ export default function PDFViewer({
                   </div>
                 }
                 options={{
-                  // Optimize memory usage
+                  // Optimize memory usage and prevent worker issues
                   cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
                   cMapPacked: true,
                   standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
-                  // Enable streaming
-                  disableAutoFetch: false,
-                  disableStream: false
+                  // Enable streaming but disable auto-fetch to reduce worker load
+                  disableAutoFetch: true,
+                  disableStream: false,
+                  // Prevent worker termination during zoom
+                  stopAtErrors: false,
+                  isEvalSupported: false,
+                  // Improve performance during scale changes
+                  useSystemFonts: true
                 }}
               >
                 <Page
