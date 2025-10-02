@@ -60,6 +60,9 @@ model StudyPack {
   flashcards  String?  // JSON array of flashcard objects (kept for backward compatibility)
   kanbanTasks String?  // JSON array of kanban task objects
 
+  // Team sharing (Premium feature)
+  organizationId String? // Clerk organization ID if shared with team
+
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -76,6 +79,7 @@ model StudyPack {
   @@index([status])
   @@index([createdAt])
   @@index([userId, status])
+  @@index([organizationId])
   @@map("study_packs")
 }
 

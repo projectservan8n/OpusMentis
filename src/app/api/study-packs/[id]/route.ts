@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { userId } = auth()
+    const { userId, orgId } = auth()
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -18,7 +18,10 @@ export async function GET(
     const studyPack = await db.studyPack.findFirst({
       where: {
         id: params.id,
-        userId
+        OR: [
+          { userId }, // Owner
+          ...(orgId ? [{ organizationId: orgId }] : []) // Or in the same organization
+        ]
       },
       include: {
         notes: {
@@ -30,15 +33,22 @@ export async function GET(
     })
 
     if (!studyPack) {
-      return NextResponse.json({ error: 'Study pack not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Study pack not found or you don\'t have access' }, { status: 404 })
     }
+
+    // Check if user is owner or team member
+    const isOwner = studyPack.userId === userId
+    const isTeamMember = studyPack.organizationId === orgId
 
     // Parse JSON fields
     const response = {
       ...studyPack,
       topics: studyPack.topics ? JSON.parse(studyPack.topics) : [],
       flashcards: studyPack.flashcards ? JSON.parse(studyPack.flashcards) : [],
-      kanbanTasks: studyPack.kanbanTasks ? JSON.parse(studyPack.kanbanTasks) : []
+      kanbanTasks: studyPack.kanbanTasks ? JSON.parse(studyPack.kanbanTasks) : [],
+      isOwner, // Include permission flags
+      isTeamMember,
+      isShared: !!studyPack.organizationId
     }
 
     return NextResponse.json(response)

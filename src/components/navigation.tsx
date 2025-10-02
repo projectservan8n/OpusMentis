@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { UserButton, useUser } from '@clerk/nextjs'
+import { UserButton, useUser, OrganizationSwitcher } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
@@ -153,6 +153,19 @@ export default function Navigation() {
 
           <div className="mt-5 flex-1 flex flex-col px-2">
             <NavigationLinks isAdmin={isAdmin} pathname={pathname} />
+          </div>
+
+          {/* Organization Switcher (Premium feature) */}
+          <div className="flex-shrink-0 border-t p-4">
+            <OrganizationSwitcher
+              hidePersonal={false}
+              appearance={{
+                elements: {
+                  rootBox: "w-full",
+                  organizationSwitcherTrigger: "w-full justify-start px-3 py-2 rounded-md hover:bg-accent",
+                }
+              }}
+            />
           </div>
 
           <div className="flex-shrink-0 flex border-t p-4">
