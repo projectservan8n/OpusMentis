@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -13,7 +13,9 @@ import {
   Timer,
   Coffee,
   Trophy,
-  Clock
+  Clock,
+  Wifi,
+  WifiOff
 } from 'lucide-react'
 
 interface StudyTimerProps {
@@ -24,21 +26,25 @@ interface StudyTimerProps {
 type TimerMode = 'focus' | 'short_break' | 'long_break'
 
 const TIMER_PRESETS = {
-  focus: 25 * 60, // 25 minutes
-  short_break: 5 * 60, // 5 minutes
-  long_break: 15 * 60 // 15 minutes
+  focus: 25 * 60,
+  short_break: 5 * 60,
+  long_break: 15 * 60
 }
+
+const SYNC_INTERVAL = 3000 // Sync every 3 seconds
+const POLL_INTERVAL = 5000 // Poll for updates every 5 seconds
 
 export default function StudyTimer({ studyPackId, onSessionComplete }: StudyTimerProps) {
   const [mode, setMode] = useState<TimerMode>('focus')
   const [timeLeft, setTimeLeft] = useState(TIMER_PRESETS.focus)
   const [isRunning, setIsRunning] = useState(false)
   const [pomodoroCount, setPomodoroCount] = useState(0)
-  const [sessionId, setSessionId] = useState<string | null>(null)
-  const [startTime, setStartTime] = useState<Date | null>(null)
-  const [pausedTime, setPausedTime] = useState(0)
+  const [synced, setSynced] = useState(true)
+  const [loading, setLoading] = useState(true)
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const notificationShownRef = useRef(false)
 
   // Calculate progress percentage
@@ -69,6 +75,92 @@ export default function StudyTimer({ studyPackId, onSessionComplete }: StudyTime
     }
   }
 
+  // Fetch timer state from server
+  const fetchTimerState = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/study-sessions/timer?studyPackId=${studyPackId}`)
+      if (!response.ok) throw new Error('Failed to fetch timer')
+
+      const data = await response.json()
+
+      if (data.timer) {
+        const timer = data.timer
+        setMode(timer.sessionType as TimerMode)
+        setTimeLeft(timer.timeRemaining)
+        setIsRunning(timer.isActive && !timer.isPaused)
+        setSynced(true)
+      } else {
+        // No active timer - set to focus mode with default time
+        setMode('focus')
+        setTimeLeft(TIMER_PRESETS.focus)
+        setIsRunning(false)
+      }
+
+      setLoading(false)
+    } catch (error) {
+      console.error('Failed to fetch timer state:', error)
+      setSynced(false)
+      setLoading(false)
+    }
+  }, [studyPackId])
+
+  // Initial load
+  useEffect(() => {
+    fetchTimerState()
+  }, [fetchTimerState])
+
+  // Polling for updates when not running (to sync across devices)
+  useEffect(() => {
+    if (!isRunning) {
+      pollIntervalRef.current = setInterval(() => {
+        fetchTimerState()
+      }, POLL_INTERVAL)
+
+      return () => {
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current)
+        }
+      }
+    }
+  }, [isRunning, fetchTimerState])
+
+  // Sync timer state to server
+  const syncTimerState = useCallback(async () => {
+    if (!isRunning) return
+
+    try {
+      await fetch('/api/study-sessions/timer', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studyPackId,
+          timeRemaining: timeLeft,
+          isPaused: false,
+          sessionType: mode
+        })
+      })
+      setSynced(true)
+    } catch (error) {
+      console.error('Failed to sync timer:', error)
+      setSynced(false)
+    }
+  }, [studyPackId, timeLeft, mode, isRunning])
+
+  // Auto-sync every SYNC_INTERVAL
+  useEffect(() => {
+    if (isRunning) {
+      syncIntervalRef.current = setInterval(() => {
+        syncTimerState()
+      }, SYNC_INTERVAL)
+
+      return () => {
+        if (syncIntervalRef.current) {
+          clearInterval(syncIntervalRef.current)
+        }
+      }
+    }
+  }, [isRunning, syncTimerState])
+
   // Timer countdown logic
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
@@ -92,55 +184,69 @@ export default function StudyTimer({ studyPackId, onSessionComplete }: StudyTime
     }
   }, [isRunning, timeLeft])
 
-  // Start a new session
-  const startSession = async () => {
+  // Start or resume timer
+  const startTimer = async () => {
     try {
-      const response = await fetch('/api/study-sessions', {
+      const response = await fetch('/api/study-sessions/timer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           studyPackId,
+          sessionType: mode,
+          timeRemaining: timeLeft
+        })
+      })
+
+      if (!response.ok) throw new Error('Failed to start timer')
+
+      setIsRunning(true)
+      setSynced(true)
+      notificationShownRef.current = false
+    } catch (error) {
+      console.error('Failed to start timer:', error)
+      toast.error('Failed to start timer')
+      setSynced(false)
+    }
+  }
+
+  // Pause timer
+  const pauseTimer = async () => {
+    try {
+      await fetch('/api/study-sessions/timer', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studyPackId,
+          timeRemaining: timeLeft,
+          isPaused: true,
           sessionType: mode
         })
       })
 
-      if (response.ok) {
-        const session = await response.json()
-        setSessionId(session.id)
-        setStartTime(new Date())
-        setIsRunning(true)
-        notificationShownRef.current = false
-      }
+      setIsRunning(false)
+      setSynced(true)
     } catch (error) {
-      console.error('Failed to start session:', error)
-      toast.error('Failed to start timer')
+      console.error('Failed to pause timer:', error)
+      toast.error('Failed to pause timer')
+      setSynced(false)
     }
   }
 
-  // Update session on server
-  const updateSession = async (completed: boolean = false) => {
-    if (!sessionId || !startTime) return
-
-    const now = new Date()
-    const duration = Math.floor((now.getTime() - startTime.getTime()) / 1000) - pausedTime
-
+  // Reset timer
+  const resetTimer = async () => {
     try {
-      await fetch(`/api/study-sessions?id=${sessionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          duration,
-          completed,
-          pausedTime,
-          endedAt: completed ? now.toISOString() : undefined
-        })
+      // Stop current timer
+      await fetch(`/api/study-sessions/timer?studyPackId=${studyPackId}&completed=false`, {
+        method: 'DELETE'
       })
 
-      if (completed && onSessionComplete) {
-        onSessionComplete(duration)
-      }
+      setTimeLeft(TIMER_PRESETS[mode])
+      setIsRunning(false)
+      setSynced(true)
+      notificationShownRef.current = false
     } catch (error) {
-      console.error('Failed to update session:', error)
+      console.error('Failed to reset timer:', error)
+      toast.error('Failed to reset timer')
     }
   }
 
@@ -148,198 +254,157 @@ export default function StudyTimer({ studyPackId, onSessionComplete }: StudyTime
   const handleTimerComplete = async () => {
     setIsRunning(false)
 
-    if (!notificationShownRef.current) {
+    // Stop timer in database
+    try {
+      await fetch(`/api/study-sessions/timer?studyPackId=${studyPackId}&completed=true`, {
+        method: 'DELETE'
+      })
+    } catch (error) {
+      console.error('Failed to complete timer:', error)
+    }
+
+    if (mode === 'focus' && !notificationShownRef.current) {
+      const newCount = pomodoroCount + 1
+      setPomodoroCount(newCount)
+
+      showNotification('🎉 Pomodoro Complete!', `Great job! You've completed ${newCount} Pomodoros today.`)
+      toast.success(`Pomodoro ${newCount} complete! Time for a break.`)
       notificationShownRef.current = true
 
-      if (mode === 'focus') {
-        const newCount = pomodoroCount + 1
-        setPomodoroCount(newCount)
-        await updateSession(true)
+      onSessionComplete?.(TIMER_PRESETS.focus)
 
-        showNotification(
-          '🎉 Pomodoro Complete!',
-          `Great job! You've completed ${newCount} Pomodoro${newCount > 1 ? 's' : ''} today.`
-        )
-        toast.success(`Pomodoro #${newCount} complete! Time for a break.`)
-
-        // Auto-switch to break
-        if (newCount % 4 === 0) {
-          setMode('long_break')
-          setTimeLeft(TIMER_PRESETS.long_break)
-          toast('Taking a long break! You deserve it.', { icon: '☕' })
-        } else {
-          setMode('short_break')
-          setTimeLeft(TIMER_PRESETS.short_break)
-          toast('Taking a short break!', { icon: '☕' })
-        }
+      // Auto-switch to break
+      if (newCount % 4 === 0) {
+        setMode('long_break')
+        setTimeLeft(TIMER_PRESETS.long_break)
       } else {
-        showNotification(
-          '✨ Break Complete!',
-          'Ready to get back to studying?'
-        )
-        toast.success('Break complete! Ready for another Pomodoro?')
-        setMode('focus')
-        setTimeLeft(TIMER_PRESETS.focus)
+        setMode('short_break')
+        setTimeLeft(TIMER_PRESETS.short_break)
       }
-
-      setSessionId(null)
-      setStartTime(null)
-      setPausedTime(0)
+    } else if (mode !== 'focus') {
+      showNotification('✅ Break Complete!', 'Ready to focus again?')
+      toast.success('Break time over! Ready for another session?')
+      setMode('focus')
+      setTimeLeft(TIMER_PRESETS.focus)
     }
   }
 
-  // Toggle play/pause
-  const toggleTimer = async () => {
+  // Change mode
+  const changeMode = (newMode: TimerMode) => {
     if (isRunning) {
-      // Pause
-      const now = new Date()
-      if (startTime) {
-        const elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000)
-        setPausedTime(prev => prev + elapsed)
-      }
-      await updateSession(false)
-      setIsRunning(false)
-    } else {
-      // Resume or start
-      if (sessionId) {
-        // Resume existing session
-        setStartTime(new Date())
-        setIsRunning(true)
-      } else {
-        // Start new session
-        await startSession()
-      }
-    }
-  }
-
-  // Reset timer
-  const resetTimer = async () => {
-    if (sessionId && isRunning) {
-      await updateSession(false)
-    }
-    setIsRunning(false)
-    setTimeLeft(TIMER_PRESETS[mode])
-    setSessionId(null)
-    setStartTime(null)
-    setPausedTime(0)
-    notificationShownRef.current = false
-  }
-
-  // Switch mode
-  const switchMode = (newMode: TimerMode) => {
-    if (isRunning) {
-      toast.error('Stop the timer before switching modes')
+      toast.error('Stop the timer before changing modes')
       return
     }
     setMode(newMode)
     setTimeLeft(TIMER_PRESETS[newMode])
-    resetTimer()
+    notificationShownRef.current = false
   }
 
-  return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Timer className="h-5 w-5" />
             Study Timer
           </CardTitle>
-          {pomodoroCount > 0 && (
-            <Badge variant="secondary" className="gap-1">
-              <Trophy className="h-3 w-3" />
-              {pomodoroCount} {pomodoroCount === 1 ? 'Pomodoro' : 'Pomodoros'}
-            </Badge>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center py-8">
+            <Clock className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <Timer className="h-5 w-5" />
+            Study Timer
+          </span>
+          {synced ? (
+            <Wifi className="h-4 w-4 text-green-500" title="Synced" />
+          ) : (
+            <WifiOff className="h-4 w-4 text-red-500" title="Not synced" />
           )}
-        </div>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Mode selector */}
+      <CardContent className="space-y-4">
+        {/* Mode Selector */}
         <div className="flex gap-2">
           <Button
             variant={mode === 'focus' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => switchMode('focus')}
-            disabled={isRunning}
+            onClick={() => changeMode('focus')}
             className="flex-1"
           >
-            <Clock className="h-4 w-4 mr-2" />
+            <Trophy className="h-4 w-4 mr-1" />
             Focus
           </Button>
           <Button
             variant={mode === 'short_break' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => switchMode('short_break')}
-            disabled={isRunning}
+            onClick={() => changeMode('short_break')}
             className="flex-1"
           >
-            <Coffee className="h-4 w-4 mr-2" />
-            Short Break
+            <Coffee className="h-4 w-4 mr-1" />
+            Short
           </Button>
           <Button
             variant={mode === 'long_break' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => switchMode('long_break')}
-            disabled={isRunning}
+            onClick={() => changeMode('long_break')}
             className="flex-1"
           >
-            <Coffee className="h-4 w-4 mr-2" />
-            Long Break
+            <Coffee className="h-4 w-4 mr-1" />
+            Long
           </Button>
         </div>
 
-        {/* Timer display */}
+        {/* Timer Display */}
         <div className="text-center space-y-4">
-          <div
-            className={`text-6xl font-bold font-mono ${
-              mode === 'focus' ? 'text-primary' : 'text-green-600'
-            }`}
-          >
+          <div className="text-6xl font-mono font-bold tabular-nums">
             {formatTime(timeLeft)}
           </div>
 
+          {/* Progress Bar */}
           <Progress value={progress} className="h-2" />
 
-          <div className="flex items-center justify-center gap-2">
-            <Button
-              onClick={toggleTimer}
-              size="lg"
-              className="w-32"
-            >
-              {isRunning ? (
-                <>
-                  <Pause className="h-5 w-5 mr-2" />
-                  Pause
-                </>
-              ) : (
-                <>
-                  <Play className="h-5 w-5 mr-2" />
-                  {sessionId ? 'Resume' : 'Start'}
-                </>
-              )}
-            </Button>
+          {/* Mode Badge */}
+          <Badge variant={mode === 'focus' ? 'default' : 'secondary'} className="text-sm">
+            {mode === 'focus' ? '🎯 Focus Time' : mode === 'short_break' ? '☕ Short Break' : '🌴 Long Break'}
+          </Badge>
+        </div>
 
-            <Button
-              onClick={resetTimer}
-              variant="outline"
-              size="lg"
-            >
-              <RotateCcw className="h-5 w-5" />
+        {/* Controls */}
+        <div className="flex gap-2">
+          {!isRunning ? (
+            <Button onClick={startTimer} className="flex-1" size="lg">
+              <Play className="h-5 w-5 mr-2" />
+              Start
             </Button>
+          ) : (
+            <Button onClick={pauseTimer} variant="secondary" className="flex-1" size="lg">
+              <Pause className="h-5 w-5 mr-2" />
+              Pause
+            </Button>
+          )}
+
+          <Button onClick={resetTimer} variant="outline" size="lg">
+            <RotateCcw className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Pomodoro Counter */}
+        {pomodoroCount > 0 && (
+          <div className="text-center text-sm text-muted-foreground">
+            🍅 {pomodoroCount} Pomodoro{pomodoroCount !== 1 ? 's' : ''} today
           </div>
-        </div>
-
-        {/* Info text */}
-        <div className="text-center text-sm text-muted-foreground">
-          {mode === 'focus' && (
-            <p>Focus on your studies for {TIMER_PRESETS.focus / 60} minutes</p>
-          )}
-          {mode === 'short_break' && (
-            <p>Take a {TIMER_PRESETS.short_break / 60} minute break</p>
-          )}
-          {mode === 'long_break' && (
-            <p>Take a {TIMER_PRESETS.long_break / 60} minute break</p>
-          )}
-        </div>
+        )}
       </CardContent>
     </Card>
   )

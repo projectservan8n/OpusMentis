@@ -258,10 +258,16 @@ model StudySession {
   completed    Boolean  @default(false)
   pausedTime   Int      @default(0) // total paused time in seconds
   createdAt    DateTime @default(now())
+  // Real-time timer state
+  isActive     Boolean  @default(false) // timer is currently running
+  isPaused     Boolean  @default(false) // timer is paused
+  timeRemaining Int     @default(1500) // seconds remaining (default 25 min)
+  lastSync     DateTime @default(now()) // last sync timestamp
 
   @@index([userId])
   @@index([studyPackId])
   @@index([userId, studyPackId])
+  @@index([userId, isActive])
   @@index([createdAt])
   @@map("study_sessions")
 }
