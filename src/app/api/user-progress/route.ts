@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Fetch study pack details separately
-    const studyPackIds = [...new Set(recentSessions.map(s => s.studyPackId))]
+    const studyPackIds = Array.from(new Set(recentSessions.map(s => s.studyPackId)))
     const studyPacks = await prisma.studyPack.findMany({
       where: { id: { in: studyPackIds } },
       select: { id: true, title: true }
