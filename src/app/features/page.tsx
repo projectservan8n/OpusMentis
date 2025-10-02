@@ -38,7 +38,7 @@ export default function FeaturesPage() {
     {
       icon: Sparkles,
       title: 'AI-Powered Summaries',
-      description: 'Get instant, intelligent summaries of your study materials using GPT-4o-mini.',
+      description: 'Get instant, intelligent summaries of your study materials using advanced AI.',
       details: [
         'Key concepts extraction',
         'Topic organization',
@@ -114,7 +114,7 @@ export default function FeaturesPage() {
     {
       icon: Headphones,
       title: 'Audio Transcription',
-      description: 'Convert audio lectures to text with OpenAI Whisper for searchable notes.',
+      description: 'Convert audio lectures to text with advanced speech recognition for searchable notes.',
       badge: 'Accurate'
     },
     {

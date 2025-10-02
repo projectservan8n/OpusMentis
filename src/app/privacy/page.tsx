@@ -49,7 +49,7 @@ export default function PrivacyPolicy() {
             </p>
             <ul className="list-disc pl-6 mb-4 text-gray-700">
               <li><strong>Clerk:</strong> Authentication and user management</li>
-              <li><strong>OpenAI:</strong> AI processing for content generation (your files are processed securely)</li>
+                  <li><strong>AI Processing Services:</strong> Third-party AI services for content generation (your files are processed securely and not used for training)</li>
               <li><strong>Railway:</strong> Hosting and infrastructure</li>
               <li><strong>PostgreSQL:</strong> Secure data storage</li>
             </ul>

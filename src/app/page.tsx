@@ -81,7 +81,7 @@ export default function HomePage() {
               </CardHeader>
               <CardContent>
                 <ul className="text-sm text-muted-foreground space-y-2">
-                  <li>• OpenAI Whisper transcription</li>
+                  <li>• Advanced audio transcription</li>
                   <li>• Intelligent summarization</li>
                   <li>• Automatic flashcard generation</li>
                   <li>• Kanban task creation</li>

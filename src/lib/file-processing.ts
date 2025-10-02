@@ -1,5 +1,4 @@
 import pdfParse from 'pdf-parse'
-import { createWorker } from 'tesseract.js'
 import path from 'path'
 import fs from 'fs/promises'
 
@@ -30,25 +29,51 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<ProcessedFile>
 }
 
 export async function extractTextFromImage(buffer: Buffer): Promise<ProcessedFile> {
-  let worker
-
   try {
-    worker = await createWorker('eng')
-    const { data: { text } } = await worker.recognize(buffer)
+    // Use GPT-4o Vision for better image understanding
+    const OpenAI = (await import('openai')).default
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || 'placeholder-key-for-build'
+    })
+
+    // Convert buffer to base64
+    const base64Image = buffer.toString('base64')
+    const imageDataUrl = `data:image/jpeg;base64,${base64Image}`
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: 'Extract all text from this image. If it contains diagrams, charts, or handwritten notes, describe them clearly. If it contains formulas or equations, transcribe them accurately. Return only the extracted text and descriptions, no additional commentary.'
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: imageDataUrl,
+                detail: 'high' // High detail for better accuracy
+              }
+            }
+          ]
+        }
+      ],
+      max_tokens: 2000
+    })
+
+    const extractedText = response.choices[0]?.message?.content || ''
 
     return {
-      text: text.trim(),
+      text: extractedText.trim(),
       metadata: {
-        wordCount: text.trim().split(/\s+/).length
+        wordCount: extractedText.trim().split(/\s+/).length
       }
     }
   } catch (error) {
-    console.error('OCR processing failed:', error)
+    console.error('Image analysis failed:', error)
     throw new Error('Failed to extract text from image')
-  } finally {
-    if (worker) {
-      await worker.terminate()
-    }
   }
 }
 
