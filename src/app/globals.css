@@ -95,3 +95,28 @@
 .processing-spinner {
   @apply animate-spin rounded-full border-2 border-primary/20 border-t-primary;
 }
+
+/* PDF Highlighting - Hide native mobile selection UI when in highlighting mode */
+.pdf-page ::selection {
+  background: transparent;
+}
+
+.pdf-page ::-moz-selection {
+  background: transparent;
+}
+
+/* Disable native text selection handles on mobile */
+.pdf-highlighting-active {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Hide native selection handles and menu */
+.pdf-highlighting-active::selection {
+  background: rgba(253, 224, 71, 0.3); /* yellow-300 with opacity */
+}
+
+.pdf-highlighting-active::-moz-selection {
+  background: rgba(253, 224, 71, 0.3);
+}

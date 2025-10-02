@@ -119,7 +119,7 @@ export default function PDFViewer({
   const zoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.5))
   const resetZoom = () => setScale(1.0)
 
-  // Handle text selection and show color picker
+  // Handle text selection and show color picker (desktop)
   const handleMouseUp = useCallback(() => {
     if (!isSelecting) return
 
@@ -143,6 +143,59 @@ export default function PDFViewer({
       console.error('Error showing color picker:', error)
     }
   }, [isSelecting])
+
+  // Handle long-press for mobile
+  const [touchStartTime, setTouchStartTime] = useState<number>(0)
+  const [touchTimer, setTouchTimer] = useState<NodeJS.Timeout | null>(null)
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!isSelecting) return
+
+    setTouchStartTime(Date.now())
+
+    // Start long-press timer (500ms)
+    const timer = setTimeout(() => {
+      // Trigger selection after long press
+      const touch = e.touches[0]
+      const element = document.elementFromPoint(touch.clientX, touch.clientY)
+
+      // Let browser handle text selection
+      setTimeout(() => {
+        const selection = window.getSelection()
+        if (selection && selection.toString().trim()) {
+          try {
+            const range = selection.getRangeAt(0)
+            const rect = range.getBoundingClientRect()
+
+            setColorPickerPosition({
+              x: rect.left + rect.width / 2,
+              y: rect.top - 60 // Above selection, more space on mobile
+            })
+            setShowColorPicker(true)
+          } catch (error) {
+            console.error('Error on touch selection:', error)
+          }
+        }
+      }, 100)
+    }, 500)
+
+    setTouchTimer(timer)
+  }, [isSelecting])
+
+  const handleTouchEnd = useCallback(() => {
+    if (touchTimer) {
+      clearTimeout(touchTimer)
+      setTouchTimer(null)
+    }
+  }, [touchTimer])
+
+  const handleTouchMove = useCallback(() => {
+    // Cancel long-press if user moves finger
+    if (touchTimer) {
+      clearTimeout(touchTimer)
+      setTouchTimer(null)
+    }
+  }, [touchTimer])
 
   // Create highlight with selected color
   const createHighlight = useCallback((color: string) => {
@@ -366,10 +419,10 @@ export default function PDFViewer({
             </Button>
           </div>
 
-          {/* Bottom Row: Zoom and Highlighting (hidden on mobile for space) */}
-          <div className="hidden sm:flex items-center justify-between gap-2 flex-wrap">
-            {/* Zoom Controls */}
-            <div className="flex items-center gap-1 sm:gap-2">
+          {/* Bottom Row: Zoom and Highlighting */}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            {/* Zoom Controls - hidden on mobile */}
+            <div className="hidden sm:flex items-center gap-1 sm:gap-2">
               <Button variant="outline" size="sm" onClick={zoomOut}>
                 <ZoomOut className="h-4 w-4" />
               </Button>
@@ -382,8 +435,8 @@ export default function PDFViewer({
               </Button>
             </div>
 
-            {/* Highlighting Toggle */}
-            <div className="flex items-center gap-2">
+            {/* Highlighting Toggle - visible on all devices */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <Button
                 variant={isSelecting ? 'default' : 'outline'}
                 size="sm"
@@ -393,15 +446,18 @@ export default function PDFViewer({
                     setShowColorPicker(false)
                   }
                 }}
-                className="gap-2"
+                className="gap-2 flex-1 sm:flex-none"
               >
                 <Highlighter className="h-4 w-4" />
                 <span className="hidden sm:inline">{isSelecting ? 'Highlighting On' : 'Enable Highlighting'}</span>
-                <span className="sm:hidden">{isSelecting ? 'On' : 'Off'}</span>
+                <span className="sm:hidden">{isSelecting ? 'Highlighting Mode: ON' : 'Enable Highlighting'}</span>
               </Button>
               {isSelecting && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground hidden md:inline">Select text to highlight</span>
+                <div className="flex items-center gap-2 flex-1 sm:flex-none">
+                  <span className="text-xs sm:text-sm text-muted-foreground">
+                    <span className="hidden md:inline">Select text to highlight</span>
+                    <span className="md:hidden">Long-press text, then choose color</span>
+                  </span>
                   {/* Show current color */}
                   <div className="flex items-center gap-1 px-2 py-1 rounded border bg-muted">
                     <div className={`w-4 h-4 rounded ${colors.find(c => c.name === selectedColor)?.class}`} />
@@ -428,12 +484,13 @@ export default function PDFViewer({
         >
           <div
             ref={pageRef}
-            className="relative inline-block"
+            className={`relative inline-block ${isSelecting ? 'pdf-highlighting-active' : ''}`}
             style={{
-              cursor: isSelecting ? 'text' : 'default',
-              userSelect: isSelecting ? 'text' : 'none',
-              touchAction: isSelecting ? 'none' : 'pan-x pan-y pinch-zoom'
+              cursor: isSelecting ? 'text' : 'default'
             }}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchMove={handleTouchMove}
           >
             <div className="relative">
               <Document
@@ -470,9 +527,11 @@ export default function PDFViewer({
                 />
               </Document>
 
-              {/* Render highlights overlay - positioned absolutely over the PDF */}
-              <div className="absolute inset-0 pointer-events-none">
-                {renderHighlights()}
+              {/* Render highlights overlay - allow clicks on highlights, block everything else */}
+              <div className="absolute inset-0" style={{ pointerEvents: 'none' }}>
+                <div style={{ pointerEvents: 'auto' }}>
+                  {renderHighlights()}
+                </div>
               </div>
             </div>
           </div>
