@@ -126,6 +126,36 @@ export default function QuizResultsPage() {
   const currentFeedback = attempt.feedback.find((f: any) => f.questionIndex === currentQuestion)
   const currentAnswer = attempt.answers.find((a: any) => a.questionIndex === currentQuestion)?.answer || ''
 
+  const exportToPDF = async () => {
+    try {
+      toast.loading('Generating PDF...', { id: 'export' })
+
+      const response = await fetch(`/api/quiz-attempts/${attemptId}/export`, {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.style.display = 'none'
+      a.href = url
+      a.download = `quiz_results_${attempt.quiz.title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      toast.success('PDF exported successfully!', { id: 'export' })
+    } catch (error) {
+      console.error('Export error:', error)
+      toast.error('Failed to export PDF', { id: 'export' })
+    }
+  }
+
   return (
     <DashboardLayout>
       <div className="max-w-5xl mx-auto space-y-6">
@@ -136,7 +166,7 @@ export default function QuizResultsPage() {
             Back to Dashboard
           </Button>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={exportToPDF}>
               <Download className="h-4 w-4 mr-2" />
               Export PDF
             </Button>
