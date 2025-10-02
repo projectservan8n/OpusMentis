@@ -54,6 +54,22 @@ export default function PDFViewer({
   const pageRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
+  // Suppress PDF.js worker termination warnings (happens during normal cleanup)
+  useEffect(() => {
+    const originalError = console.error
+    console.error = (...args: any[]) => {
+      const msg = args[0]?.message || args[0] || ''
+      // Ignore worker termination warnings
+      if (typeof msg === 'string' && msg.includes('Worker task was terminated')) {
+        return
+      }
+      originalError.apply(console, args)
+    }
+    return () => {
+      console.error = originalError
+    }
+  }, [])
+
   // Measure container width for responsive scaling
   useEffect(() => {
     const updateWidth = () => {
@@ -95,6 +111,10 @@ export default function PDFViewer({
   }
 
   function onDocumentLoadError(error: Error) {
+    // Ignore worker termination errors (happens during cleanup)
+    if (error.message?.includes('Worker task was terminated')) {
+      return
+    }
     console.error('Error loading PDF:', error)
     setError('Failed to load PDF. Please try again.')
     setLoading(false)
@@ -424,6 +444,17 @@ export default function PDFViewer({
                       <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                     </div>
                   }
+                  error={
+                    <div className="flex items-center justify-center py-12">
+                      <p className="text-sm text-muted-foreground">Failed to load page</p>
+                    </div>
+                  }
+                  onLoadError={(error) => {
+                    // Suppress worker termination errors (normal during cleanup)
+                    if (!error.message?.includes('Worker task was terminated')) {
+                      console.error('Page load error:', error)
+                    }
+                  }}
                 />
               </Document>
 
