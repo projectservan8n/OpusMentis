@@ -22,6 +22,7 @@ import 'react-pdf/dist/Page/TextLayer.css'
 import { Highlight } from '@/types/highlight'
 
 // Configure PDF.js worker
+// Updated: Clean highlighting without hover effects
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
 
 interface PDFViewerProps {
