@@ -193,12 +193,29 @@ export async function PATCH(request: NextRequest) {
 
     switch (action) {
       case 'ban':
-        // TODO: Implement user banning in Clerk
-        // For now, we'll just return success
+        // Ban user in Clerk
+        await fetch(`https://api.clerk.dev/v1/users/${targetUserId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${process.env.CLERK_SECRET_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ banned: true })
+        })
+
         return NextResponse.json({ message: 'User banned successfully' })
 
       case 'unban':
-        // TODO: Implement user unbanning in Clerk
+        // Unban user in Clerk
+        await fetch(`https://api.clerk.dev/v1/users/${targetUserId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${process.env.CLERK_SECRET_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ banned: false })
+        })
+
         return NextResponse.json({ message: 'User unbanned successfully' })
 
       case 'upgrade':

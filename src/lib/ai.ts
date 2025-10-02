@@ -42,52 +42,30 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
 
 export async function generateStudyContent(text: string): Promise<StudyPackContent> {
   try {
-    const prompt = `
-You are an AI study assistant. Analyze the following text and create comprehensive study materials.
+    // Optimized prompt with reduced token usage
+    const prompt = `Analyze this text and create study materials as JSON:
 
-Text to analyze:
 ${text}
 
-Please generate a JSON response with the following structure:
+JSON format:
 {
-  "summary": "A comprehensive summary of the main concepts and key points (2-3 paragraphs)",
-  "topics": ["array", "of", "main", "topics", "covered"],
-  "flashcards": [
-    {
-      "id": "unique-id",
-      "question": "Clear, specific question",
-      "answer": "Detailed answer",
-      "difficulty": "easy|medium|hard"
-    }
-  ],
-  "kanbanTasks": [
-    {
-      "id": "unique-id",
-      "title": "Study task title",
-      "description": "What to focus on",
-      "column": "to-learn",
-      "priority": "low|medium|high"
-    }
-  ]
+  "summary": "2-3 paragraph summary of key concepts",
+  "topics": ["main", "topics"],
+  "flashcards": [{"id":"fc-1","question":"Q","answer":"A","difficulty":"easy|medium|hard"}],
+  "kanbanTasks": [{"id":"t-1","title":"Task","description":"Focus","column":"to-learn","priority":"low|medium|high"}]
 }
 
-Guidelines:
-- Create 8-15 flashcards covering key concepts
-- Include varying difficulty levels
-- Generate 6-10 kanban tasks for structured learning
-- All tasks start in "to-learn" column
-- Focus on actionable, specific learning objectives
-- Use clear, student-friendly language
-
-Return only valid JSON, no additional text.
-`
+Requirements:
+- 8-15 flashcards (varied difficulty)
+- 6-10 tasks (all "to-learn", actionable)
+- Clear, concise language`
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful AI study assistant that creates learning materials from text. Always respond with valid JSON only.'
+          content: 'AI study assistant. Return only valid JSON.'
         },
         {
           role: 'user',
@@ -95,7 +73,7 @@ Return only valid JSON, no additional text.
         }
       ],
       temperature: 0.7,
-      max_tokens: 4000,
+      max_tokens: 3000, // Reduced from 4000
       response_format: { type: 'json_object' }
     })
 
@@ -164,17 +142,24 @@ Return only valid JSON, no additional text.
   }
 }
 
-export function chunkText(text: string, maxChunkSize: number = 3000): string[] {
-  const sentences = text.split(/[.!?]+/)
+// Optimized chunking: 5000 chars = ~1250 tokens (4:1 ratio)
+// Allows processing more content in fewer API calls
+export function chunkText(text: string, maxChunkSize: number = 5000): string[] {
+  // Clean extra whitespace to save tokens
+  const cleanText = text.replace(/\s+/g, ' ').trim()
+  const sentences = cleanText.split(/[.!?]+\s+/)
   const chunks: string[] = []
   let currentChunk = ''
 
   for (const sentence of sentences) {
-    if (currentChunk.length + sentence.length > maxChunkSize && currentChunk.length > 0) {
+    const trimmedSentence = sentence.trim()
+    if (!trimmedSentence) continue
+
+    if (currentChunk.length + trimmedSentence.length + 2 > maxChunkSize && currentChunk.length > 0) {
       chunks.push(currentChunk.trim())
-      currentChunk = sentence
+      currentChunk = trimmedSentence
     } else {
-      currentChunk += sentence + '.'
+      currentChunk += (currentChunk ? '. ' : '') + trimmedSentence
     }
   }
 
@@ -182,5 +167,5 @@ export function chunkText(text: string, maxChunkSize: number = 3000): string[] {
     chunks.push(currentChunk.trim())
   }
 
-  return chunks
+  return chunks.length > 0 ? chunks : [cleanText.substring(0, maxChunkSize)]
 }

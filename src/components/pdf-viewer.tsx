@@ -445,6 +445,15 @@ export default function PDFViewer({
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
                 }
+                options={{
+                  // Optimize memory usage
+                  cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+                  cMapPacked: true,
+                  standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
+                  // Enable streaming
+                  disableAutoFetch: false,
+                  disableStream: false
+                }}
               >
                 <Page
                   pageNumber={pageNumber}
@@ -453,6 +462,11 @@ export default function PDFViewer({
                   renderTextLayer={true}
                   renderAnnotationLayer={true}
                   className="pdf-page"
+                  loading={
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    </div>
+                  }
                 />
               </Document>
 

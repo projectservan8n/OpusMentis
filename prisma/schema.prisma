@@ -21,6 +21,16 @@ model User {
   monthlyUploads    Int      @default(0)
   lastResetDate     DateTime @default(now())
 
+  // User preferences (settings)
+  aiSummaryStyle      String  @default("comprehensive") // brief, comprehensive, bullet
+  aiFlashcardDifficulty String @default("mixed") // easy, medium, hard, mixed
+  aiKanbanDepth       String  @default("detailed") // simple, detailed, progressive
+  aiPreferredLanguage String  @default("english") // english, filipino, auto
+  exportIncludeNotes  Boolean @default(true)
+  exportIncludeFlashcards Boolean @default(true)
+  exportIncludeKanban Boolean @default(true)
+  exportPdfLayout     String  @default("standard") // standard, compact, study-guide
+
   // Relations
   studyPacks StudyPack[]
   notes      Note[]
@@ -62,6 +72,10 @@ model StudyPack {
   documentStructure DocumentStructure?
   quizzes           Quiz[]
 
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, status])
   @@map("study_packs")
 }
 
@@ -81,6 +95,9 @@ model Note {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   studyPack   StudyPack @relation(fields: [studyPackId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([studyPackId])
+  @@index([userId, studyPackId])
   @@map("notes")
 }
 
@@ -93,6 +110,9 @@ model UsageLog {
   fileSize  Int?
   createdAt DateTime @default(now())
 
+  @@index([userId])
+  @@index([createdAt])
+  @@index([userId, action])
   @@map("usage_logs")
 }
 
@@ -112,6 +132,10 @@ model PaymentProof {
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, status])
   @@map("payment_proofs")
 }
 
@@ -200,4 +224,20 @@ model QuizAttempt {
   @@index([quizId])
   @@index([userId])
   @@map("quiz_attempts")
+}
+
+// API Keys for external integrations
+model ApiKey {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String   // User-defined name for the key
+  key         String   @unique // The actual API key (hashed in production)
+  status      String   @default("active") // active, revoked
+  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([key])
+  @@map("api_keys")
 }

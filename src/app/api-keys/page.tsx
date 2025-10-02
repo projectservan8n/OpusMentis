@@ -38,19 +38,30 @@ export default function ApiKeysPage() {
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null)
 
   useEffect(() => {
-    // TODO: Fetch API keys from backend
-    // For now, show mock data
-    setApiKeys([
-      {
-        id: '1',
-        name: 'Production Key',
-        key: 'opus_live_sk_1234567890abcdefghijklmnopqrstuvwxyz',
-        createdAt: new Date().toISOString(),
-        lastUsed: new Date().toISOString(),
-        status: 'active'
-      }
-    ])
+    fetchApiKeys()
   }, [])
+
+  const fetchApiKeys = async () => {
+    try {
+      const response = await fetch('/api/api-keys')
+      if (!response.ok) throw new Error('Failed to fetch API keys')
+
+      const data = await response.json()
+      setApiKeys(
+        data.apiKeys.map((key: any) => ({
+          id: key.id,
+          name: key.name,
+          key: key.key,
+          createdAt: key.createdAt,
+          lastUsed: key.lastUsedAt,
+          status: key.status
+        }))
+      )
+    } catch (error) {
+      console.error('Error fetching API keys:', error)
+      toast.error('Failed to load API keys')
+    }
+  }
 
   const handleCreateKey = async () => {
     if (!newKeyName.trim()) {
@@ -60,24 +71,33 @@ export default function ApiKeysPage() {
 
     setCreatingKey(true)
     try {
-      // TODO: Call backend API to create key
-      const mockKey = `opus_live_sk_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`
+      const response = await fetch('/api/api-keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newKeyName })
+      })
 
-      const newKey: ApiKey = {
-        id: Date.now().toString(),
-        name: newKeyName,
-        key: mockKey,
-        createdAt: new Date().toISOString(),
-        lastUsed: null,
-        status: 'active'
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to create API key')
       }
 
-      setApiKeys([...apiKeys, newKey])
-      setNewlyCreatedKey(mockKey)
+      const data = await response.json()
+      const newKey: ApiKey = {
+        id: data.apiKey.id,
+        name: data.apiKey.name,
+        key: data.apiKey.key,
+        createdAt: data.apiKey.createdAt,
+        lastUsed: data.apiKey.lastUsedAt,
+        status: data.apiKey.status
+      }
+
+      setApiKeys([newKey, ...apiKeys])
+      setNewlyCreatedKey(data.apiKey.key)
       setNewKeyName('')
       toast.success('API key created successfully!')
-    } catch (error) {
-      toast.error('Failed to create API key')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create API key')
     } finally {
       setCreatingKey(false)
     }
@@ -91,11 +111,21 @@ export default function ApiKeysPage() {
     if (!confirmed) return
 
     try {
-      // TODO: Call backend API to revoke key
+      const response = await fetch('/api/api-keys', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyId, action: 'revoke' })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to revoke API key')
+      }
+
       setApiKeys(apiKeys.map(k => (k.id === keyId ? { ...k, status: 'revoked' as const } : k)))
       toast.success('API key revoked')
-    } catch (error) {
-      toast.error('Failed to revoke API key')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to revoke API key')
     }
   }
 
@@ -107,11 +137,19 @@ export default function ApiKeysPage() {
     if (!confirmed) return
 
     try {
-      // TODO: Call backend API to delete key
+      const response = await fetch(`/api/api-keys?keyId=${keyId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to delete API key')
+      }
+
       setApiKeys(apiKeys.filter(k => k.id !== keyId))
       toast.success('API key deleted')
-    } catch (error) {
-      toast.error('Failed to delete API key')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete API key')
     }
   }
 

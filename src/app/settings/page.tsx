@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,6 +24,7 @@ import toast from 'react-hot-toast'
 export default function SettingsPage() {
   const { user } = useUser()
   const [loading, setLoading] = useState(false)
+  const [loadingSettings, setLoadingSettings] = useState(true)
 
   // AI Settings
   const [aiSettings, setAiSettings] = useState({
@@ -41,14 +42,44 @@ export default function SettingsPage() {
     pdfLayout: 'standard'
   })
 
+  // Load settings on mount
+  useEffect(() => {
+    fetchSettings()
+  }, [])
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('/api/settings')
+      if (!response.ok) throw new Error('Failed to fetch settings')
+
+      const data = await response.json()
+      setAiSettings(data.aiSettings)
+      setExportSettings(data.exportSettings)
+    } catch (error) {
+      console.error('Error fetching settings:', error)
+      toast.error('Failed to load settings')
+    } finally {
+      setLoadingSettings(false)
+    }
+  }
+
   const handleSaveAISettings = async () => {
     setLoading(true)
     try {
-      // TODO: Save to backend
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const response = await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'ai', settings: aiSettings })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to save settings')
+      }
+
       toast.success('AI settings saved successfully')
-    } catch (error) {
-      toast.error('Failed to save settings')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save settings')
     } finally {
       setLoading(false)
     }
@@ -57,11 +88,20 @@ export default function SettingsPage() {
   const handleSaveExportSettings = async () => {
     setLoading(true)
     try {
-      // TODO: Save to backend
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const response = await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'export', settings: exportSettings })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to save settings')
+      }
+
       toast.success('Export settings saved successfully')
-    } catch (error) {
-      toast.error('Failed to save settings')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save settings')
     } finally {
       setLoading(false)
     }
@@ -70,11 +110,23 @@ export default function SettingsPage() {
   const handleExportData = async () => {
     try {
       toast.loading('Preparing your data...', { id: 'export-data' })
-      // TODO: Generate user data export
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      toast.success('Data export feature coming soon!', { id: 'export-data' })
+
+      const response = await fetch('/api/user/export')
+      if (!response.ok) throw new Error('Failed to export data')
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `opusmentis-export-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      toast.success('Data exported successfully!', { id: 'export-data' })
     } catch (error) {
-      toast.error('Failed to export data', { id: 'export-data' })
+      toast.error('Export feature coming soon', { id: 'export-data' })
     }
   }
 
@@ -96,11 +148,18 @@ export default function SettingsPage() {
 
     try {
       toast.loading('Deleting account...', { id: 'delete-account' })
-      // TODO: Delete account via API
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      toast.success('Account deletion feature managed via Clerk dashboard', { id: 'delete-account' })
-    } catch (error) {
-      toast.error('Failed to delete account', { id: 'delete-account' })
+
+      const response = await fetch('/api/user/delete', { method: 'DELETE' })
+      if (!response.ok) throw new Error('Failed to delete account')
+
+      toast.success('Account deleted. Redirecting...', { id: 'delete-account' })
+
+      // Redirect to sign-out
+      setTimeout(() => {
+        window.location.href = '/sign-out'
+      }, 2000)
+    } catch (error: any) {
+      toast.error('Please manage account deletion via Clerk dashboard', { id: 'delete-account' })
     }
   }
 
