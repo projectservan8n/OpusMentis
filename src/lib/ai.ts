@@ -4,6 +4,7 @@ import OpenAI from 'openai'
 // Fallback: OpenAI with gpt-4o-mini (paid)
 const useOpenRouter = process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY !== 'placeholder-key-for-build'
 
+// Client for text generation (OpenRouter or OpenAI)
 const openai = new OpenAI({
   apiKey: useOpenRouter
     ? process.env.OPENROUTER_API_KEY
@@ -17,6 +18,12 @@ const openai = new OpenAI({
         'X-Title': 'StudyFlow AI'
       }
     : undefined
+})
+
+// Separate client for Whisper - always uses OpenAI (OpenRouter doesn't support audio)
+const openaiWhisper = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || 'placeholder-key-for-build',
+  baseURL: 'https://api.openai.com/v1'
 })
 
 // Model selection based on provider
@@ -51,7 +58,8 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
     // Cast to File-like object with name property
     const file = Object.assign(blob, { name: 'audio.mp3' }) as any
 
-    const transcription = await openai.audio.transcriptions.create({
+    // Use dedicated OpenAI client for Whisper (OpenRouter doesn't support audio)
+    const transcription = await openaiWhisper.audio.transcriptions.create({
       file: file,
       model: WHISPER_MODEL,
       language: 'en' // MVP: English only, can be extended
