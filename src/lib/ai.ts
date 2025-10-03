@@ -44,8 +44,9 @@ export interface StudyPackContent {
 export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
   try {
     // Create a Blob for OpenAI Whisper (Node.js compatible)
-    // Convert Buffer to Uint8Array which is compatible with Blob
-    const uint8Array = new Uint8Array(audioBuffer.buffer, audioBuffer.byteOffset, audioBuffer.byteLength)
+    // Create a new Uint8Array by copying the Buffer data to avoid SharedArrayBuffer issues
+    const uint8Array = new Uint8Array(audioBuffer.length)
+    audioBuffer.copy(uint8Array as any)
     const blob = new Blob([uint8Array], { type: 'audio/mpeg' })
     // Cast to File-like object with name property
     const file = Object.assign(blob, { name: 'audio.mp3' }) as any
