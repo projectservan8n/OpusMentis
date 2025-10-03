@@ -20,7 +20,7 @@ const openai = new OpenAI({
 })
 
 // Model selection based on provider
-const AI_MODEL = useOpenRouter ? 'openai/gpt-oss-20b' : 'gpt-4o-mini'
+const AI_MODEL = useOpenRouter ? 'openai/gpt-oss-20b:free' : 'gpt-4o-mini'
 const WHISPER_MODEL = 'whisper-1' // Always use OpenAI Whisper (no free alternative)
 
 export interface StudyPackContent {
@@ -93,7 +93,7 @@ Requirements:
       ],
       temperature: 0.7,
       max_tokens: 3000, // Reduced from 4000
-      response_format: { type: 'json_object' }
+      ...(useOpenRouter ? {} : { response_format: { type: 'json_object' } }) // OpenRouter doesn't support response_format
     })
 
     const response = completion.choices[0]?.message?.content

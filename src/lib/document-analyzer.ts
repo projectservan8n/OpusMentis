@@ -21,7 +21,7 @@ const openai = new OpenAI({
     : undefined
 })
 
-const AI_MODEL = useOpenRouter ? 'openai/gpt-oss-20b' : 'gpt-4o-mini'
+const AI_MODEL = useOpenRouter ? 'openai/gpt-oss-20b:free' : 'gpt-4o-mini'
 
 export interface Chapter {
   title: string
