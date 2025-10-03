@@ -241,8 +241,24 @@ export async function POST(request: NextRequest) {
 
     // Validate request
     if (!studyPackId || !source || !difficulty || !questionCount) {
+      console.error('Validation failed:', { studyPackId, source, difficulty, questionCount })
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: `Missing required fields: ${!studyPackId ? 'studyPackId ' : ''}${!source ? 'source ' : ''}${!difficulty ? 'difficulty ' : ''}${!questionCount ? 'questionCount' : ''}` },
+        { status: 400 }
+      )
+    }
+
+    // Validate source-specific details
+    if (source === 'highlights' && (!sourceDetails?.highlightIds || sourceDetails.highlightIds.length === 0)) {
+      return NextResponse.json(
+        { error: 'No highlights selected. Please select at least one highlight.' },
+        { status: 400 }
+      )
+    }
+
+    if (source === 'chapters' && (!sourceDetails?.chapters || sourceDetails.chapters.length === 0)) {
+      return NextResponse.json(
+        { error: 'No chapters selected. Please select at least one chapter or use a different source.' },
         { status: 400 }
       )
     }
