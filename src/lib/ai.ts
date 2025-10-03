@@ -133,8 +133,13 @@ Requirements:
 
     return studyContent
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Study content generation failed:', error)
+    console.error('Error details:', {
+      message: error?.message,
+      status: error?.status,
+      response: error?.response
+    })
 
     // Return fallback content if AI fails
     return {

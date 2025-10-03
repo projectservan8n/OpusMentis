@@ -301,6 +301,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Quiz generation error:', error)
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      response: error.response?.data
+    })
     return NextResponse.json(
       { error: error.message || 'Failed to generate quiz' },
       { status: 500 }
