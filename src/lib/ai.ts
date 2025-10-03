@@ -1,5 +1,4 @@
-import OpenAI from 'openai'
-import { Blob } from 'buffer'
+import OpenAI, { toFile } from 'openai'
 
 // Primary: OpenRouter with gpt-oss-20b (free tier)
 // Fallback: OpenAI with gpt-4o-mini (paid)
@@ -51,21 +50,12 @@ export interface StudyPackContent {
 
 export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
   try {
-    // Create a Blob from the buffer (Node.js Blob is supported by OpenAI SDK)
-    const blob = new Blob([audioBuffer], { type: 'audio/mpeg' })
-
-    // OpenAI SDK needs a File-like object with a name property
-    // Add name to the blob to make it File-like
-    const fileWithName = Object.defineProperty(blob, 'name', {
-      value: 'audio.mp3',
-      writable: false,
-      enumerable: true,
-      configurable: true
-    })
+    // Use OpenAI SDK's toFile helper which properly handles file conversion
+    const file = await toFile(audioBuffer, 'audio.mp3', { type: 'audio/mpeg' })
 
     // Use dedicated OpenAI client for Whisper (OpenRouter doesn't support audio)
     const transcription = await openaiWhisper.audio.transcriptions.create({
-      file: fileWithName as any,
+      file: file,
       model: WHISPER_MODEL,
       language: 'en' // MVP: English only, can be extended
     })
