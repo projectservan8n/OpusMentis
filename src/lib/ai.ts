@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { File } from 'buffer'
 
 // Primary: OpenRouter with gpt-oss-20b (free tier)
 // Fallback: OpenAI with gpt-4o-mini (paid)
@@ -50,8 +51,7 @@ export interface StudyPackContent {
 
 export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
   try {
-    // Use Node.js built-in File API (available in Node 18+)
-    // @ts-ignore - File is available in Node 18+ but TypeScript doesn't recognize it yet
+    // Use Node.js File from buffer module (Node 18+)
     const file = new File([audioBuffer], 'audio.mp3', { type: 'audio/mpeg' })
 
     // Use dedicated OpenAI client for Whisper (OpenRouter doesn't support audio)
