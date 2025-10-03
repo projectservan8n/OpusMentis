@@ -2,9 +2,26 @@ import OpenAI from 'openai'
 import fs from 'fs/promises'
 import pdf from 'pdf-parse'
 
+// Primary: OpenRouter with gpt-oss-20b (free tier)
+// Fallback: OpenAI with gpt-4o-mini (paid)
+const useOpenRouter = process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY !== 'placeholder-key-for-build'
+
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'placeholder-key-for-build'
+  apiKey: useOpenRouter
+    ? process.env.OPENROUTER_API_KEY
+    : process.env.OPENAI_API_KEY || 'placeholder-key-for-build',
+  baseURL: useOpenRouter
+    ? 'https://openrouter.ai/api/v1'
+    : 'https://api.openai.com/v1',
+  defaultHeaders: useOpenRouter
+    ? {
+        'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://opusmentis.app',
+        'X-Title': 'StudyFlow AI'
+      }
+    : undefined
 })
+
+const AI_MODEL = useOpenRouter ? 'openai/gpt-oss-20b' : 'gpt-4o-mini'
 
 export interface Chapter {
   title: string
@@ -130,7 +147,7 @@ Return only valid JSON, no additional text.
 `
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: AI_MODEL,
       messages: [
         {
           role: 'system',

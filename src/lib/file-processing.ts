@@ -31,6 +31,7 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<ProcessedFile>
 export async function extractTextFromImage(buffer: Buffer): Promise<ProcessedFile> {
   try {
     // Use GPT-4o Vision for better image understanding
+    // Note: Vision models not available on OpenRouter free tier, using OpenAI directly
     const OpenAI = (await import('openai')).default
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY || 'placeholder-key-for-build'
@@ -41,7 +42,7 @@ export async function extractTextFromImage(buffer: Buffer): Promise<ProcessedFil
     const imageDataUrl = `data:image/jpeg;base64,${base64Image}`
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-4o-mini', // Vision capability at lower cost
       messages: [
         {
           role: 'user',
