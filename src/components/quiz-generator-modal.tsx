@@ -123,16 +123,17 @@ export default function QuizGeneratorModal({
       })
 
       if (!response.ok) {
-        throw new Error('Failed to generate quiz')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || 'Failed to generate quiz')
       }
 
       const quiz = await response.json()
 
       onQuizGenerated?.(quiz.id)
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Quiz generation error:', error)
-      alert('Failed to generate quiz. Please try again.')
+      alert(error.message || 'Failed to generate quiz. Please try again.')
     } finally {
       setIsGenerating(false)
     }
