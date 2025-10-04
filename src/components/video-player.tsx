@@ -97,7 +97,21 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
   // Handle duration loaded
   const handleLoadedMetadata = () => {
     if (!videoRef.current) return
-    setDuration(videoRef.current.duration)
+    const dur = videoRef.current.duration
+    if (isFinite(dur) && dur > 0) {
+      console.log('Video duration loaded:', dur)
+      setDuration(dur)
+    }
+  }
+
+  // Also check duration on canplay event as backup
+  const handleCanPlay = () => {
+    if (!videoRef.current || duration > 0) return
+    const dur = videoRef.current.duration
+    if (isFinite(dur) && dur > 0) {
+      console.log('Video duration from canplay:', dur)
+      setDuration(dur)
+    }
   }
 
   // Handle seek drag (visual only)
@@ -257,9 +271,11 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
             src={filePath}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
+            onCanPlay={handleCanPlay}
             onEnded={() => setIsPlaying(false)}
             onClick={togglePlayPause}
             className="w-full aspect-video cursor-pointer"
+            preload="metadata"
           />
 
           {/* Video Controls Overlay */}
@@ -268,17 +284,15 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
               showControls ? 'opacity-100' : 'opacity-0'
             }`}
           >
-            {/* Progress Bar - Native HTML5 for better seek support */}
-            <input
-              type="range"
+            {/* Progress Bar - Radix Slider */}
+            <Slider
               min={0}
-              max={duration || 100}
+              max={duration || 1}
               step={0.1}
-              value={isDraggingSeek ? seekPreview : currentTime}
-              onChange={(e) => handleSeekChange([parseFloat(e.target.value)])}
-              onMouseUp={(e) => handleSeekCommit([parseFloat((e.target as HTMLInputElement).value)])}
-              onTouchEnd={(e) => handleSeekCommit([parseFloat((e.target as HTMLInputElement).value)])}
-              className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-lg [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-lg"
+              value={[isDraggingSeek ? seekPreview : currentTime]}
+              onValueChange={handleSeekChange}
+              onValueCommit={handleSeekCommit}
+              className="w-full"
             />
 
             <div className="flex items-center justify-between gap-3 text-white">

@@ -74,8 +74,9 @@ export async function GET(
       return NextResponse.json({ error: 'File not found on server' }, { status: 404 })
     }
 
-    // Read file from local filesystem
-    const fileBuffer = fs.readFileSync(absolutePath)
+    // Get file stats for size and range support
+    const stats = fs.statSync(absolutePath)
+    const fileSize = stats.size
 
     // Determine content type based on file extension
     const ext = path.extname(absolutePath).toLowerCase()
@@ -94,10 +95,48 @@ export async function GET(
 
     const contentType = contentTypeMap[ext] || 'application/octet-stream'
 
-    // Return file with appropriate headers
+    // Handle Range requests (required for Safari video/audio playback)
+    const rangeHeader = request.headers.get('range')
+
+    if (rangeHeader) {
+      // Parse range header (e.g., "bytes=0-1023")
+      const parts = rangeHeader.replace(/bytes=/, '').split('-')
+      const start = parseInt(parts[0], 10)
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1
+      const chunkSize = end - start + 1
+
+      // Read only the requested range
+      const fileStream = fs.createReadStream(absolutePath, { start, end })
+      const chunks: Buffer[] = []
+
+      for await (const chunk of fileStream) {
+        chunks.push(chunk)
+      }
+
+      const fileBuffer = Buffer.concat(chunks)
+
+      // Return 206 Partial Content with range headers
+      return new NextResponse(fileBuffer, {
+        status: 206,
+        headers: {
+          'Content-Type': contentType,
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunkSize.toString(),
+          'Content-Disposition': `inline; filename="${path.basename(filePath)}"`,
+          'Cache-Control': 'private, max-age=31536000, immutable'
+        }
+      })
+    }
+
+    // No range request - return entire file
+    const fileBuffer = fs.readFileSync(absolutePath)
+
     return new NextResponse(fileBuffer, {
       headers: {
         'Content-Type': contentType,
+        'Content-Length': fileSize.toString(),
+        'Accept-Ranges': 'bytes',
         'Content-Disposition': `inline; filename="${path.basename(filePath)}"`,
         'Cache-Control': 'private, max-age=31536000, immutable'
       }

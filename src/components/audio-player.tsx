@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Slider } from '@/components/ui/slider'
 import {
   Play,
   Pause,
@@ -84,7 +85,21 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
   // Handle duration loaded
   const handleLoadedMetadata = () => {
     if (!audioRef.current) return
-    setDuration(audioRef.current.duration)
+    const dur = audioRef.current.duration
+    if (isFinite(dur) && dur > 0) {
+      console.log('Audio duration loaded:', dur)
+      setDuration(dur)
+    }
+  }
+
+  // Also check duration on canplay event as backup
+  const handleCanPlay = () => {
+    if (!audioRef.current || duration > 0) return
+    const dur = audioRef.current.duration
+    if (isFinite(dur) && dur > 0) {
+      console.log('Audio duration from canplay:', dur)
+      setDuration(dur)
+    }
   }
 
   // Handle seek drag (visual only)
@@ -196,21 +211,21 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
           src={filePath}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
+          onCanPlay={handleCanPlay}
           onEnded={() => setIsPlaying(false)}
+          preload="metadata"
         />
 
-        {/* Waveform / Progress Bar - Native HTML5 for better seek support */}
+        {/* Waveform / Progress Bar - Radix Slider */}
         <div className="space-y-2">
-          <input
-            type="range"
+          <Slider
             min={0}
-            max={duration || 100}
+            max={duration || 1}
             step={0.1}
-            value={isDraggingSeek ? seekPreview : currentTime}
-            onChange={(e) => handleSeekChange([parseFloat(e.target.value)])}
-            onMouseUp={(e) => handleSeekCommit([parseFloat((e.target as HTMLInputElement).value)])}
-            onTouchEnd={(e) => handleSeekCommit([parseFloat((e.target as HTMLInputElement).value)])}
-            className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-lg [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-lg"
+            value={[isDraggingSeek ? seekPreview : currentTime]}
+            onValueChange={handleSeekChange}
+            onValueCommit={handleSeekCommit}
+            className="w-full"
           />
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>{formatTime(currentTime)}</span>
