@@ -21,9 +21,10 @@ interface AudioPlayerProps {
   transcript?: string
   onTimeUpdate?: (time: number) => void
   onPlayerReady?: (seekFn: (time: number) => void) => void
+  onPauseReady?: (pauseFn: () => void) => void
 }
 
-export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate, onPlayerReady }: AudioPlayerProps) {
+export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate, onPlayerReady, onPauseReady }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -31,13 +32,22 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
   const [isMuted, setIsMuted] = useState(false)
   const [playbackRate, setPlaybackRate] = useState(1)
   const [isDraggingSeek, setIsDraggingSeek] = useState(false)
+  const [seekPreview, setSeekPreview] = useState(0)
 
   const audioRef = useRef<HTMLAudioElement>(null)
 
-  // Expose seek function to parent
+  // Expose seek and pause functions to parent
   useEffect(() => {
     if (onPlayerReady) {
       onPlayerReady(seekToTime)
+    }
+    if (onPauseReady) {
+      onPauseReady(() => {
+        if (audioRef.current && !audioRef.current.paused) {
+          audioRef.current.pause()
+          setIsPlaying(false)
+        }
+      })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -79,7 +89,7 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
   // Handle seek drag (visual only)
   const handleSeekChange = (value: number[]) => {
     setIsDraggingSeek(true)
-    setCurrentTime(value[0])
+    setSeekPreview(value[0])
   }
 
   // Handle seek commit (actual seek on mouse release)
@@ -167,7 +177,7 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
         {/* Waveform / Progress Bar */}
         <div className="space-y-2">
           <Slider
-            value={[currentTime]}
+            value={[isDraggingSeek ? seekPreview : currentTime]}
             max={duration || 100}
             step={0.1}
             onValueChange={handleSeekChange}
@@ -194,12 +204,12 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
           <Button
             size="lg"
             onClick={togglePlayPause}
-            className="rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90"
+            className="rounded-full h-14 w-14 bg-primary text-white hover:bg-primary/90"
           >
             {isPlaying ? (
-              <Pause className="h-6 w-6" />
+              <Pause className="h-6 w-6 fill-white" />
             ) : (
-              <Play className="h-6 w-6 ml-1" />
+              <Play className="h-6 w-6 ml-1 fill-white" />
             )}
           </Button>
 

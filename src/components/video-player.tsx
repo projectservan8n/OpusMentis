@@ -24,9 +24,10 @@ interface VideoPlayerProps {
   transcript?: string
   onTimeUpdate?: (time: number) => void
   onPlayerReady?: (seekFn: (time: number) => void) => void
+  onPauseReady?: (pauseFn: () => void) => void
 }
 
-export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate, onPlayerReady }: VideoPlayerProps) {
+export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate, onPlayerReady, onPauseReady }: VideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -36,15 +37,24 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
   const [playbackRate, setPlaybackRate] = useState(1)
   const [showControls, setShowControls] = useState(true)
   const [isDraggingSeek, setIsDraggingSeek] = useState(false)
+  const [seekPreview, setSeekPreview] = useState(0)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout>()
 
-  // Expose seek function to parent
+  // Expose seek and pause functions to parent
   useEffect(() => {
     if (onPlayerReady) {
       onPlayerReady(seekToTime)
+    }
+    if (onPauseReady) {
+      onPauseReady(() => {
+        if (videoRef.current && !videoRef.current.paused) {
+          videoRef.current.pause()
+          setIsPlaying(false)
+        }
+      })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -91,7 +101,7 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
   // Handle seek drag (visual only)
   const handleSeekChange = (value: number[]) => {
     setIsDraggingSeek(true)
-    setCurrentTime(value[0])
+    setSeekPreview(value[0])
   }
 
   // Handle seek commit (actual seek on mouse release)
@@ -234,7 +244,7 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
           >
             {/* Progress Bar */}
             <Slider
-              value={[currentTime]}
+              value={[isDraggingSeek ? seekPreview : currentTime]}
               max={duration || 100}
               step={0.1}
               onValueChange={handleSeekChange}

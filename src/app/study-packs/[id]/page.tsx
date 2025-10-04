@@ -88,6 +88,7 @@ export default function StudyPackPage() {
   const [isSharing, setIsSharing] = useState(false)
   const [currentMediaTime, setCurrentMediaTime] = useState(0)
   const [mediaSeekCallback, setMediaSeekCallback] = useState<((time: number) => void) | null>(null)
+  const [mediaPauseCallback, setMediaPauseCallback] = useState<(() => void) | null>(null)
 
   useEffect(() => {
     if (studyPackId) {
@@ -257,6 +258,14 @@ export default function StudyPackPage() {
     } catch (error) {
       console.error('Error fetching document structure:', error)
     }
+  }
+
+  const handleTabChange = (newTab: string) => {
+    // Pause media when switching away from the media tab
+    if (activeTab === 'pdf' && newTab !== 'pdf' && mediaPauseCallback) {
+      mediaPauseCallback()
+    }
+    setActiveTab(newTab)
   }
 
   const handleGenerateQuiz = () => {
@@ -486,7 +495,7 @@ export default function StudyPackPage() {
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="p-0">
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <Tabs value={activeTab} onValueChange={handleTabChange}>
                   <TabsList className="w-full inline-flex h-10 items-center justify-start rounded-none border-b bg-transparent p-0 overflow-x-auto">
                     <TabsTrigger value="pdf" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
                       <span className="hidden sm:inline">
@@ -536,6 +545,7 @@ export default function StudyPackPage() {
                           title={studyPack.title}
                           onTimeUpdate={setCurrentMediaTime}
                           onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
+                          onPauseReady={(pauseFn) => setMediaPauseCallback(() => pauseFn)}
                         />
                       </div>
                       <div className="lg:col-span-1">
@@ -555,6 +565,7 @@ export default function StudyPackPage() {
                           title={studyPack.title}
                           onTimeUpdate={setCurrentMediaTime}
                           onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
+                          onPauseReady={(pauseFn) => setMediaPauseCallback(() => pauseFn)}
                         />
                       </div>
                       <div className="lg:col-span-1">
