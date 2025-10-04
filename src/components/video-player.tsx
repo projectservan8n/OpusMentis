@@ -35,6 +35,7 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [playbackRate, setPlaybackRate] = useState(1)
   const [showControls, setShowControls] = useState(true)
+  const [isDraggingSeek, setIsDraggingSeek] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -87,8 +88,15 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
     setDuration(videoRef.current.duration)
   }
 
-  // Handle seek - only update on commit (mouse up), not while dragging
+  // Handle seek drag (visual only)
+  const handleSeekChange = (value: number[]) => {
+    setIsDraggingSeek(true)
+    setCurrentTime(value[0])
+  }
+
+  // Handle seek commit (actual seek on mouse release)
   const handleSeekCommit = (value: number[]) => {
+    setIsDraggingSeek(false)
     seekToTime(value[0])
   }
 
@@ -229,6 +237,7 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
               value={[currentTime]}
               max={duration || 100}
               step={0.1}
+              onValueChange={handleSeekChange}
               onValueCommit={handleSeekCommit}
               className="w-full cursor-pointer"
             />

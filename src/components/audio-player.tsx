@@ -30,6 +30,7 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
   const [volume, setVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
   const [playbackRate, setPlaybackRate] = useState(1)
+  const [isDraggingSeek, setIsDraggingSeek] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement>(null)
 
@@ -75,8 +76,15 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
     setDuration(audioRef.current.duration)
   }
 
-  // Handle seek - only update on commit (mouse up), not while dragging
+  // Handle seek drag (visual only)
+  const handleSeekChange = (value: number[]) => {
+    setIsDraggingSeek(true)
+    setCurrentTime(value[0])
+  }
+
+  // Handle seek commit (actual seek on mouse release)
   const handleSeekCommit = (value: number[]) => {
+    setIsDraggingSeek(false)
     seekToTime(value[0])
   }
 
@@ -162,6 +170,7 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
             value={[currentTime]}
             max={duration || 100}
             step={0.1}
+            onValueChange={handleSeekChange}
             onValueCommit={handleSeekCommit}
             className="w-full"
           />
@@ -185,7 +194,7 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
           <Button
             size="lg"
             onClick={togglePlayPause}
-            className="rounded-full h-14 w-14"
+            className="rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {isPlaying ? (
               <Pause className="h-6 w-6" />
