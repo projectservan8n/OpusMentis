@@ -89,8 +89,11 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
     if (!videoRef.current) return
     if (!isDraggingSeek) {
       const time = videoRef.current.currentTime
+      console.log('Time update:', time)
       setCurrentTime(time)
       onTimeUpdate?.(time)
+    } else {
+      console.log('Skipping timeupdate - dragging')
     }
   }
 
@@ -108,9 +111,11 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
 
   // Handle seek commit (actual seek on mouse release)
   const handleSeekCommit = (value: number[]) => {
+    console.log('Seek commit:', value[0])
     seekToTime(value[0])
     // Keep dragging state true briefly to prevent timeupdate override
     setTimeout(() => {
+      console.log('Clearing drag state')
       setIsDraggingSeek(false)
     }, 200)
   }
@@ -118,8 +123,13 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
   // Seek to specific time (used by slider and transcript)
   const seekToTime = (time: number) => {
     if (!videoRef.current) return
-    videoRef.current.currentTime = time
-    setCurrentTime(time)
+    console.log('Seeking to:', time)
+    try {
+      videoRef.current.currentTime = time
+      setCurrentTime(time)
+    } catch (error) {
+      console.error('Seek error:', error)
+    }
   }
 
   // Handle volume change
@@ -248,14 +258,16 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
             }`}
           >
             {/* Progress Bar */}
-            <Slider
-              value={[isDraggingSeek ? seekPreview : currentTime]}
-              max={duration || 100}
-              step={0.1}
-              onValueChange={handleSeekChange}
-              onValueCommit={handleSeekCommit}
-              className="w-full cursor-pointer"
-            />
+            <div className="w-full">
+              <Slider
+                value={[isDraggingSeek ? seekPreview : currentTime]}
+                max={duration || 100}
+                step={0.1}
+                onValueChange={handleSeekChange}
+                onValueCommit={handleSeekCommit}
+                className="w-full cursor-pointer"
+              />
+            </div>
 
             <div className="flex items-center justify-between gap-3 text-white">
               {/* Left Controls */}
