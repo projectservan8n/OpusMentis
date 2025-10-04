@@ -86,10 +86,12 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
 
   // Handle time update
   const handleTimeUpdate = () => {
-    if (!videoRef.current || isDraggingSeek) return
-    const time = videoRef.current.currentTime
-    setCurrentTime(time)
-    onTimeUpdate?.(time)
+    if (!videoRef.current) return
+    if (!isDraggingSeek) {
+      const time = videoRef.current.currentTime
+      setCurrentTime(time)
+      onTimeUpdate?.(time)
+    }
   }
 
   // Handle duration loaded
@@ -106,8 +108,11 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
 
   // Handle seek commit (actual seek on mouse release)
   const handleSeekCommit = (value: number[]) => {
-    setIsDraggingSeek(false)
     seekToTime(value[0])
+    // Keep dragging state true briefly to prevent timeupdate override
+    setTimeout(() => {
+      setIsDraggingSeek(false)
+    }, 200)
   }
 
   // Seek to specific time (used by slider and transcript)

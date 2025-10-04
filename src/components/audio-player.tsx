@@ -74,10 +74,12 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
 
   // Handle time update
   const handleTimeUpdate = () => {
-    if (!audioRef.current || isDraggingSeek) return
-    const time = audioRef.current.currentTime
-    setCurrentTime(time)
-    onTimeUpdate?.(time)
+    if (!audioRef.current) return
+    if (!isDraggingSeek) {
+      const time = audioRef.current.currentTime
+      setCurrentTime(time)
+      onTimeUpdate?.(time)
+    }
   }
 
   // Handle duration loaded
@@ -94,8 +96,11 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
 
   // Handle seek commit (actual seek on mouse release)
   const handleSeekCommit = (value: number[]) => {
-    setIsDraggingSeek(false)
     seekToTime(value[0])
+    // Keep dragging state true briefly to prevent timeupdate override
+    setTimeout(() => {
+      setIsDraggingSeek(false)
+    }, 200)
   }
 
   // Seek to specific time (used by slider and transcript)
@@ -204,12 +209,12 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
           <Button
             size="lg"
             onClick={togglePlayPause}
-            className="rounded-full h-14 w-14 bg-primary text-white hover:bg-primary/90"
+            className="rounded-full h-14 w-14 bg-slate-900 hover:bg-slate-800"
           >
             {isPlaying ? (
-              <Pause className="h-6 w-6 fill-white" />
+              <Pause className="h-6 w-6 text-white" />
             ) : (
-              <Play className="h-6 w-6 ml-1 fill-white" />
+              <Play className="h-6 w-6 ml-1 text-white" />
             )}
           </Button>
 
