@@ -42,8 +42,11 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
 
   // Expose seek function to parent
   useEffect(() => {
-    onPlayerReady?.(seekToTime)
-  }, [onPlayerReady])
+    if (onPlayerReady) {
+      onPlayerReady(seekToTime)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Format time as HH:MM:SS or MM:SS
   const formatTime = (seconds: number) => {

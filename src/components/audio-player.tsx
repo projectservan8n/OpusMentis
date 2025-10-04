@@ -35,8 +35,11 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
 
   // Expose seek function to parent
   useEffect(() => {
-    onPlayerReady?.(seekToTime)
-  }, [onPlayerReady])
+    if (onPlayerReady) {
+      onPlayerReady(seekToTime)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Format time as MM:SS
   const formatTime = (seconds: number) => {
