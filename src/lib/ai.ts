@@ -26,7 +26,7 @@ const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'placeholder
 
 // Model selection based on provider
 const AI_MODEL = useOpenRouter ? 'openai/gpt-oss-20b:free' : 'gpt-4o-mini'
-const GEMINI_MODEL = 'gemini-1.5-flash' // For audio/video transcription - 48x cheaper than Whisper!
+const GEMINI_MODEL = 'models/gemini-1.5-flash' // For audio/video transcription - 48x cheaper than Whisper!
 
 export interface StudyPackContent {
   summary: string
