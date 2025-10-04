@@ -83,15 +83,15 @@ export default function TranscriptViewer({
     setActiveSegmentIndex(foundIndex)
   }, [currentTime, segments])
 
-  // Auto-scroll to active segment - DISABLED to avoid forcing user attention
-  // useEffect(() => {
-  //   if (activeSegmentRef.current) {
-  //     activeSegmentRef.current.scrollIntoView({
-  //       behavior: 'smooth',
-  //       block: 'center'
-  //     })
-  //   }
-  // }, [activeSegmentIndex])
+  // Auto-scroll to active segment within transcript container only
+  useEffect(() => {
+    if (activeSegmentRef.current) {
+      activeSegmentRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      })
+    }
+  }, [activeSegmentIndex])
 
   // Filter segments by search query
   const filteredSegments = searchQuery
