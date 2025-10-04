@@ -7,7 +7,8 @@ interface MiniPipPlayerProps {
   currentTime: number
   duration: number
   title: string
-  onPlayPause: () => void
+  onPlayPause?: () => void
+  onSeek?: (time: number) => void
 }
 
 export default function MiniPipPlayer({
@@ -15,7 +16,8 @@ export default function MiniPipPlayer({
   currentTime,
   duration,
   title,
-  onPlayPause
+  onPlayPause,
+  onSeek
 }: MiniPipPlayerProps) {
   const formatTime = (seconds: number) => {
     if (!isFinite(seconds)) return '0:00'
@@ -30,7 +32,8 @@ export default function MiniPipPlayer({
         {/* Play/Pause Button */}
         <button
           onClick={onPlayPause}
-          className="w-10 h-10 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center transition flex-shrink-0"
+          disabled={!onPlayPause}
+          className="w-10 h-10 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center transition flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isPlaying ? (
             <Pause className="h-5 w-5 text-black" fill="black" />

@@ -779,8 +779,8 @@ export default function StudyPackPage() {
           currentTime={currentMediaTime}
           duration={mediaDuration}
           isPlaying={isMediaPlaying}
-          onPlayPause={mediaPlayPauseCallback || undefined}
-          onSeek={mediaSeekCallback || undefined}
+          {...(mediaPlayPauseCallback && { onPlayPause: mediaPlayPauseCallback })}
+          {...(mediaSeekCallback && { onSeek: mediaSeekCallback })}
         />
       )}
     </DashboardLayout>
