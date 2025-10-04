@@ -555,9 +555,9 @@ export default function StudyPackPage() {
                     </TabsTrigger>
                   </TabsList>
 
-              {/* Show full player with transcript on Content tab for study pack page */}
-              {studyPack.fileType === 'video' && studyPack.filePath && activeTab === 'pdf' && (
-                <div className="p-4 sm:p-6">
+              {/* Keep audio/video players mounted for persistent playback */}
+              {studyPack.fileType === 'video' && studyPack.filePath && (
+                <div className={activeTab !== 'pdf' ? 'hidden' : 'p-4 sm:p-6'}>
                   <VideoPlayer
                     filePath={`/api/files/${studyPack.filePath}`}
                     title={studyPack.title}
@@ -569,8 +569,8 @@ export default function StudyPackPage() {
                   />
                 </div>
               )}
-              {studyPack.fileType === 'audio' && studyPack.filePath && activeTab === 'pdf' && (
-                <div className="p-4 sm:p-6">
+              {studyPack.fileType === 'audio' && studyPack.filePath && (
+                <div className={activeTab !== 'pdf' ? 'hidden' : 'p-4 sm:p-6'}>
                   <AudioPlayer
                     filePath={`/api/files/${studyPack.filePath}`}
                     title={studyPack.title}
