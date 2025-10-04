@@ -87,12 +87,12 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
   const togglePlayPause = () => {
     if (!videoRef.current) return
 
-    if (isPlaying) {
-      videoRef.current.pause()
-    } else {
+    if (videoRef.current.paused) {
       videoRef.current.play()
+    } else {
+      videoRef.current.pause()
     }
-    setIsPlaying(!isPlaying)
+    // State will be updated by play/pause event listeners
   }
 
   // Handle time update

@@ -75,12 +75,12 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
   const togglePlayPause = () => {
     if (!audioRef.current) return
 
-    if (isPlaying) {
-      audioRef.current.pause()
-    } else {
+    if (audioRef.current.paused) {
       audioRef.current.play()
+    } else {
+      audioRef.current.pause()
     }
-    setIsPlaying(!isPlaying)
+    // State will be updated by play/pause event listeners
   }
 
   // Handle time update
