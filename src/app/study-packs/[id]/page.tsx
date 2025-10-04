@@ -14,6 +14,7 @@ import Notes from '@/components/notes'
 import PDFViewer from '@/components/pdf-viewer'
 import AudioPlayer from '@/components/audio-player'
 import VideoPlayer from '@/components/video-player'
+import TranscriptViewer from '@/components/transcript-viewer'
 import HighlightSidebar from '@/components/highlight-sidebar'
 import QuizGeneratorModal from '@/components/quiz-generator-modal'
 import StudyTimer from '@/components/study-timer'
@@ -51,6 +52,7 @@ interface StudyPack {
   topics: string[]
   flashcards: any[]
   kanbanTasks: any[]
+  transcript?: string
   createdAt: string
   updatedAt: string
   notes: any[]
@@ -83,6 +85,8 @@ export default function StudyPackPage() {
   const [activeTab, setActiveTab] = useState('pdf')
   const [showQuizGenerator, setShowQuizGenerator] = useState(false)
   const [isSharing, setIsSharing] = useState(false)
+  const [currentMediaTime, setCurrentMediaTime] = useState(0)
+  const [mediaSeekCallback, setMediaSeekCallback] = useState<((time: number) => void) | null>(null)
 
   useEffect(() => {
     if (studyPackId) {
@@ -532,17 +536,43 @@ export default function StudyPackPage() {
                       </div>
                     </div>
                   ) : studyPack.fileType === 'video' && studyPack.filePath ? (
-                    /* Video Player */
-                    <VideoPlayer
-                      filePath={`/api/files/${studyPack.filePath}`}
-                      title={studyPack.title}
-                    />
+                    /* Video Player with Transcript */
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      <div className="lg:col-span-2">
+                        <VideoPlayer
+                          filePath={`/api/files/${studyPack.filePath}`}
+                          title={studyPack.title}
+                          onTimeUpdate={setCurrentMediaTime}
+                          onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
+                        />
+                      </div>
+                      <div className="lg:col-span-1">
+                        <TranscriptViewer
+                          transcript={studyPack.transcript || ''}
+                          currentTime={currentMediaTime}
+                          onSeek={mediaSeekCallback || undefined}
+                        />
+                      </div>
+                    </div>
                   ) : studyPack.fileType === 'audio' && studyPack.filePath ? (
-                    /* Audio Player */
-                    <AudioPlayer
-                      filePath={`/api/files/${studyPack.filePath}`}
-                      title={studyPack.title}
-                    />
+                    /* Audio Player with Transcript */
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      <div className="lg:col-span-2">
+                        <AudioPlayer
+                          filePath={`/api/files/${studyPack.filePath}`}
+                          title={studyPack.title}
+                          onTimeUpdate={setCurrentMediaTime}
+                          onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
+                        />
+                      </div>
+                      <div className="lg:col-span-1">
+                        <TranscriptViewer
+                          transcript={studyPack.transcript || ''}
+                          currentTime={currentMediaTime}
+                          onSeek={mediaSeekCallback || undefined}
+                        />
+                      </div>
+                    </div>
                   ) : (
                     <Card>
                       <CardContent className="text-center py-12">

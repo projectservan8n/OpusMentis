@@ -55,10 +55,11 @@ model StudyPack {
   processingError String?
 
   // AI-generated content (JSON stored as text for MVP)
-  summary     String?  // AI-generated summary
+  summary     String?  @db.Text // AI-generated summary
   topics      String?  // JSON array of topics
   flashcards  String?  // JSON array of flashcard objects (kept for backward compatibility)
   kanbanTasks String?  // JSON array of kanban task objects
+  transcript  String?  @db.Text // Timestamped transcript for audio/video files
 
   // Team sharing (Premium feature)
   organizationId String? // Clerk organization ID if shared with team

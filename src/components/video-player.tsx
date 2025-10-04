@@ -21,9 +21,12 @@ import {
 interface VideoPlayerProps {
   filePath: string
   title: string
+  transcript?: string
+  onTimeUpdate?: (time: number) => void
+  onPlayerReady?: (seekFn: (time: number) => void) => void
 }
 
-export default function VideoPlayer({ filePath, title }: VideoPlayerProps) {
+export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate, onPlayerReady }: VideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -36,6 +39,11 @@ export default function VideoPlayer({ filePath, title }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout>()
+
+  // Expose seek function to parent
+  useEffect(() => {
+    onPlayerReady?.(seekToTime)
+  }, [onPlayerReady])
 
   // Format time as HH:MM:SS or MM:SS
   const formatTime = (seconds: number) => {
@@ -65,7 +73,9 @@ export default function VideoPlayer({ filePath, title }: VideoPlayerProps) {
   // Handle time update
   const handleTimeUpdate = () => {
     if (!videoRef.current) return
-    setCurrentTime(videoRef.current.currentTime)
+    const time = videoRef.current.currentTime
+    setCurrentTime(time)
+    onTimeUpdate?.(time)
   }
 
   // Handle duration loaded
@@ -76,10 +86,14 @@ export default function VideoPlayer({ filePath, title }: VideoPlayerProps) {
 
   // Handle seek - only update on commit (mouse up), not while dragging
   const handleSeekCommit = (value: number[]) => {
+    seekToTime(value[0])
+  }
+
+  // Seek to specific time (used by slider and transcript)
+  const seekToTime = (time: number) => {
     if (!videoRef.current) return
-    const newTime = value[0]
-    videoRef.current.currentTime = newTime
-    setCurrentTime(newTime)
+    videoRef.current.currentTime = time
+    setCurrentTime(time)
   }
 
   // Handle volume change

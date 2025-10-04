@@ -59,7 +59,7 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
       // Convert buffer to base64 for Gemini API
       const base64Audio = audioBuffer.toString('base64')
 
-      // Send audio with prompt to transcribe
+      // Send audio with prompt to transcribe with timestamps
       const result = await model.generateContent([
         {
           inlineData: {
@@ -67,7 +67,11 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
             mimeType: 'audio/mpeg'
           }
         },
-        'Please transcribe this audio accurately. Output only the transcribed text, nothing else.'
+        `Please transcribe this audio accurately with timestamps. Format each segment as:
+[MM:SS] Transcribed text here
+[MM:SS] Next segment here
+
+Include timestamps approximately every 5-10 seconds or at natural speech breaks. Be as accurate as possible with the timing and transcription.`
       ])
 
       const response = await result.response

@@ -18,9 +18,12 @@ import {
 interface AudioPlayerProps {
   filePath: string
   title: string
+  transcript?: string
+  onTimeUpdate?: (time: number) => void
+  onPlayerReady?: (seekFn: (time: number) => void) => void
 }
 
-export default function AudioPlayer({ filePath, title }: AudioPlayerProps) {
+export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate, onPlayerReady }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -29,6 +32,11 @@ export default function AudioPlayer({ filePath, title }: AudioPlayerProps) {
   const [playbackRate, setPlaybackRate] = useState(1)
 
   const audioRef = useRef<HTMLAudioElement>(null)
+
+  // Expose seek function to parent
+  useEffect(() => {
+    onPlayerReady?.(seekToTime)
+  }, [onPlayerReady])
 
   // Format time as MM:SS
   const formatTime = (seconds: number) => {
@@ -53,7 +61,9 @@ export default function AudioPlayer({ filePath, title }: AudioPlayerProps) {
   // Handle time update
   const handleTimeUpdate = () => {
     if (!audioRef.current) return
-    setCurrentTime(audioRef.current.currentTime)
+    const time = audioRef.current.currentTime
+    setCurrentTime(time)
+    onTimeUpdate?.(time)
   }
 
   // Handle duration loaded
@@ -64,10 +74,14 @@ export default function AudioPlayer({ filePath, title }: AudioPlayerProps) {
 
   // Handle seek - only update on commit (mouse up), not while dragging
   const handleSeekCommit = (value: number[]) => {
+    seekToTime(value[0])
+  }
+
+  // Seek to specific time (used by slider and transcript)
+  const seekToTime = (time: number) => {
     if (!audioRef.current) return
-    const newTime = value[0]
-    audioRef.current.currentTime = newTime
-    setCurrentTime(newTime)
+    audioRef.current.currentTime = time
+    setCurrentTime(time)
   }
 
   // Handle volume change

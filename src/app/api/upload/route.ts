@@ -208,6 +208,7 @@ async function processFileAsync(studyPackId: string, filePath: string, fileType:
         topics: JSON.stringify(studyContent.topics),
         flashcards: JSON.stringify(studyContent.flashcards),
         kanbanTasks: JSON.stringify(studyContent.kanbanTasks),
+        transcript: extractedText, // Store raw transcript with timestamps for audio/video
         processingError: null
       }
     })
