@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, Fragment } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -318,7 +318,7 @@ export default function PDFViewer({
       if (coords.rects && coords.rects.length > 0) {
         // Render each rectangle separately for precise multi-line highlighting
         return (
-          <React.Fragment key={highlight.id}>
+          <Fragment key={highlight.id}>
             {coords.rects.map((rect: any, idx: number) => (
               <div
                 key={`${highlight.id}-${idx}`}
@@ -339,7 +339,7 @@ export default function PDFViewer({
                 title={highlight.note || highlight.text.substring(0, 50)}
               />
             ))}
-          </React.Fragment>
+          </Fragment>
         )
       }
 
