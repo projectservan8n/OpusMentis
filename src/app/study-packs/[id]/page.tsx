@@ -12,13 +12,11 @@ import KanbanBoard from '@/components/kanban-board'
 import Flashcards from '@/components/flashcards'
 import Notes from '@/components/notes'
 import PDFViewer from '@/components/pdf-viewer'
-import AudioPlayer from '@/components/audio-player'
-import VideoPlayer from '@/components/video-player'
 import ImageViewer from '@/components/image-viewer'
-import TranscriptViewer from '@/components/transcript-viewer'
 import HighlightSidebar from '@/components/highlight-sidebar'
 import QuizGeneratorModal from '@/components/quiz-generator-modal'
 import StudyTimer from '@/components/study-timer'
+import { useMediaPlayer } from '@/contexts/media-player-context'
 import { formatBytes } from '@/lib/utils'
 import {
   FileText,
@@ -33,7 +31,8 @@ import {
   Brain,
   Loader2,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Play
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Highlight } from '@/types/highlight'
@@ -77,6 +76,7 @@ export default function StudyPackPage() {
   const params = useParams()
   const router = useRouter()
   const studyPackId = params.id as string
+  const { openPlayer, setQuizActive } = useMediaPlayer()
 
   const [studyPack, setStudyPack] = useState<StudyPack | null>(null)
   const [highlights, setHighlights] = useState<Highlight[]>([])
@@ -86,9 +86,6 @@ export default function StudyPackPage() {
   const [activeTab, setActiveTab] = useState('pdf')
   const [showQuizGenerator, setShowQuizGenerator] = useState(false)
   const [isSharing, setIsSharing] = useState(false)
-  const [currentMediaTime, setCurrentMediaTime] = useState(0)
-  const [mediaSeekCallback, setMediaSeekCallback] = useState<((time: number) => void) | null>(null)
-  const [mediaPauseCallback, setMediaPauseCallback] = useState<(() => void) | null>(null)
 
   useEffect(() => {
     if (studyPackId) {
@@ -261,15 +258,6 @@ export default function StudyPackPage() {
   }
 
   const handleTabChange = (newTab: string) => {
-    // Pause media when switching away from the media tab
-    if (activeTab === 'pdf' && newTab !== 'pdf') {
-      if (mediaPauseCallback) {
-        console.log('Pausing media on tab switch')
-        mediaPauseCallback()
-      } else {
-        console.log('No pause callback available')
-      }
-    }
     setActiveTab(newTab)
   }
 
@@ -542,23 +530,55 @@ export default function StudyPackPage() {
                       onHighlightClick={handleHighlightClick}
                     />
                   ) : studyPack.fileType === 'video' && studyPack.filePath ? (
-                    /* Video Player - Full Width */
-                    <VideoPlayer
-                      filePath={`/api/files/${studyPack.filePath}`}
-                      title={studyPack.title}
-                      onTimeUpdate={setCurrentMediaTime}
-                      onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
-                      onPauseReady={(pauseFn) => setMediaPauseCallback(() => pauseFn)}
-                    />
+                    /* Video Player - Open in Floating Window */
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <Video className="h-16 w-16 text-primary mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">Video Content Available</h3>
+                        <p className="text-muted-foreground mb-6">
+                          Open the video player in a floating window to watch while you study
+                        </p>
+                        <Button
+                          onClick={() => openPlayer({
+                            studyPackId: studyPack.id,
+                            filePath: `/api/files/${studyPack.filePath}`,
+                            fileType: 'video',
+                            title: studyPack.title,
+                            transcript: studyPack.transcript
+                          })}
+                          size="lg"
+                          className="gap-2"
+                        >
+                          <Play className="h-5 w-5" />
+                          Open Video Player
+                        </Button>
+                      </CardContent>
+                    </Card>
                   ) : studyPack.fileType === 'audio' && studyPack.filePath ? (
-                    /* Audio Player - Full Width */
-                    <AudioPlayer
-                      filePath={`/api/files/${studyPack.filePath}`}
-                      title={studyPack.title}
-                      onTimeUpdate={setCurrentMediaTime}
-                      onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
-                      onPauseReady={(pauseFn) => setMediaPauseCallback(() => pauseFn)}
-                    />
+                    /* Audio Player - Open in Floating Window */
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <Music className="h-16 w-16 text-primary mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">Audio Content Available</h3>
+                        <p className="text-muted-foreground mb-6">
+                          Open the audio player in a floating window to listen while you study
+                        </p>
+                        <Button
+                          onClick={() => openPlayer({
+                            studyPackId: studyPack.id,
+                            filePath: `/api/files/${studyPack.filePath}`,
+                            fileType: 'audio',
+                            title: studyPack.title,
+                            transcript: studyPack.transcript
+                          })}
+                          size="lg"
+                          className="gap-2"
+                        >
+                          <Play className="h-5 w-5" />
+                          Open Audio Player
+                        </Button>
+                      </CardContent>
+                    </Card>
                   ) : studyPack.fileType === 'image' && studyPack.filePath ? (
                     /* Image Viewer */
                     <ImageViewer
@@ -647,15 +667,6 @@ export default function StudyPackPage() {
           <div className="lg:col-span-1 space-y-6">
             <StudyTimer studyPackId={studyPackId} />
 
-            {/* Show transcript for audio/video files */}
-            {(studyPack.fileType === 'audio' || studyPack.fileType === 'video') && studyPack.transcript && activeTab === 'pdf' && (
-              <TranscriptViewer
-                transcript={studyPack.transcript}
-                currentTime={currentMediaTime}
-                onSeek={mediaSeekCallback || undefined}
-              />
-            )}
-
             {/* Show highlights sidebar only for PDF files */}
             {studyPack.fileType === 'pdf' && activeTab === 'pdf' && (
               <HighlightSidebar
@@ -673,11 +684,17 @@ export default function StudyPackPage() {
       {/* Quiz Generator Modal */}
       <QuizGeneratorModal
         open={showQuizGenerator}
-        onClose={() => setShowQuizGenerator(false)}
+        onClose={() => {
+          setShowQuizGenerator(false)
+          setQuizActive(false)
+        }}
         studyPackId={studyPackId}
         highlights={highlights}
         documentStructure={documentStructure || undefined}
-        onQuizGenerated={handleQuizGenerated}
+        onQuizGenerated={(quiz) => {
+          handleQuizGenerated(quiz)
+          setQuizActive(true)
+        }}
       />
     </DashboardLayout>
   )
