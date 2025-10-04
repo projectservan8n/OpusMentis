@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Slider } from '@/components/ui/slider'
 import {
   Play,
   Pause,
@@ -213,57 +212,59 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
 
         {/* Playback Controls */}
         <div className="flex items-center justify-center gap-4">
-          <Button
-            variant="outline"
-            size="icon"
+          <button
             onClick={() => skip(-10)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
             title="Rewind 10s"
           >
-            <SkipBack className="h-4 w-4" />
-          </Button>
+            <SkipBack className="h-5 w-5" />
+          </button>
 
-          <Button
-            size="lg"
+          <button
             onClick={togglePlayPause}
-            className="rounded-full h-14 w-14 bg-slate-900 hover:bg-slate-800"
+            className="w-14 h-14 rounded-full bg-black hover:bg-gray-900 flex items-center justify-center transition shadow-lg"
           >
             {isPlaying ? (
-              <Pause className="h-6 w-6 text-white" />
+              <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+              </svg>
             ) : (
-              <Play className="h-6 w-6 ml-1 text-white" />
+              <svg className="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
             )}
-          </Button>
+          </button>
 
-          <Button
-            variant="outline"
-            size="icon"
+          <button
             onClick={() => skip(10)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
             title="Forward 10s"
           >
-            <SkipForward className="h-4 w-4" />
-          </Button>
+            <SkipForward className="h-5 w-5" />
+          </button>
         </div>
 
         {/* Volume Control and Playback Speed */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
               onClick={toggleMute}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition"
             >
               {isMuted || volume === 0 ? (
                 <VolumeX className="h-4 w-4" />
               ) : (
                 <Volume2 className="h-4 w-4" />
               )}
-            </Button>
-            <Slider
-              value={[isMuted ? 0 : volume]}
+            </button>
+            <input
+              type="range"
+              min={0}
               max={1}
               step={0.01}
-              onValueChange={handleVolumeChange}
-              className="w-24"
+              value={isMuted ? 0 : volume}
+              onChange={(e) => handleVolumeChange([parseFloat(e.target.value)])}
+              className="w-24 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0"
             />
           </div>
 
