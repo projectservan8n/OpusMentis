@@ -119,6 +119,9 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
   const seekToTime = (time: number) => {
     if (!videoRef.current) return
 
+    // Prevent timeupdate from interfering
+    setIsDraggingSeek(true)
+
     // Pause first to ensure clean seek
     const wasPlaying = !videoRef.current.paused
     if (wasPlaying) {
@@ -133,6 +136,11 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
     if (wasPlaying) {
       videoRef.current.play()
     }
+
+    // Clear dragging state after a delay
+    setTimeout(() => {
+      setIsDraggingSeek(false)
+    }, 200)
   }
 
   // Handle volume change

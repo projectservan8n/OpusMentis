@@ -107,6 +107,9 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
   const seekToTime = (time: number) => {
     if (!audioRef.current) return
 
+    // Prevent timeupdate from interfering
+    setIsDraggingSeek(true)
+
     // Pause first to ensure clean seek
     const wasPlaying = !audioRef.current.paused
     if (wasPlaying) {
@@ -121,6 +124,11 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
     if (wasPlaying) {
       audioRef.current.play()
     }
+
+    // Clear dragging state after a delay
+    setTimeout(() => {
+      setIsDraggingSeek(false)
+    }, 200)
   }
 
   // Handle volume change
