@@ -13,7 +13,6 @@ import Flashcards from '@/components/flashcards'
 import Notes from '@/components/notes'
 import PDFViewer from '@/components/pdf-viewer'
 import ImageViewer from '@/components/image-viewer'
-import TranscriptViewer from '@/components/transcript-viewer'
 import HighlightSidebar from '@/components/highlight-sidebar'
 import QuizGeneratorModal from '@/components/quiz-generator-modal'
 import StudyTimer from '@/components/study-timer'
@@ -259,15 +258,6 @@ export default function StudyPackPage() {
   }
 
   const handleTabChange = (newTab: string) => {
-    // Pause media when switching away from the media tab
-    if (activeTab === 'pdf' && newTab !== 'pdf') {
-      if (mediaPauseCallback) {
-        console.log('Pausing media on tab switch')
-        mediaPauseCallback()
-      } else {
-        console.log('No pause callback available')
-      }
-    }
     setActiveTab(newTab)
   }
 
@@ -676,15 +666,6 @@ export default function StudyPackPage() {
           {/* Sidebar - Study Timer, Transcript & Highlights */}
           <div className="lg:col-span-1 space-y-6">
             <StudyTimer studyPackId={studyPackId} />
-
-            {/* Show transcript for audio/video files */}
-            {(studyPack.fileType === 'audio' || studyPack.fileType === 'video') && studyPack.transcript && activeTab === 'pdf' && (
-              <TranscriptViewer
-                transcript={studyPack.transcript}
-                currentTime={currentMediaTime}
-                onSeek={mediaSeekCallback || undefined}
-              />
-            )}
 
             {/* Show highlights sidebar only for PDF files */}
             {studyPack.fileType === 'pdf' && activeTab === 'pdf' && (
