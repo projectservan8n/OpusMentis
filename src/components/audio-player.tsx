@@ -26,6 +26,7 @@ export default function AudioPlayer({ filePath, title }: AudioPlayerProps) {
   const [duration, setDuration] = useState(0)
   const [volume, setVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
+  const [playbackRate, setPlaybackRate] = useState(1)
 
   const audioRef = useRef<HTMLAudioElement>(null)
 
@@ -61,8 +62,8 @@ export default function AudioPlayer({ filePath, title }: AudioPlayerProps) {
     setDuration(audioRef.current.duration)
   }
 
-  // Handle seek
-  const handleSeek = (value: number[]) => {
+  // Handle seek - only update on commit (mouse up), not while dragging
+  const handleSeekCommit = (value: number[]) => {
     if (!audioRef.current) return
     const newTime = value[0]
     audioRef.current.currentTime = newTime
@@ -95,6 +96,19 @@ export default function AudioPlayer({ filePath, title }: AudioPlayerProps) {
   const skip = (seconds: number) => {
     if (!audioRef.current) return
     audioRef.current.currentTime = Math.max(0, Math.min(duration, audioRef.current.currentTime + seconds))
+  }
+
+  // Change playback speed
+  const changePlaybackRate = () => {
+    const rates = [0.5, 0.75, 1, 1.25, 1.5, 2]
+    const currentIndex = rates.indexOf(playbackRate)
+    const nextIndex = (currentIndex + 1) % rates.length
+    const newRate = rates[nextIndex]
+
+    if (audioRef.current) {
+      audioRef.current.playbackRate = newRate
+      setPlaybackRate(newRate)
+    }
   }
 
   // Download audio
@@ -131,7 +145,7 @@ export default function AudioPlayer({ filePath, title }: AudioPlayerProps) {
             value={[currentTime]}
             max={duration || 100}
             step={0.1}
-            onValueChange={handleSeek}
+            onValueCommit={handleSeekCommit}
             className="w-full"
           />
           <div className="flex justify-between text-sm text-muted-foreground">
@@ -173,26 +187,37 @@ export default function AudioPlayer({ filePath, title }: AudioPlayerProps) {
           </Button>
         </div>
 
-        {/* Volume Control */}
-        <div className="flex items-center gap-3">
+        {/* Volume Control and Playback Speed */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleMute}
+            >
+              {isMuted || volume === 0 ? (
+                <VolumeX className="h-4 w-4" />
+              ) : (
+                <Volume2 className="h-4 w-4" />
+              )}
+            </Button>
+            <Slider
+              value={[isMuted ? 0 : volume]}
+              max={1}
+              step={0.01}
+              onValueChange={handleVolumeChange}
+              className="w-24"
+            />
+          </div>
+
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleMute}
+            variant="outline"
+            size="sm"
+            onClick={changePlaybackRate}
+            title="Playback speed"
           >
-            {isMuted || volume === 0 ? (
-              <VolumeX className="h-4 w-4" />
-            ) : (
-              <Volume2 className="h-4 w-4" />
-            )}
+            <span className="text-sm font-semibold">{playbackRate}x</span>
           </Button>
-          <Slider
-            value={[isMuted ? 0 : volume]}
-            max={1}
-            step={0.01}
-            onValueChange={handleVolumeChange}
-            className="w-24"
-          />
         </div>
 
         {/* Download Button */}

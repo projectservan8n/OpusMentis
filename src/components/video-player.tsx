@@ -74,8 +74,8 @@ export default function VideoPlayer({ filePath, title }: VideoPlayerProps) {
     setDuration(videoRef.current.duration)
   }
 
-  // Handle seek
-  const handleSeek = (value: number[]) => {
+  // Handle seek - only update on commit (mouse up), not while dragging
+  const handleSeekCommit = (value: number[]) => {
     if (!videoRef.current) return
     const newTime = value[0]
     videoRef.current.currentTime = newTime
@@ -212,7 +212,7 @@ export default function VideoPlayer({ filePath, title }: VideoPlayerProps) {
               value={[currentTime]}
               max={duration || 100}
               step={0.1}
-              onValueChange={handleSeek}
+              onValueCommit={handleSeekCommit}
               className="w-full cursor-pointer"
             />
 
