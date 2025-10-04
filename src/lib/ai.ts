@@ -46,28 +46,46 @@ export interface StudyPackContent {
   }>
 }
 
-export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
+export async function transcribeAudio(audioBuffer: Buffer, filename?: string): Promise<string> {
   // Retry logic for network errors
   const maxRetries = 2
   let lastError: any
 
+  // Determine MIME type from filename if provided
+  let mimeType = 'audio/mpeg' // default
+  if (filename) {
+    const ext = filename.toLowerCase().split('.').pop()
+    const mimeMap: Record<string, string> = {
+      'mp3': 'audio/mpeg',
+      'wav': 'audio/wav',
+      'm4a': 'audio/mp4',
+      'mp4': 'video/mp4',
+      'mov': 'video/quicktime',
+      'avi': 'video/x-msvideo',
+      'webm': 'video/webm'
+    }
+    mimeType = mimeMap[ext || ''] || 'audio/mpeg'
+  }
+
+  console.log(`Transcribing with MIME type: ${mimeType} (filename: ${filename})`)
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      // Use Google Gemini 1.5 Flash for audio transcription (48x cheaper than Whisper!)
+      // Use Google Gemini 1.5 Flash for audio/video transcription (48x cheaper than Whisper!)
       const model = gemini.getGenerativeModel({ model: GEMINI_MODEL })
 
       // Convert buffer to base64 for Gemini API
       const base64Audio = audioBuffer.toString('base64')
 
-      // Send audio with prompt to transcribe with timestamps
+      // Send audio/video with prompt to transcribe with timestamps
       const result = await model.generateContent([
         {
           inlineData: {
             data: base64Audio,
-            mimeType: 'audio/mpeg'
+            mimeType: mimeType
           }
         },
-        `Please transcribe this audio accurately with timestamps. Format each segment as:
+        `Please transcribe this ${mimeType.startsWith('video') ? 'video' : 'audio'} accurately with timestamps. Format each segment as:
 [MM:SS] Transcribed text here
 [MM:SS] Next segment here
 

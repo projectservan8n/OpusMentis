@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
     await logUsage(userId, 'upload', fileType, file.size)
 
     // Start processing asynchronously
-    processFileAsync(studyPack.id, filePath, fileType, buffer)
+    processFileAsync(studyPack.id, filePath, fileType, buffer, file.name)
 
     return NextResponse.json({
       studyPackId: studyPack.id,
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Async processing function (MVP: runs in same process, production: queue system)
-async function processFileAsync(studyPackId: string, filePath: string, fileType: string, buffer: Buffer) {
+async function processFileAsync(studyPackId: string, filePath: string, fileType: string, buffer: Buffer, originalFileName?: string) {
   try {
     let extractedText = ''
     let processingError: string | null = null
@@ -181,7 +181,7 @@ async function processFileAsync(studyPackId: string, filePath: string, fileType:
 
       case 'audio':
       case 'video':
-        extractedText = await transcribeAudio(buffer)
+        extractedText = await transcribeAudio(buffer, originalFileName)
         break
 
       case 'text':
