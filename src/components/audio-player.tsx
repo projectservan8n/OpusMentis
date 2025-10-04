@@ -225,6 +225,8 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onCanPlay={handleCanPlay}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
           onEnded={() => setIsPlaying(false)}
           preload="metadata"
         />

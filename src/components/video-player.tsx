@@ -285,6 +285,8 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onCanPlay={handleCanPlay}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
             onEnded={() => setIsPlaying(false)}
             onClick={togglePlayPause}
             className="w-full aspect-video cursor-pointer"
