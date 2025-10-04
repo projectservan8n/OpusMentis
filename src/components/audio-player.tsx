@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Slider } from '@/components/ui/slider'
 import {
   Play,
   Pause,
@@ -200,15 +199,18 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
           onEnded={() => setIsPlaying(false)}
         />
 
-        {/* Waveform / Progress Bar */}
+        {/* Waveform / Progress Bar - Native HTML5 for better seek support */}
         <div className="space-y-2">
-          <Slider
-            value={[isDraggingSeek ? seekPreview : currentTime]}
+          <input
+            type="range"
+            min={0}
             max={duration || 100}
             step={0.1}
-            onValueChange={handleSeekChange}
-            onValueCommit={handleSeekCommit}
-            className="w-full"
+            value={isDraggingSeek ? seekPreview : currentTime}
+            onChange={(e) => handleSeekChange([parseFloat(e.target.value)])}
+            onMouseUp={(e) => handleSeekCommit([parseFloat((e.target as HTMLInputElement).value)])}
+            onTouchEnd={(e) => handleSeekCommit([parseFloat((e.target as HTMLInputElement).value)])}
+            className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-lg [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-lg"
           />
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>{formatTime(currentTime)}</span>
@@ -218,14 +220,13 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
 
         {/* Playback Controls */}
         <div className="flex items-center justify-center gap-4">
-          <Button
-            variant="outline"
-            size="icon"
+          <button
             onClick={() => skip(-10)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
             title="Rewind 10s"
           >
-            <SkipBack className="h-4 w-4" />
-          </Button>
+            <SkipBack className="h-5 w-5" />
+          </button>
 
           <button
             onClick={togglePlayPause}
@@ -242,36 +243,36 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
             )}
           </button>
 
-          <Button
-            variant="outline"
-            size="icon"
+          <button
             onClick={() => skip(10)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
             title="Forward 10s"
           >
-            <SkipForward className="h-4 w-4" />
-          </Button>
+            <SkipForward className="h-5 w-5" />
+          </button>
         </div>
 
         {/* Volume Control and Playback Speed */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
               onClick={toggleMute}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition"
             >
               {isMuted || volume === 0 ? (
                 <VolumeX className="h-4 w-4" />
               ) : (
                 <Volume2 className="h-4 w-4" />
               )}
-            </Button>
-            <Slider
-              value={[isMuted ? 0 : volume]}
+            </button>
+            <input
+              type="range"
+              min={0}
               max={1}
               step={0.01}
-              onValueChange={handleVolumeChange}
-              className="w-24"
+              value={isMuted ? 0 : volume}
+              onChange={(e) => handleVolumeChange([parseFloat(e.target.value)])}
+              className="w-24 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0"
             />
           </div>
 

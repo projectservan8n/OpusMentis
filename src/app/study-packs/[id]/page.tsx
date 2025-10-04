@@ -542,45 +542,23 @@ export default function StudyPackPage() {
                       onHighlightClick={handleHighlightClick}
                     />
                   ) : studyPack.fileType === 'video' && studyPack.filePath ? (
-                    /* Video Player with Transcript */
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      <div className="lg:col-span-2">
-                        <VideoPlayer
-                          filePath={`/api/files/${studyPack.filePath}`}
-                          title={studyPack.title}
-                          onTimeUpdate={setCurrentMediaTime}
-                          onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
-                          onPauseReady={(pauseFn) => setMediaPauseCallback(() => pauseFn)}
-                        />
-                      </div>
-                      <div className="lg:col-span-1">
-                        <TranscriptViewer
-                          transcript={studyPack.transcript || ''}
-                          currentTime={currentMediaTime}
-                          onSeek={mediaSeekCallback || undefined}
-                        />
-                      </div>
-                    </div>
+                    /* Video Player - Full Width */
+                    <VideoPlayer
+                      filePath={`/api/files/${studyPack.filePath}`}
+                      title={studyPack.title}
+                      onTimeUpdate={setCurrentMediaTime}
+                      onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
+                      onPauseReady={(pauseFn) => setMediaPauseCallback(() => pauseFn)}
+                    />
                   ) : studyPack.fileType === 'audio' && studyPack.filePath ? (
-                    /* Audio Player with Transcript */
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      <div className="lg:col-span-2">
-                        <AudioPlayer
-                          filePath={`/api/files/${studyPack.filePath}`}
-                          title={studyPack.title}
-                          onTimeUpdate={setCurrentMediaTime}
-                          onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
-                          onPauseReady={(pauseFn) => setMediaPauseCallback(() => pauseFn)}
-                        />
-                      </div>
-                      <div className="lg:col-span-1">
-                        <TranscriptViewer
-                          transcript={studyPack.transcript || ''}
-                          currentTime={currentMediaTime}
-                          onSeek={mediaSeekCallback || undefined}
-                        />
-                      </div>
-                    </div>
+                    /* Audio Player - Full Width */
+                    <AudioPlayer
+                      filePath={`/api/files/${studyPack.filePath}`}
+                      title={studyPack.title}
+                      onTimeUpdate={setCurrentMediaTime}
+                      onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
+                      onPauseReady={(pauseFn) => setMediaPauseCallback(() => pauseFn)}
+                    />
                   ) : studyPack.fileType === 'image' && studyPack.filePath ? (
                     /* Image Viewer */
                     <ImageViewer
@@ -665,9 +643,19 @@ export default function StudyPackPage() {
             </Card>
           </div>
 
-          {/* Sidebar - Study Timer & Highlights */}
+          {/* Sidebar - Study Timer, Transcript & Highlights */}
           <div className="lg:col-span-1 space-y-6">
             <StudyTimer studyPackId={studyPackId} />
+
+            {/* Show transcript for audio/video files */}
+            {(studyPack.fileType === 'audio' || studyPack.fileType === 'video') && studyPack.transcript && activeTab === 'pdf' && (
+              <TranscriptViewer
+                transcript={studyPack.transcript}
+                currentTime={currentMediaTime}
+                onSeek={mediaSeekCallback || undefined}
+              />
+            )}
+
             {/* Show highlights sidebar only for PDF files */}
             {studyPack.fileType === 'pdf' && activeTab === 'pdf' && (
               <HighlightSidebar
