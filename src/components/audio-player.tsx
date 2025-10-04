@@ -192,15 +192,18 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
           onEnded={() => setIsPlaying(false)}
         />
 
-        {/* Waveform / Progress Bar */}
+        {/* Waveform / Progress Bar - Native HTML5 for better seek support */}
         <div className="space-y-2">
-          <Slider
-            value={[isDraggingSeek ? seekPreview : currentTime]}
+          <input
+            type="range"
+            min={0}
             max={duration || 100}
             step={0.1}
-            onValueChange={handleSeekChange}
-            onValueCommit={handleSeekCommit}
-            className="w-full"
+            value={isDraggingSeek ? seekPreview : currentTime}
+            onChange={(e) => handleSeekChange([parseFloat(e.target.value)])}
+            onMouseUp={(e) => handleSeekCommit([parseFloat((e.target as HTMLInputElement).value)])}
+            onTouchEnd={(e) => handleSeekCommit([parseFloat((e.target as HTMLInputElement).value)])}
+            className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-lg [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-lg"
           />
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>{formatTime(currentTime)}</span>
