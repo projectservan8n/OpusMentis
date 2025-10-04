@@ -49,26 +49,43 @@ interface DragItem {
   id: string
   type: string
   column: string
+  index: number
 }
 
-function KanbanTask({ task, onMove, onEdit, onDelete }: {
+function KanbanTask({ task, index, onMove, onReorder, onEdit, onDelete }: {
   task: KanbanTask
+  index: number
   onMove: (taskId: string, newColumn: string) => void
+  onReorder: (dragIndex: number, hoverIndex: number, column: string) => void
   onEdit: (task: KanbanTask) => void
   onDelete: (taskId: string) => void
 }) {
   const [{ isDragging }, drag] = useDrag({
     type: ItemType,
-    item: { id: task.id, type: ItemType, column: task.column },
+    item: { id: task.id, type: ItemType, column: task.column, index },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
   })
 
+  const [{ isOver }, drop] = useDrop({
+    accept: ItemType,
+    hover: (item: DragItem) => {
+      if (item.id === task.id) return
+      if (item.column === task.column && item.index !== index) {
+        onReorder(item.index, index, task.column)
+        item.index = index
+      }
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+    }),
+  })
+
   return (
     <div
-      ref={drag as any}
-      className={`kanban-card ${isDragging ? 'opacity-50' : ''}`}
+      ref={(node) => drag(drop(node)) as any}
+      className={`kanban-card ${isDragging ? 'opacity-50' : ''} ${isOver ? 'ring-2 ring-blue-400' : ''}`}
     >
       <div className="flex items-start justify-between mb-2">
         <h4 className="font-medium text-sm line-clamp-2">{task.title}</h4>
@@ -110,6 +127,7 @@ function KanbanColumn({
   column,
   tasks,
   onMove,
+  onReorder,
   onEdit,
   onDelete,
   onAddTask
@@ -117,6 +135,7 @@ function KanbanColumn({
   column: typeof columns[number]
   tasks: KanbanTask[]
   onMove: (taskId: string, newColumn: string) => void
+  onReorder: (dragIndex: number, hoverIndex: number, column: string) => void
   onEdit: (task: KanbanTask) => void
   onDelete: (taskId: string) => void
   onAddTask: (column: string) => void
@@ -157,11 +176,13 @@ function KanbanColumn({
       </div>
 
       <div className="space-y-2">
-        {tasks.map((task) => (
+        {tasks.map((task, index) => (
           <KanbanTask
             key={task.id}
             task={task}
+            index={index}
             onMove={onMove}
+            onReorder={onReorder}
             onEdit={onEdit}
             onDelete={onDelete}
           />
@@ -315,6 +336,16 @@ export default function KanbanBoard({ tasks, onUpdateTasks }: KanbanBoardProps) 
     onUpdateTasks(updatedTasks)
   }
 
+  const reorderTasks = (dragIndex: number, hoverIndex: number, column: string) => {
+    const columnTasks = tasks.filter(task => task.column === column)
+    const otherTasks = tasks.filter(task => task.column !== column)
+
+    const [draggedTask] = columnTasks.splice(dragIndex, 1)
+    columnTasks.splice(hoverIndex, 0, draggedTask)
+
+    onUpdateTasks([...otherTasks, ...columnTasks])
+  }
+
   const addTask = (column: string) => {
     setAddingToColumn(column)
     setIsAddingTask(true)
@@ -370,6 +401,7 @@ export default function KanbanBoard({ tasks, onUpdateTasks }: KanbanBoardProps) 
               column={column}
               tasks={tasksByColumn[column.id] || []}
               onMove={moveTask}
+              onReorder={reorderTasks}
               onEdit={setEditingTask}
               onDelete={deleteTask}
               onAddTask={addTask}
