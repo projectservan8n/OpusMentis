@@ -19,6 +19,7 @@ import TranscriptViewer from '@/components/transcript-viewer'
 import HighlightSidebar from '@/components/highlight-sidebar'
 import QuizGeneratorModal from '@/components/quiz-generator-modal'
 import StudyTimer from '@/components/study-timer'
+import MiniPipPlayer from '@/components/mini-pip-player'
 import { formatBytes } from '@/lib/utils'
 import {
   FileText,
@@ -87,7 +88,10 @@ export default function StudyPackPage() {
   const [showQuizGenerator, setShowQuizGenerator] = useState(false)
   const [isSharing, setIsSharing] = useState(false)
   const [currentMediaTime, setCurrentMediaTime] = useState(0)
+  const [mediaDuration, setMediaDuration] = useState(0)
+  const [isMediaPlaying, setIsMediaPlaying] = useState(false)
   const [mediaSeekCallback, setMediaSeekCallback] = useState<((time: number) => void) | null>(null)
+  const [mediaPlayPauseCallback, setMediaPlayPauseCallback] = useState<(() => void) | null>(null)
 
   useEffect(() => {
     if (studyPackId) {
@@ -538,6 +542,9 @@ export default function StudyPackPage() {
                       title={studyPack.title}
                       onTimeUpdate={setCurrentMediaTime}
                       onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
+                      onDurationChange={setMediaDuration}
+                      onPlayingStateChange={setIsMediaPlaying}
+                      onPlayPauseReady={(toggleFn) => setMediaPlayPauseCallback(() => toggleFn)}
                     />
                   ) : studyPack.fileType === 'audio' && studyPack.filePath ? (
                     /* Audio Player - Full Width */
@@ -546,6 +553,9 @@ export default function StudyPackPage() {
                       title={studyPack.title}
                       onTimeUpdate={setCurrentMediaTime}
                       onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
+                      onDurationChange={setMediaDuration}
+                      onPlayingStateChange={setIsMediaPlaying}
+                      onPlayPauseReady={(toggleFn) => setMediaPlayPauseCallback(() => toggleFn)}
                     />
                   ) : studyPack.fileType === 'image' && studyPack.filePath ? (
                     /* Image Viewer */
@@ -657,6 +667,17 @@ export default function StudyPackPage() {
           </div>
         </div>
       </div>
+
+      {/* Mini PiP Player - shows when on non-Content tabs with audio/video */}
+      {activeTab !== 'pdf' && (studyPack.fileType === 'audio' || studyPack.fileType === 'video') && mediaPlayPauseCallback && (
+        <MiniPipPlayer
+          isPlaying={isMediaPlaying}
+          currentTime={currentMediaTime}
+          duration={mediaDuration}
+          title={studyPack.title}
+          onPlayPause={mediaPlayPauseCallback}
+        />
+      )}
 
       {/* Quiz Generator Modal */}
       <QuizGeneratorModal

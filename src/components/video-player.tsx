@@ -25,9 +25,12 @@ interface VideoPlayerProps {
   onTimeUpdate?: (time: number) => void
   onPlayerReady?: (seekFn: (time: number) => void) => void
   onPauseReady?: (pauseFn: () => void) => void
+  onDurationChange?: (duration: number) => void
+  onPlayingStateChange?: (isPlaying: boolean) => void
+  onPlayPauseReady?: (toggleFn: () => void) => void
 }
 
-export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate, onPlayerReady, onPauseReady }: VideoPlayerProps) {
+export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate, onPlayerReady, onPauseReady, onDurationChange, onPlayingStateChange, onPlayPauseReady }: VideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -43,7 +46,7 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
   const containerRef = useRef<HTMLDivElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout>()
 
-  // Expose seek and pause functions to parent
+  // Expose functions to parent
   useEffect(() => {
     if (onPlayerReady) {
       onPlayerReady(seekToTime)
@@ -56,8 +59,16 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
         }
       })
     }
+    if (onPlayPauseReady) {
+      onPlayPauseReady(togglePlayPause)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Notify parent of playing state changes
+  useEffect(() => {
+    onPlayingStateChange?.(isPlaying)
+  }, [isPlaying, onPlayingStateChange])
 
   // Format time as HH:MM:SS or MM:SS
   const formatTime = (seconds: number) => {
@@ -101,6 +112,7 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
     if (isFinite(dur) && dur > 0) {
       console.log('Video duration loaded:', dur)
       setDuration(dur)
+      onDurationChange?.(dur)
     }
   }
 
@@ -111,6 +123,7 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
     if (isFinite(dur) && dur > 0) {
       console.log('Video duration from canplay:', dur)
       setDuration(dur)
+      onDurationChange?.(dur)
     }
   }
 

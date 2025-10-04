@@ -83,16 +83,17 @@ export default function TranscriptViewer({
     setActiveSegmentIndex(foundIndex)
   }, [currentTime, segments])
 
-  // Auto-scroll DISABLED - user has full manual control of scrolling
-  // The active segment is still highlighted, but no auto-scroll happens
-  // useEffect(() => {
-  //   if (activeSegmentRef.current) {
-  //     activeSegmentRef.current.scrollIntoView({
-  //       behavior: 'smooth',
-  //       block: 'center'
-  //     })
-  //   }
-  // }, [activeSegmentIndex])
+  // Auto-scroll to active segment - scrolls ONLY within ScrollArea container, NOT the page
+  useEffect(() => {
+    if (activeSegmentRef.current) {
+      // Use scrollIntoView with 'nearest' to avoid scrolling the page
+      activeSegmentRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest', // Only scrolls if element is outside visible area
+        inline: 'nearest'
+      })
+    }
+  }, [activeSegmentIndex])
 
   // Filter segments by search query
   const filteredSegments = searchQuery
