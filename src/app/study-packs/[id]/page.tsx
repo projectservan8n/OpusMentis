@@ -685,8 +685,8 @@ export default function StudyPackPage() {
             {(studyPack.fileType === 'audio' || studyPack.fileType === 'video') && studyPack.transcript && activeTab === 'pdf' && (
               <TranscriptViewer
                 transcript={studyPack.transcript}
-                currentTime={currentMediaTime}
-                onSeek={mediaSeekCallback || undefined}
+                currentTime={mediaPlayer.currentTime}
+                onSeek={mediaPlayer.seekCallback || undefined}
               />
             )}
 
