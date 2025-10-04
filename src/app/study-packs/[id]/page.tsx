@@ -101,6 +101,13 @@ export default function StudyPackPage() {
     }
   }, [studyPackId])
 
+  // Pause media when quiz modal opens (prevent cheating)
+  useEffect(() => {
+    if (showQuizGenerator && isMediaPlaying && mediaPlayPauseCallback) {
+      mediaPlayPauseCallback() // Pause the media
+    }
+  }, [showQuizGenerator])
+
   const fetchStudyPack = async () => {
     try {
       const response = await fetch(`/api/study-packs/${studyPackId}`)
