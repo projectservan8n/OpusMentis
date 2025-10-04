@@ -186,7 +186,6 @@ export default function PDFViewer({
 
     try {
       const range = selection.getRangeAt(0)
-      const rect = range.getBoundingClientRect()
       const pageElement = pageRef.current
 
       if (!pageElement) {
@@ -202,22 +201,55 @@ export default function PDFViewer({
         return
       }
 
-      // Calculate relative coordinates as percentages (scale-independent)
-      const x = rect.left - pageRect.left
-      const y = rect.top - pageRect.top
+      // Use getClientRects() to get individual rectangles for each line
+      // This provides precise highlighting even for multi-line selections
+      const rects = range.getClientRects()
+
+      if (rects.length === 0) {
+        console.warn('No client rects found')
+        return
+      }
+
+      // Create a highlight for each rectangle (each line of text)
+      // We'll merge them on the backend or store as array
+      const rectsArray = Array.from(rects).map(rect => {
+        const x = rect.left - pageRect.left
+        const y = rect.top - pageRect.top
+
+        return {
+          x: x,
+          y: y,
+          width: rect.width,
+          height: rect.height,
+          pageHeight: pageRect.height,
+          pageWidth: pageRect.width,
+          // Store as percentages for scale independence
+          xPercent: (x / pageRect.width) * 100,
+          yPercent: (y / pageRect.height) * 100,
+          widthPercent: (rect.width / pageRect.width) * 100,
+          heightPercent: (rect.height / pageRect.height) * 100
+        }
+      })
+
+      // Use the first rect for primary coordinates (for backward compatibility)
+      // but also store all rects for accurate rendering
+      const firstRect = rects[0]
+      const x = firstRect.left - pageRect.left
+      const y = firstRect.top - pageRect.top
 
       const coordinates = {
         x: x,
         y: y,
-        width: rect.width,
-        height: rect.height,
+        width: firstRect.width,
+        height: firstRect.height,
         pageHeight: pageRect.height,
         pageWidth: pageRect.width,
-        // Store as percentages for scale independence
         xPercent: (x / pageRect.width) * 100,
         yPercent: (y / pageRect.height) * 100,
-        widthPercent: (rect.width / pageRect.width) * 100,
-        heightPercent: (rect.height / pageRect.height) * 100
+        widthPercent: (firstRect.width / pageRect.width) * 100,
+        heightPercent: (firstRect.height / pageRect.height) * 100,
+        // Store all rectangles for multi-line highlights
+        rects: rectsArray
       }
 
       const highlight: Omit<Highlight, 'id'> = {
@@ -227,7 +259,7 @@ export default function PDFViewer({
         text: selection.toString()
       }
 
-      console.log('Creating highlight:', highlight)
+      console.log('Creating highlight with', rects.length, 'rectangles:', highlight)
 
       // Show creating animation
       setIsCreatingHighlight(true)
@@ -282,7 +314,36 @@ export default function PDFViewer({
 
       const coords = highlight.coordinates as any
 
-      // Use stored percentages if available (new format), otherwise calculate from pixels (legacy)
+      // Check if this highlight has multiple rectangles (multi-line)
+      if (coords.rects && coords.rects.length > 0) {
+        // Render each rectangle separately for precise multi-line highlighting
+        return (
+          <React.Fragment key={highlight.id}>
+            {coords.rects.map((rect: any, idx: number) => (
+              <div
+                key={`${highlight.id}-${idx}`}
+                className="absolute cursor-pointer hover:opacity-90 transition-all duration-200 pointer-events-auto animate-in fade-in zoom-in-95"
+                style={{
+                  left: `${rect.xPercent}%`,
+                  top: `${rect.yPercent}%`,
+                  width: `${rect.widthPercent}%`,
+                  height: `${rect.heightPercent}%`,
+                  backgroundColor: color?.hex || '#fde047',
+                  opacity: 0.4,
+                  zIndex: 10
+                }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onHighlightClick?.(highlight)
+                }}
+                title={highlight.note || highlight.text.substring(0, 50)}
+              />
+            ))}
+          </React.Fragment>
+        )
+      }
+
+      // Fallback to single rectangle for legacy highlights
       let leftPercent, topPercent, widthPercent, heightPercent
 
       if (coords.xPercent !== undefined && coords.yPercent !== undefined) {
