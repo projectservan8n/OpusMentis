@@ -320,92 +320,82 @@ export default function StudyTimer({ studyPackId, onSessionComplete }: StudyTime
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <Timer className="h-5 w-5" />
-            Study Timer
-          </span>
-          <span title={synced ? "Synced" : "Not synced"}>
+    <Card className="border-none shadow-sm">
+      <CardContent className="p-4 space-y-3">
+        {/* Compact Header with Timer */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Timer className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Study Timer</span>
             {synced ? (
-              <Wifi className="h-4 w-4 text-green-500" />
+              <Wifi className="h-3 w-3 text-green-500" />
             ) : (
-              <WifiOff className="h-4 w-4 text-red-500" />
+              <WifiOff className="h-3 w-3 text-red-500" />
             )}
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Mode Selector */}
+          </div>
+          <Badge variant={mode === 'focus' ? 'default' : 'secondary'} className="text-xs">
+            {mode === 'focus' ? 'Focus' : mode === 'short_break' ? 'Short Break' : 'Long Break'}
+          </Badge>
+        </div>
+
+        {/* Compact Timer Display */}
+        <div className="text-center">
+          <div className="text-3xl font-mono font-bold tabular-nums">
+            {formatTime(timeLeft)}
+          </div>
+          <Progress value={progress} className="h-1 mt-2" />
+        </div>
+
+        {/* Compact Controls */}
         <div className="flex gap-2">
+          {!isRunning ? (
+            <Button onClick={startTimer} className="flex-1" size="sm">
+              <Play className="h-3 w-3 mr-1" />
+              Start
+            </Button>
+          ) : (
+            <Button onClick={pauseTimer} variant="secondary" className="flex-1" size="sm">
+              <Pause className="h-3 w-3 mr-1" />
+              Pause
+            </Button>
+          )}
+          <Button onClick={resetTimer} variant="outline" size="sm">
+            <RotateCcw className="h-3 w-3" />
+          </Button>
+        </div>
+
+        {/* Mode Selector - Minimized */}
+        <div className="flex gap-1">
           <Button
-            variant={mode === 'focus' ? 'default' : 'outline'}
+            variant={mode === 'focus' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => changeMode('focus')}
-            className="flex-1"
+            className="flex-1 h-7 text-xs"
           >
-            <Trophy className="h-4 w-4 mr-1" />
             Focus
           </Button>
           <Button
-            variant={mode === 'short_break' ? 'default' : 'outline'}
+            variant={mode === 'short_break' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => changeMode('short_break')}
-            className="flex-1"
+            className="flex-1 h-7 text-xs"
           >
-            <Coffee className="h-4 w-4 mr-1" />
             Short
           </Button>
           <Button
-            variant={mode === 'long_break' ? 'default' : 'outline'}
+            variant={mode === 'long_break' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => changeMode('long_break')}
-            className="flex-1"
+            className="flex-1 h-7 text-xs"
           >
-            <Coffee className="h-4 w-4 mr-1" />
             Long
           </Button>
         </div>
 
-        {/* Timer Display */}
-        <div className="text-center space-y-4">
-          <div className="text-6xl font-mono font-bold tabular-nums">
-            {formatTime(timeLeft)}
-          </div>
-
-          {/* Progress Bar */}
-          <Progress value={progress} className="h-2" />
-
-          {/* Mode Badge */}
-          <Badge variant={mode === 'focus' ? 'default' : 'secondary'} className="text-sm">
-            {mode === 'focus' ? '🎯 Focus Time' : mode === 'short_break' ? '☕ Short Break' : '🌴 Long Break'}
-          </Badge>
-        </div>
-
-        {/* Controls */}
-        <div className="flex gap-2">
-          {!isRunning ? (
-            <Button onClick={startTimer} className="flex-1" size="lg">
-              <Play className="h-5 w-5 mr-2" />
-              Start
-            </Button>
-          ) : (
-            <Button onClick={pauseTimer} variant="secondary" className="flex-1" size="lg">
-              <Pause className="h-5 w-5 mr-2" />
-              Pause
-            </Button>
-          )}
-
-          <Button onClick={resetTimer} variant="outline" size="lg">
-            <RotateCcw className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* Pomodoro Counter */}
+        {/* Pomodoro Counter - Compact */}
         {pomodoroCount > 0 && (
-          <div className="text-center text-sm text-muted-foreground">
-            🍅 {pomodoroCount} Pomodoro{pomodoroCount !== 1 ? 's' : ''} today
+          <div className="text-center text-xs text-muted-foreground">
+            🍅 {pomodoroCount} today
           </div>
         )}
       </CardContent>
