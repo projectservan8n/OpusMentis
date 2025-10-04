@@ -49,22 +49,43 @@ export interface StudyPackContent {
 }
 
 export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
-  try {
-    // Use OpenAI SDK's toFile helper which properly handles file conversion
-    const file = await toFile(audioBuffer, 'audio.mp3', { type: 'audio/mpeg' })
+  // Retry logic for network errors
+  const maxRetries = 2
+  let lastError: any
 
-    // Use dedicated OpenAI client for Whisper (OpenRouter doesn't support audio)
-    const transcription = await openaiWhisper.audio.transcriptions.create({
-      file: file,
-      model: WHISPER_MODEL,
-      language: 'en' // MVP: English only, can be extended
-    })
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Use OpenAI SDK's toFile helper which properly handles file conversion
+      const file = await toFile(audioBuffer, 'audio.mp3', { type: 'audio/mpeg' })
 
-    return transcription.text
-  } catch (error) {
-    console.error('Audio transcription failed:', error)
-    throw new Error('Failed to transcribe audio')
+      // Use dedicated OpenAI client for Whisper (OpenRouter doesn't support audio)
+      const transcription = await openaiWhisper.audio.transcriptions.create({
+        file: file,
+        model: WHISPER_MODEL,
+        language: 'en' // MVP: English only, can be extended
+      })
+
+      return transcription.text
+    } catch (error: any) {
+      lastError = error
+      console.error(`Audio transcription attempt ${attempt} failed:`, error)
+
+      // Only retry on network errors (ECONNRESET, timeout, etc)
+      const isNetworkError = error?.cause?.code === 'ECONNRESET' ||
+                            error?.cause?.code === 'ETIMEDOUT' ||
+                            error?.code === 'ECONNRESET' ||
+                            error?.code === 'ETIMEDOUT'
+
+      if (!isNetworkError || attempt === maxRetries) {
+        throw new Error(`Failed to transcribe audio after ${attempt} attempt(s): ${error?.message || 'Unknown error'}`)
+      }
+
+      // Wait before retry (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+    }
   }
+
+  throw new Error(`Failed to transcribe audio: ${lastError?.message || 'Unknown error'}`)
 }
 
 export async function generateStudyContent(text: string): Promise<StudyPackContent> {
