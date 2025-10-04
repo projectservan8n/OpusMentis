@@ -64,7 +64,7 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
 
   // Handle time update
   const handleTimeUpdate = () => {
-    if (!audioRef.current) return
+    if (!audioRef.current || isDraggingSeek) return
     const time = audioRef.current.currentTime
     setCurrentTime(time)
     onTimeUpdate?.(time)

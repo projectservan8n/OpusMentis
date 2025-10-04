@@ -76,7 +76,7 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
 
   // Handle time update
   const handleTimeUpdate = () => {
-    if (!videoRef.current) return
+    if (!videoRef.current || isDraggingSeek) return
     const time = videoRef.current.currentTime
     setCurrentTime(time)
     onTimeUpdate?.(time)
@@ -279,12 +279,12 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
                 </Button>
 
                 {/* Volume */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-[120px]">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={toggleMute}
-                    className="text-white hover:bg-white/20"
+                    className="text-white hover:bg-white/20 shrink-0"
                   >
                     {isMuted || volume === 0 ? (
                       <VolumeX className="h-4 w-4" />
@@ -292,13 +292,15 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
                       <Volume2 className="h-4 w-4" />
                     )}
                   </Button>
-                  <Slider
-                    value={[isMuted ? 0 : volume]}
-                    max={1}
-                    step={0.01}
-                    onValueChange={handleVolumeChange}
-                    className="w-20 hidden sm:block"
-                  />
+                  <div className="w-20 hidden sm:block">
+                    <Slider
+                      value={[isMuted ? 0 : volume]}
+                      max={1}
+                      step={0.01}
+                      onValueChange={handleVolumeChange}
+                      className="w-full"
+                    />
+                  </div>
                 </div>
 
                 {/* Time Display */}
