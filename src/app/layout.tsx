@@ -3,8 +3,6 @@ import { Inter } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs'
 import { Toaster } from 'react-hot-toast'
 import ConsoleSuppressor from '@/components/console-suppressor'
-import { MediaPlayerProvider } from '@/contexts/media-player-context'
-import GlobalMediaPlayer from '@/components/global-media-player'
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -40,24 +38,21 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={inter.className}>
-          <MediaPlayerProvider>
-            <ConsoleSuppressor />
-            <div className="min-h-screen bg-background">
-              {children}
-            </div>
-            <GlobalMediaPlayer />
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: 'hsl(var(--background))',
-                  color: 'hsl(var(--foreground))',
-                  border: '1px solid hsl(var(--border))',
-                },
-              }}
-            />
-          </MediaPlayerProvider>
+          <ConsoleSuppressor />
+          <div className="min-h-screen bg-background">
+            {children}
+          </div>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: 'hsl(var(--background))',
+                color: 'hsl(var(--foreground))',
+                border: '1px solid hsl(var(--border))',
+              },
+            }}
+          />
         </body>
       </html>
     </ClerkProvider>
