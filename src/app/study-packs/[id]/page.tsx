@@ -19,7 +19,7 @@ import TranscriptViewer from '@/components/transcript-viewer'
 import HighlightSidebar from '@/components/highlight-sidebar'
 import QuizGeneratorModal from '@/components/quiz-generator-modal'
 import StudyTimer from '@/components/study-timer'
-import MiniPipPlayer from '@/components/mini-pip-player'
+import { useMediaPlayer } from '@/contexts/media-player-context'
 import { formatBytes } from '@/lib/utils'
 import {
   FileText,
@@ -78,6 +78,7 @@ export default function StudyPackPage() {
   const params = useParams()
   const router = useRouter()
   const studyPackId = params.id as string
+  const mediaPlayer = useMediaPlayer()
 
   const [studyPack, setStudyPack] = useState<StudyPack | null>(null)
   const [highlights, setHighlights] = useState<Highlight[]>([])
@@ -87,11 +88,6 @@ export default function StudyPackPage() {
   const [activeTab, setActiveTab] = useState('pdf')
   const [showQuizGenerator, setShowQuizGenerator] = useState(false)
   const [isSharing, setIsSharing] = useState(false)
-  const [currentMediaTime, setCurrentMediaTime] = useState(0)
-  const [mediaDuration, setMediaDuration] = useState(0)
-  const [isMediaPlaying, setIsMediaPlaying] = useState(false)
-  const [mediaSeekCallback, setMediaSeekCallback] = useState<((time: number) => void) | null>(null)
-  const [mediaPlayPauseCallback, setMediaPlayPauseCallback] = useState<(() => void) | null>(null)
 
   useEffect(() => {
     if (studyPackId) {
@@ -101,12 +97,38 @@ export default function StudyPackPage() {
     }
   }, [studyPackId])
 
+  // Load media into global context when study pack loads
+  useEffect(() => {
+    if (studyPack && studyPack.filePath && (studyPack.fileType === 'audio' || studyPack.fileType === 'video')) {
+      mediaPlayer.loadMedia({
+        filePath: `/api/files/${studyPack.filePath}`,
+        fileType: studyPack.fileType as 'audio' | 'video',
+        title: studyPack.title,
+        studyPackId: studyPack.id,
+        transcript: studyPack.transcript,
+      })
+    }
+
+    // Cleanup: clear media when leaving study pack page
+    return () => {
+      // Don't clear if still on a study pack page (just switching between study packs)
+      if (!window.location.pathname.startsWith('/study-packs/')) {
+        // Keep media loaded for navigation to other pages
+      }
+    }
+  }, [studyPack, mediaPlayer])
+
+  // Update isShowingFullPlayer based on activeTab
+  useEffect(() => {
+    mediaPlayer.setIsShowingFullPlayer(activeTab === 'pdf' && (studyPack?.fileType === 'audio' || studyPack?.fileType === 'video'))
+  }, [activeTab, studyPack?.fileType, mediaPlayer])
+
   // Pause media when quiz modal opens (prevent cheating)
   useEffect(() => {
-    if (showQuizGenerator && isMediaPlaying && mediaPlayPauseCallback) {
-      mediaPlayPauseCallback() // Pause the media
+    if (showQuizGenerator && mediaPlayer.isPlaying && mediaPlayer.playPauseCallback) {
+      mediaPlayer.playPauseCallback() // Pause the media
     }
-  }, [showQuizGenerator])
+  }, [showQuizGenerator, mediaPlayer.isPlaying, mediaPlayer.playPauseCallback])
 
   const fetchStudyPack = async () => {
     try {
@@ -531,35 +553,32 @@ export default function StudyPackPage() {
                     </TabsTrigger>
                   </TabsList>
 
-              {/* Keep audio/video players mounted but hidden when on other tabs */}
-              {studyPack.fileType === 'video' && studyPack.filePath && (
-                <div className={activeTab !== 'pdf' ? 'hidden' : ''}>
-                  <div className="p-4 sm:p-6">
-                    <VideoPlayer
-                      filePath={`/api/files/${studyPack.filePath}`}
-                      title={studyPack.title}
-                      onTimeUpdate={setCurrentMediaTime}
-                      onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
-                      onDurationChange={setMediaDuration}
-                      onPlayingStateChange={setIsMediaPlaying}
-                      onPlayPauseReady={(toggleFn) => setMediaPlayPauseCallback(() => toggleFn)}
-                    />
-                  </div>
+              {/* Show full player with transcript on Content tab for study pack page */}
+              {studyPack.fileType === 'video' && studyPack.filePath && activeTab === 'pdf' && (
+                <div className="p-4 sm:p-6">
+                  <VideoPlayer
+                    filePath={`/api/files/${studyPack.filePath}`}
+                    title={studyPack.title}
+                    onTimeUpdate={mediaPlayer.setCurrentTime}
+                    onPlayerReady={mediaPlayer.setSeekCallback}
+                    onDurationChange={mediaPlayer.setDuration}
+                    onPlayingStateChange={mediaPlayer.setIsPlaying}
+                    onPlayPauseReady={mediaPlayer.setPlayPauseCallback}
+                  />
                 </div>
               )}
-              {studyPack.fileType === 'audio' && studyPack.filePath && (
-                <div className={activeTab !== 'pdf' ? 'hidden' : ''}>
-                  <div className="p-4 sm:p-6">
-                    <AudioPlayer
-                      filePath={`/api/files/${studyPack.filePath}`}
-                      title={studyPack.title}
-                      onTimeUpdate={setCurrentMediaTime}
-                      onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
-                      onDurationChange={setMediaDuration}
-                      onPlayingStateChange={setIsMediaPlaying}
-                      onPlayPauseReady={(toggleFn) => setMediaPlayPauseCallback(() => toggleFn)}
-                    />
-                  </div>
+              {studyPack.fileType === 'audio' && studyPack.filePath && activeTab === 'pdf' && (
+                <div className="p-4 sm:p-6">
+                  <AudioPlayer
+                    filePath={`/api/files/${studyPack.filePath}`}
+                    title={studyPack.title}
+                    transcript={studyPack.transcript}
+                    onTimeUpdate={mediaPlayer.setCurrentTime}
+                    onPlayerReady={mediaPlayer.setSeekCallback}
+                    onDurationChange={mediaPlayer.setDuration}
+                    onPlayingStateChange={mediaPlayer.setIsPlaying}
+                    onPlayPauseReady={mediaPlayer.setPlayPauseCallback}
+                  />
                 </div>
               )}
 
@@ -684,17 +703,6 @@ export default function StudyPackPage() {
           </div>
         </div>
       </div>
-
-      {/* Mini PiP Player - shows when on non-Content tabs with audio/video */}
-      {activeTab !== 'pdf' && (studyPack.fileType === 'audio' || studyPack.fileType === 'video') && mediaPlayPauseCallback && (
-        <MiniPipPlayer
-          isPlaying={isMediaPlaying}
-          currentTime={currentMediaTime}
-          duration={mediaDuration}
-          title={studyPack.title}
-          onPlayPause={mediaPlayPauseCallback}
-        />
-      )}
 
       {/* Quiz Generator Modal */}
       <QuizGeneratorModal
