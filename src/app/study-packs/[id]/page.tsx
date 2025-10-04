@@ -520,26 +520,13 @@ export default function StudyPackPage() {
                 <TabsContent value="pdf" className="mt-0">
                   {/* PDF Document Viewer */}
                   {studyPack.fileType === 'pdf' && studyPack.filePath ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      <div className="lg:col-span-2">
-                        <PDFViewer
-                          filePath={`/api/files/${studyPack.filePath}`}
-                          studyPackId={studyPackId}
-                          highlights={highlights}
-                          onHighlightCreate={handleHighlightCreate}
-                          onHighlightClick={handleHighlightClick}
-                        />
-                      </div>
-                      <div className="lg:col-span-1">
-                        <HighlightSidebar
-                          highlights={highlights}
-                          onHighlightClick={handleHighlightClick}
-                          onHighlightDelete={handleHighlightDelete}
-                          onHighlightUpdate={handleHighlightUpdate}
-                          onGenerateQuiz={handleGenerateQuiz}
-                        />
-                      </div>
-                    </div>
+                    <PDFViewer
+                      filePath={`/api/files/${studyPack.filePath}`}
+                      studyPackId={studyPackId}
+                      highlights={highlights}
+                      onHighlightCreate={handleHighlightCreate}
+                      onHighlightClick={handleHighlightClick}
+                    />
                   ) : studyPack.fileType === 'video' && studyPack.filePath ? (
                     /* Video Player with Transcript */
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -662,9 +649,19 @@ export default function StudyPackPage() {
             </Card>
           </div>
 
-          {/* Sidebar - Study Timer */}
-          <div className="lg:col-span-1">
+          {/* Sidebar - Study Timer & Highlights */}
+          <div className="lg:col-span-1 space-y-6">
             <StudyTimer studyPackId={studyPackId} />
+            {/* Show highlights sidebar only for PDF files */}
+            {studyPack.fileType === 'pdf' && activeTab === 'pdf' && (
+              <HighlightSidebar
+                highlights={highlights}
+                onHighlightClick={handleHighlightClick}
+                onHighlightDelete={handleHighlightDelete}
+                onHighlightUpdate={handleHighlightUpdate}
+                onGenerateQuiz={handleGenerateQuiz}
+              />
+            )}
           </div>
         </div>
       </div>
