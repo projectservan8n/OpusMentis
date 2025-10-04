@@ -12,6 +12,8 @@ import KanbanBoard from '@/components/kanban-board'
 import Flashcards from '@/components/flashcards'
 import Notes from '@/components/notes'
 import PDFViewer from '@/components/pdf-viewer'
+import AudioPlayer from '@/components/audio-player'
+import VideoPlayer from '@/components/video-player'
 import HighlightSidebar from '@/components/highlight-sidebar'
 import QuizGeneratorModal from '@/components/quiz-generator-modal'
 import StudyTimer from '@/components/study-timer'
@@ -482,8 +484,12 @@ export default function StudyPackPage() {
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <TabsList className="w-full inline-flex h-10 items-center justify-start rounded-none border-b bg-transparent p-0 overflow-x-auto">
                     <TabsTrigger value="pdf" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
-                      <span className="hidden sm:inline">PDF</span>
-                      <span className="sm:hidden">PDF</span>
+                      <span className="hidden sm:inline">
+                        {studyPack.fileType === 'video' ? 'Video' : studyPack.fileType === 'audio' ? 'Audio' : 'Document'}
+                      </span>
+                      <span className="sm:hidden">
+                        {studyPack.fileType === 'video' ? 'Video' : studyPack.fileType === 'audio' ? 'Audio' : 'Doc'}
+                      </span>
                       {studyPack.fileType === 'pdf' && highlights.length > 0 && ` (${highlights.length})`}
                     </TabsTrigger>
                     <TabsTrigger value="summary" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
@@ -503,6 +509,7 @@ export default function StudyPackPage() {
 
               <div className="p-4 sm:p-6">
                 <TabsContent value="pdf" className="mt-0">
+                  {/* PDF Document Viewer */}
                   {studyPack.fileType === 'pdf' && studyPack.filePath ? (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       <div className="lg:col-span-2">
@@ -524,13 +531,25 @@ export default function StudyPackPage() {
                         />
                       </div>
                     </div>
+                  ) : studyPack.fileType === 'video' && studyPack.filePath ? (
+                    /* Video Player */
+                    <VideoPlayer
+                      filePath={`/api/files/${studyPack.filePath}`}
+                      title={studyPack.title}
+                    />
+                  ) : studyPack.fileType === 'audio' && studyPack.filePath ? (
+                    /* Audio Player */
+                    <AudioPlayer
+                      filePath={`/api/files/${studyPack.filePath}`}
+                      title={studyPack.title}
+                    />
                   ) : (
                     <Card>
                       <CardContent className="text-center py-12">
                         <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">PDF Viewer Not Available</h3>
+                        <h3 className="text-lg font-semibold mb-2">File Not Available</h3>
                         <p className="text-muted-foreground">
-                          This file is not a PDF or the PDF file is not available.
+                          The file is not available or the file type is not supported.
                         </p>
                       </CardContent>
                     </Card>

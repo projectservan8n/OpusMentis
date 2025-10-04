@@ -1,0 +1,215 @@
+'use client'
+
+import { useState, useRef, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Slider } from '@/components/ui/slider'
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  VolumeX,
+  Music,
+  Download
+} from 'lucide-react'
+
+interface AudioPlayerProps {
+  filePath: string
+  title: string
+}
+
+export default function AudioPlayer({ filePath, title }: AudioPlayerProps) {
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [volume, setVolume] = useState(1)
+  const [isMuted, setIsMuted] = useState(false)
+
+  const audioRef = useRef<HTMLAudioElement>(null)
+
+  // Format time as MM:SS
+  const formatTime = (seconds: number) => {
+    if (!isFinite(seconds)) return '0:00'
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  // Handle play/pause
+  const togglePlayPause = () => {
+    if (!audioRef.current) return
+
+    if (isPlaying) {
+      audioRef.current.pause()
+    } else {
+      audioRef.current.play()
+    }
+    setIsPlaying(!isPlaying)
+  }
+
+  // Handle time update
+  const handleTimeUpdate = () => {
+    if (!audioRef.current) return
+    setCurrentTime(audioRef.current.currentTime)
+  }
+
+  // Handle duration loaded
+  const handleLoadedMetadata = () => {
+    if (!audioRef.current) return
+    setDuration(audioRef.current.duration)
+  }
+
+  // Handle seek
+  const handleSeek = (value: number[]) => {
+    if (!audioRef.current) return
+    const newTime = value[0]
+    audioRef.current.currentTime = newTime
+    setCurrentTime(newTime)
+  }
+
+  // Handle volume change
+  const handleVolumeChange = (value: number[]) => {
+    if (!audioRef.current) return
+    const newVolume = value[0]
+    audioRef.current.volume = newVolume
+    setVolume(newVolume)
+    setIsMuted(newVolume === 0)
+  }
+
+  // Toggle mute
+  const toggleMute = () => {
+    if (!audioRef.current) return
+
+    if (isMuted) {
+      audioRef.current.volume = volume || 0.5
+      setIsMuted(false)
+    } else {
+      audioRef.current.volume = 0
+      setIsMuted(true)
+    }
+  }
+
+  // Skip forward/backward
+  const skip = (seconds: number) => {
+    if (!audioRef.current) return
+    audioRef.current.currentTime = Math.max(0, Math.min(duration, audioRef.current.currentTime + seconds))
+  }
+
+  // Download audio
+  const handleDownload = () => {
+    const a = document.createElement('a')
+    a.href = filePath
+    a.download = title || 'audio.mp3'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Music className="h-5 w-5" />
+          Audio Player
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Audio Element */}
+        <audio
+          ref={audioRef}
+          src={filePath}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={() => setIsPlaying(false)}
+        />
+
+        {/* Waveform / Progress Bar */}
+        <div className="space-y-2">
+          <Slider
+            value={[currentTime]}
+            max={duration || 100}
+            step={0.1}
+            onValueChange={handleSeek}
+            className="w-full"
+          />
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
+        </div>
+
+        {/* Playback Controls */}
+        <div className="flex items-center justify-center gap-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => skip(-10)}
+            title="Rewind 10s"
+          >
+            <SkipBack className="h-4 w-4" />
+          </Button>
+
+          <Button
+            size="lg"
+            onClick={togglePlayPause}
+            className="rounded-full h-14 w-14"
+          >
+            {isPlaying ? (
+              <Pause className="h-6 w-6" />
+            ) : (
+              <Play className="h-6 w-6 ml-1" />
+            )}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => skip(10)}
+            title="Forward 10s"
+          >
+            <SkipForward className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Volume Control */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleMute}
+          >
+            {isMuted || volume === 0 ? (
+              <VolumeX className="h-4 w-4" />
+            ) : (
+              <Volume2 className="h-4 w-4" />
+            )}
+          </Button>
+          <Slider
+            value={[isMuted ? 0 : volume]}
+            max={1}
+            step={0.01}
+            onValueChange={handleVolumeChange}
+            className="w-24"
+          />
+        </div>
+
+        {/* Download Button */}
+        <Button
+          variant="outline"
+          onClick={handleDownload}
+          className="w-full"
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Download Audio
+        </Button>
+
+        {/* Info */}
+        <p className="text-sm text-muted-foreground text-center">
+          Use the study timer while listening to track your focus time
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
