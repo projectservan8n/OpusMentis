@@ -118,8 +118,21 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
   // Seek to specific time (used by slider and transcript)
   const seekToTime = (time: number) => {
     if (!videoRef.current) return
+
+    // Pause first to ensure clean seek
+    const wasPlaying = !videoRef.current.paused
+    if (wasPlaying) {
+      videoRef.current.pause()
+    }
+
+    // Set the time
     videoRef.current.currentTime = time
     setCurrentTime(time)
+
+    // Resume playing if it was playing before
+    if (wasPlaying) {
+      videoRef.current.play()
+    }
   }
 
   // Handle volume change

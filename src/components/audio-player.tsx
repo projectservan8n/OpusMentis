@@ -106,8 +106,21 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
   // Seek to specific time (used by slider and transcript)
   const seekToTime = (time: number) => {
     if (!audioRef.current) return
+
+    // Pause first to ensure clean seek
+    const wasPlaying = !audioRef.current.paused
+    if (wasPlaying) {
+      audioRef.current.pause()
+    }
+
+    // Set the time
     audioRef.current.currentTime = time
     setCurrentTime(time)
+
+    // Resume playing if it was playing before
+    if (wasPlaying) {
+      audioRef.current.play()
+    }
   }
 
   // Handle volume change
