@@ -109,9 +109,10 @@ export default function StudyTimer({ studyPackId, onSessionComplete }: StudyTime
     fetchTimerState()
   }, [fetchTimerState])
 
-  // Polling for updates when not running (to sync across devices)
+  // Polling for updates when running (to sync across devices)
+  // Don't poll when stopped to avoid overwriting user's mode selection
   useEffect(() => {
-    if (!isRunning) {
+    if (isRunning) {
       pollIntervalRef.current = setInterval(() => {
         fetchTimerState()
       }, POLL_INTERVAL)
