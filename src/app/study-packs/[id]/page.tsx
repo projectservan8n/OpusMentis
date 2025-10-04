@@ -524,6 +524,38 @@ export default function StudyPackPage() {
                     </TabsTrigger>
                   </TabsList>
 
+              {/* Keep audio/video players mounted but hidden when on other tabs */}
+              {studyPack.fileType === 'video' && studyPack.filePath && (
+                <div className={activeTab !== 'pdf' ? 'hidden' : ''}>
+                  <div className="p-4 sm:p-6">
+                    <VideoPlayer
+                      filePath={`/api/files/${studyPack.filePath}`}
+                      title={studyPack.title}
+                      onTimeUpdate={setCurrentMediaTime}
+                      onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
+                      onDurationChange={setMediaDuration}
+                      onPlayingStateChange={setIsMediaPlaying}
+                      onPlayPauseReady={(toggleFn) => setMediaPlayPauseCallback(() => toggleFn)}
+                    />
+                  </div>
+                </div>
+              )}
+              {studyPack.fileType === 'audio' && studyPack.filePath && (
+                <div className={activeTab !== 'pdf' ? 'hidden' : ''}>
+                  <div className="p-4 sm:p-6">
+                    <AudioPlayer
+                      filePath={`/api/files/${studyPack.filePath}`}
+                      title={studyPack.title}
+                      onTimeUpdate={setCurrentMediaTime}
+                      onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
+                      onDurationChange={setMediaDuration}
+                      onPlayingStateChange={setIsMediaPlaying}
+                      onPlayPauseReady={(toggleFn) => setMediaPlayPauseCallback(() => toggleFn)}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="p-4 sm:p-6">
                 <TabsContent value="pdf" className="mt-0">
                   {/* PDF Document Viewer */}
@@ -535,35 +567,13 @@ export default function StudyPackPage() {
                       onHighlightCreate={handleHighlightCreate}
                       onHighlightClick={handleHighlightClick}
                     />
-                  ) : studyPack.fileType === 'video' && studyPack.filePath ? (
-                    /* Video Player - Full Width */
-                    <VideoPlayer
-                      filePath={`/api/files/${studyPack.filePath}`}
-                      title={studyPack.title}
-                      onTimeUpdate={setCurrentMediaTime}
-                      onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
-                      onDurationChange={setMediaDuration}
-                      onPlayingStateChange={setIsMediaPlaying}
-                      onPlayPauseReady={(toggleFn) => setMediaPlayPauseCallback(() => toggleFn)}
-                    />
-                  ) : studyPack.fileType === 'audio' && studyPack.filePath ? (
-                    /* Audio Player - Full Width */
-                    <AudioPlayer
-                      filePath={`/api/files/${studyPack.filePath}`}
-                      title={studyPack.title}
-                      onTimeUpdate={setCurrentMediaTime}
-                      onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
-                      onDurationChange={setMediaDuration}
-                      onPlayingStateChange={setIsMediaPlaying}
-                      onPlayPauseReady={(toggleFn) => setMediaPlayPauseCallback(() => toggleFn)}
-                    />
                   ) : studyPack.fileType === 'image' && studyPack.filePath ? (
                     /* Image Viewer */
                     <ImageViewer
                       filePath={`/api/files/${studyPack.filePath}`}
                       title={studyPack.title}
                     />
-                  ) : (
+                  ) : (studyPack.fileType !== 'audio' && studyPack.fileType !== 'video') && (
                     <Card>
                       <CardContent className="text-center py-12">
                         <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
