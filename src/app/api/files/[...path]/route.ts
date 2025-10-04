@@ -44,12 +44,37 @@ export async function GET(
       ? path.join('/app', filePath)  // Railway volume mounted at /app/uploads
       : path.join(process.cwd(), filePath)  // Local development
 
-    // Check if file exists
+    // Check if file exists locally
     if (!fs.existsSync(absolutePath)) {
+      // If running locally and file doesn't exist, proxy from production
+      if (process.env.NODE_ENV !== 'production') {
+        const productionUrl = `https://opusmentis.app/api/files/${filePath}`
+        const response = await fetch(productionUrl, {
+          headers: {
+            'Cookie': request.headers.get('cookie') || ''
+          }
+        })
+
+        if (!response.ok) {
+          return NextResponse.json({ error: 'File not found on production server' }, { status: 404 })
+        }
+
+        const fileBuffer = await response.arrayBuffer()
+        const contentType = response.headers.get('content-type') || 'application/octet-stream'
+
+        return new NextResponse(fileBuffer, {
+          headers: {
+            'Content-Type': contentType,
+            'Content-Disposition': response.headers.get('content-disposition') || `inline; filename="${path.basename(filePath)}"`,
+            'Cache-Control': 'private, max-age=31536000, immutable'
+          }
+        })
+      }
+
       return NextResponse.json({ error: 'File not found on server' }, { status: 404 })
     }
 
-    // Read file
+    // Read file from local filesystem
     const fileBuffer = fs.readFileSync(absolutePath)
 
     // Determine content type based on file extension
