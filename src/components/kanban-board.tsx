@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DndProvider, useDrag, useDrop } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -190,6 +190,25 @@ function TaskDialog({
     priority: task?.priority || 'medium',
     column: task?.column || defaultColumn || 'to-learn'
   })
+
+  // Update form data when task prop changes (for editing)
+  useEffect(() => {
+    if (task) {
+      setFormData({
+        title: task.title,
+        description: task.description,
+        priority: task.priority,
+        column: task.column
+      })
+    } else {
+      setFormData({
+        title: '',
+        description: '',
+        priority: 'medium',
+        column: defaultColumn || 'to-learn'
+      })
+    }
+  }, [task, defaultColumn])
 
   const handleSave = () => {
     if (!formData.title.trim()) return
