@@ -219,17 +219,20 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
             <SkipBack className="h-4 w-4" />
           </Button>
 
-          <Button
-            size="lg"
+          <button
             onClick={togglePlayPause}
-            className="rounded-full h-14 w-14 bg-slate-900 hover:bg-slate-800"
+            className="w-14 h-14 rounded-full bg-black hover:bg-gray-900 flex items-center justify-center transition shadow-lg"
           >
             {isPlaying ? (
-              <Pause className="h-6 w-6 text-white" />
+              <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+              </svg>
             ) : (
-              <Play className="h-6 w-6 ml-1 text-white" />
+              <svg className="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
             )}
-          </Button>
+          </button>
 
           <Button
             variant="outline"
