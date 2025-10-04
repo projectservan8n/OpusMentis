@@ -116,12 +116,14 @@ export default function StudyPackPage() {
         // Keep media loaded for navigation to other pages
       }
     }
-  }, [studyPack, mediaPlayer])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studyPack?.id, studyPack?.filePath, studyPack?.fileType, studyPack?.title, studyPack?.transcript])
 
   // Update isShowingFullPlayer based on activeTab
   useEffect(() => {
     mediaPlayer.setIsShowingFullPlayer(activeTab === 'pdf' && (studyPack?.fileType === 'audio' || studyPack?.fileType === 'video'))
-  }, [activeTab, studyPack?.fileType, mediaPlayer])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, studyPack?.fileType])
 
   // Pause media when quiz modal opens (prevent cheating)
   useEffect(() => {
