@@ -67,17 +67,22 @@ export function MediaPlayerProvider({ children }: { children: ReactNode }) {
     studyPackId: string
     transcript?: string
   }) => {
-    setState(prev => ({
-      ...prev,
-      filePath: params.filePath,
-      fileType: params.fileType,
-      title: params.title,
-      studyPackId: params.studyPackId,
-      transcript: params.transcript,
-      currentTime: 0,
-      duration: 0,
-      isPlaying: false,
-    }))
+    setState(prev => {
+      // If it's the same media file, preserve currentTime and duration
+      const isSameMedia = prev.filePath === params.filePath
+
+      return {
+        ...prev,
+        filePath: params.filePath,
+        fileType: params.fileType,
+        title: params.title,
+        studyPackId: params.studyPackId,
+        transcript: params.transcript,
+        currentTime: isSameMedia ? prev.currentTime : 0,
+        duration: isSameMedia ? prev.duration : 0,
+        isPlaying: isSameMedia ? prev.isPlaying : false,
+      }
+    })
   }, [])
 
   const clearMedia = useCallback(() => {
