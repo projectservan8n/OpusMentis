@@ -101,6 +101,86 @@ export default function StudyPackPage() {
     }
   }, [studyPackId])
 
+  // Load saved playback position when study pack loads (for audio/video)
+  useEffect(() => {
+    if (studyPack && (studyPack.fileType === 'audio' || studyPack.fileType === 'video')) {
+      const loadPlaybackProgress = async () => {
+        try {
+          const response = await fetch(`/api/study-packs/${studyPackId}/playback`)
+          if (response.ok) {
+            const data = await response.json()
+            if (data.position && data.position > 0 && mediaSeekCallback) {
+              // Seek to saved position when ready
+              mediaSeekCallback(data.position)
+            }
+          }
+        } catch (error) {
+          console.error('Error loading playback progress:', error)
+        }
+      }
+      loadPlaybackProgress()
+    }
+  }, [studyPack, studyPackId, mediaSeekCallback])
+
+  // Auto-save playback position every 5 seconds while playing
+  useEffect(() => {
+    if (!studyPack || (studyPack.fileType !== 'audio' && studyPack.fileType !== 'video')) {
+      return
+    }
+
+    if (!isMediaPlaying) {
+      return
+    }
+
+    const saveInterval = setInterval(async () => {
+      try {
+        await fetch(`/api/study-packs/${studyPackId}/playback`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ position: currentMediaTime }),
+        })
+      } catch (error) {
+        console.error('Error saving playback progress:', error)
+      }
+    }, 5000) // Save every 5 seconds
+
+    return () => clearInterval(saveInterval)
+  }, [studyPack, studyPackId, isMediaPlaying, currentMediaTime])
+
+  // Save playback position when user leaves the page
+  useEffect(() => {
+    if (!studyPack || (studyPack.fileType !== 'audio' && studyPack.fileType !== 'video')) {
+      return
+    }
+
+    const saveBeforeUnload = async () => {
+      if (currentMediaTime > 0) {
+        // Use sendBeacon for reliable saving on page unload
+        const blob = new Blob([JSON.stringify({ position: currentMediaTime })], {
+          type: 'application/json',
+        })
+        navigator.sendBeacon(`/api/study-packs/${studyPackId}/playback`, blob)
+      }
+    }
+
+    window.addEventListener('beforeunload', saveBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', saveBeforeUnload)
+      // Also save when component unmounts
+      if (currentMediaTime > 0) {
+        fetch(`/api/study-packs/${studyPackId}/playback`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ position: currentMediaTime }),
+        }).catch(console.error)
+      }
+    }
+  }, [studyPack, studyPackId, currentMediaTime])
+
   // Pause media when quiz modal opens (prevent cheating)
   useEffect(() => {
     if (showQuizGenerator && isMediaPlaying && mediaPlayPauseCallback) {

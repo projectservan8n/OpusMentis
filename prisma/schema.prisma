@@ -64,6 +64,10 @@ model StudyPack {
   // Team sharing (Premium feature)
   organizationId String? // Clerk organization ID if shared with team
 
+  // Media playback progress (for audio/video files)
+  lastPlaybackPosition Float?   @default(0) // in seconds
+  lastPlayedAt         DateTime?
+
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
