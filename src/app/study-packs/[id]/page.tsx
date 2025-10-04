@@ -262,8 +262,13 @@ export default function StudyPackPage() {
 
   const handleTabChange = (newTab: string) => {
     // Pause media when switching away from the media tab
-    if (activeTab === 'pdf' && newTab !== 'pdf' && mediaPauseCallback) {
-      mediaPauseCallback()
+    if (activeTab === 'pdf' && newTab !== 'pdf') {
+      if (mediaPauseCallback) {
+        console.log('Pausing media on tab switch')
+        mediaPauseCallback()
+      } else {
+        console.log('No pause callback available')
+      }
     }
     setActiveTab(newTab)
   }
