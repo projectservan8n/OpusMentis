@@ -1,4 +1,5 @@
-import OpenAI, { toFile } from 'openai'
+import OpenAI from 'openai'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 // Primary: OpenRouter with gpt-oss-20b (free tier)
 // Fallback: OpenAI with gpt-4o-mini (paid)
@@ -20,15 +21,12 @@ const openai = new OpenAI({
     : undefined
 })
 
-// Separate client for Whisper - always uses OpenAI (OpenRouter doesn't support audio)
-const openaiWhisper = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'placeholder-key-for-build',
-  baseURL: 'https://api.openai.com/v1'
-})
+// Google Gemini client for audio/video transcription (99% cheaper than Whisper!)
+const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'placeholder-key-for-build')
 
 // Model selection based on provider
 const AI_MODEL = useOpenRouter ? 'openai/gpt-oss-20b:free' : 'gpt-4o-mini'
-const WHISPER_MODEL = 'whisper-1' // Always use OpenAI Whisper (no free alternative)
+const GEMINI_MODEL = 'gemini-1.5-flash' // For audio/video transcription - 48x cheaper than Whisper!
 
 export interface StudyPackContent {
   summary: string
@@ -55,17 +53,31 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      // Use OpenAI SDK's toFile helper which properly handles file conversion
-      const file = await toFile(audioBuffer, 'audio.mp3', { type: 'audio/mpeg' })
+      // Use Google Gemini 1.5 Flash for audio transcription (48x cheaper than Whisper!)
+      const model = gemini.getGenerativeModel({ model: GEMINI_MODEL })
 
-      // Use dedicated OpenAI client for Whisper (OpenRouter doesn't support audio)
-      const transcription = await openaiWhisper.audio.transcriptions.create({
-        file: file,
-        model: WHISPER_MODEL,
-        language: 'en' // MVP: English only, can be extended
-      })
+      // Convert buffer to base64 for Gemini API
+      const base64Audio = audioBuffer.toString('base64')
 
-      return transcription.text
+      // Send audio with prompt to transcribe
+      const result = await model.generateContent([
+        {
+          inlineData: {
+            data: base64Audio,
+            mimeType: 'audio/mpeg'
+          }
+        },
+        'Please transcribe this audio accurately. Output only the transcribed text, nothing else.'
+      ])
+
+      const response = await result.response
+      const text = response.text()
+
+      if (!text || text.trim().length === 0) {
+        throw new Error('Gemini returned empty transcription')
+      }
+
+      return text.trim()
     } catch (error: any) {
       lastError = error
       console.error(`Audio transcription attempt ${attempt} failed:`, error)
@@ -74,7 +86,8 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
       const isNetworkError = error?.cause?.code === 'ECONNRESET' ||
                             error?.cause?.code === 'ETIMEDOUT' ||
                             error?.code === 'ECONNRESET' ||
-                            error?.code === 'ETIMEDOUT'
+                            error?.code === 'ETIMEDOUT' ||
+                            error?.message?.includes('fetch failed')
 
       if (!isNetworkError || attempt === maxRetries) {
         throw new Error(`Failed to transcribe audio after ${attempt} attempt(s): ${error?.message || 'Unknown error'}`)
