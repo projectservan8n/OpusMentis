@@ -14,6 +14,7 @@ import Notes from '@/components/notes'
 import PDFViewer from '@/components/pdf-viewer'
 import AudioPlayer from '@/components/audio-player'
 import VideoPlayer from '@/components/video-player'
+import ImageViewer from '@/components/image-viewer'
 import TranscriptViewer from '@/components/transcript-viewer'
 import HighlightSidebar from '@/components/highlight-sidebar'
 import QuizGeneratorModal from '@/components/quiz-generator-modal'
@@ -489,10 +490,14 @@ export default function StudyPackPage() {
                   <TabsList className="w-full inline-flex h-10 items-center justify-start rounded-none border-b bg-transparent p-0 overflow-x-auto">
                     <TabsTrigger value="pdf" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
                       <span className="hidden sm:inline">
-                        {studyPack.fileType === 'video' ? 'Video' : studyPack.fileType === 'audio' ? 'Audio' : 'Document'}
+                        {studyPack.fileType === 'video' ? 'Video' :
+                         studyPack.fileType === 'audio' ? 'Audio' :
+                         studyPack.fileType === 'image' ? 'Image' : 'Document'}
                       </span>
                       <span className="sm:hidden">
-                        {studyPack.fileType === 'video' ? 'Video' : studyPack.fileType === 'audio' ? 'Audio' : 'Doc'}
+                        {studyPack.fileType === 'video' ? 'Video' :
+                         studyPack.fileType === 'audio' ? 'Audio' :
+                         studyPack.fileType === 'image' ? 'Image' : 'Doc'}
                       </span>
                       {studyPack.fileType === 'pdf' && highlights.length > 0 && ` (${highlights.length})`}
                     </TabsTrigger>
@@ -573,6 +578,12 @@ export default function StudyPackPage() {
                         />
                       </div>
                     </div>
+                  ) : studyPack.fileType === 'image' && studyPack.filePath ? (
+                    /* Image Viewer */
+                    <ImageViewer
+                      filePath={`/api/files/${studyPack.filePath}`}
+                      title={studyPack.title}
+                    />
                   ) : (
                     <Card>
                       <CardContent className="text-center py-12">
