@@ -95,3 +95,14 @@
 .processing-spinner {
   @apply animate-spin rounded-full border-2 border-primary/20 border-t-primary;
 }
+
+/* Hide scrollbar for horizontal tab navigation */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+}

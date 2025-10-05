@@ -575,41 +575,56 @@ export default function StudyPackPage() {
           </Card>
         )}
 
+        {/* Sticky Tab Navigation - Mobile Friendly */}
+        <div className="sticky top-0 z-40 -mx-4 sm:-mx-6 lg:-mx-8 bg-background border-b">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
+              <TabsList className="w-full inline-flex h-12 items-center justify-start rounded-none border-0 bg-transparent p-0 overflow-x-auto scrollbar-hide">
+                <TabsTrigger
+                  value="pdf"
+                  className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 sm:px-6 pb-3 pt-3 font-semibold text-sm text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none whitespace-nowrap"
+                >
+                  {studyPack.fileType === 'video' ? 'Video' :
+                   studyPack.fileType === 'audio' ? 'Audio' :
+                   studyPack.fileType === 'image' ? 'Image' : 'Document'}
+                  {studyPack.fileType === 'pdf' && highlights.length > 0 && ` (${highlights.length})`}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="summary"
+                  className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 sm:px-6 pb-3 pt-3 font-semibold text-sm text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none whitespace-nowrap"
+                >
+                  Summary
+                </TabsTrigger>
+                <TabsTrigger
+                  value="kanban"
+                  className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 sm:px-6 pb-3 pt-3 font-semibold text-sm text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none whitespace-nowrap"
+                >
+                  Kanban
+                </TabsTrigger>
+                <TabsTrigger
+                  value="flashcards"
+                  className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 sm:px-6 pb-3 pt-3 font-semibold text-sm text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none whitespace-nowrap"
+                >
+                  Flashcards ({studyPack.flashcards?.length || 0})
+                </TabsTrigger>
+                <TabsTrigger
+                  value="notes"
+                  className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 sm:px-6 pb-3 pt-3 font-semibold text-sm text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none whitespace-nowrap"
+                >
+                  Notes ({studyPack.notes?.length || 0})
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </div>
+
         {/* Study Materials */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           {/* Main Content Area */}
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="p-0">
                 <Tabs value={activeTab} onValueChange={handleTabChange}>
-                  <TabsList className="w-full inline-flex h-10 items-center justify-start rounded-none border-b bg-transparent p-0 overflow-x-auto">
-                    <TabsTrigger value="pdf" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
-                      <span className="hidden sm:inline">
-                        {studyPack.fileType === 'video' ? 'Video' :
-                         studyPack.fileType === 'audio' ? 'Audio' :
-                         studyPack.fileType === 'image' ? 'Image' : 'Document'}
-                      </span>
-                      <span className="sm:hidden">
-                        {studyPack.fileType === 'video' ? 'Video' :
-                         studyPack.fileType === 'audio' ? 'Audio' :
-                         studyPack.fileType === 'image' ? 'Image' : 'Doc'}
-                      </span>
-                      {studyPack.fileType === 'pdf' && highlights.length > 0 && ` (${highlights.length})`}
-                    </TabsTrigger>
-                    <TabsTrigger value="summary" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
-                      Summary
-                    </TabsTrigger>
-                    <TabsTrigger value="kanban" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
-                      Kanban
-                    </TabsTrigger>
-                    <TabsTrigger value="flashcards" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
-                      <span className="hidden sm:inline">Flashcards ({studyPack.flashcards?.length || 0})</span>
-                      <span className="sm:hidden">Cards ({studyPack.flashcards?.length || 0})</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="notes" className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none">
-                      Notes ({studyPack.notes?.length || 0})
-                    </TabsTrigger>
-                  </TabsList>
 
               {/* Keep audio/video players mounted for persistent playback */}
               {studyPack.fileType === 'video' && studyPack.filePath && (
