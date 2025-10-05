@@ -15,6 +15,9 @@ export interface DiscordEmbed {
   footer?: {
     text: string
   }
+  image?: {
+    url: string
+  }
 }
 
 export interface DiscordWebhookPayload {
@@ -72,7 +75,7 @@ export async function notifyPaymentApproval(
       },
       {
         name: "💰 Amount",
-        value: `₱${amount}`,
+        value: amount.startsWith('₱') ? amount : `₱${amount}`,
         inline: true
       }
     ],
@@ -123,7 +126,7 @@ export async function notifyPaymentRejection(
       },
       {
         name: "💰 Amount",
-        value: `₱${amount}`,
+        value: amount.startsWith('₱') ? amount : `₱${amount}`,
         inline: true
       }
     ],
@@ -162,7 +165,8 @@ export async function notifyNewPaymentSubmission(
   userName: string,
   planRequested: string,
   amount: string,
-  referenceNumber?: string
+  referenceNumber?: string,
+  receiptImageUrl?: string
 ) {
   const embed: DiscordEmbed = {
     title: "📋 New Payment Submitted",
@@ -181,7 +185,7 @@ export async function notifyNewPaymentSubmission(
       },
       {
         name: "💰 Amount",
-        value: `₱${amount}`,
+        value: amount.startsWith('₱') ? amount : `₱${amount}`, // Fix double peso sign
         inline: true
       }
     ],
@@ -197,6 +201,13 @@ export async function notifyNewPaymentSubmission(
       value: referenceNumber,
       inline: true
     })
+  }
+
+  // Add receipt image if URL is provided
+  if (receiptImageUrl) {
+    embed.image = {
+      url: receiptImageUrl
+    }
   }
 
   return await sendDiscordNotification({

@@ -151,6 +151,34 @@ export async function saveUploadedFile(buffer: Buffer, filename: string): Promis
   return relativePath
 }
 
+export async function savePaymentReceipt(buffer: Buffer, filename: string): Promise<string> {
+  // Use /app/uploads/receipts for Railway Volume, fallback to local for development
+  const uploadsDir = process.env.NODE_ENV === 'production'
+    ? '/app/uploads'
+    : path.join(process.cwd(), 'uploads')
+
+  const receiptsDir = path.join(uploadsDir, 'receipts')
+
+  try {
+    await fs.access(receiptsDir)
+  } catch {
+    await fs.mkdir(receiptsDir, { recursive: true })
+  }
+
+  const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_')
+  const timestamp = Date.now()
+  const savedFilename = `${timestamp}_${sanitizedFilename}`
+  const filePath = path.join(receiptsDir, savedFilename)
+
+  await fs.writeFile(filePath, buffer)
+
+  console.log(`Receipt saved to: ${filePath}`)
+
+  // Return relative path for database storage (e.g., "uploads/receipts/123_receipt.png")
+  const relativePath = `uploads/receipts/${savedFilename}`
+  return relativePath
+}
+
 export async function deleteFile(filePath: string): Promise<void> {
   try {
     await fs.unlink(filePath)

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
-import { saveUploadedFile } from '@/lib/file-processing'
+import { savePaymentReceipt } from '@/lib/file-processing'
 import { notifyNewPaymentSubmission } from '@/lib/discord'
 import path from 'path'
 
@@ -70,10 +70,10 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Save the uploaded file
+    // Save the uploaded receipt to uploads/receipts folder
     const buffer = Buffer.from(await file.arrayBuffer())
     const fileName = `payment_proof_${userId}_${Date.now()}${path.extname(file.name)}`
-    const filePath = await saveUploadedFile(buffer, fileName)
+    const filePath = await savePaymentReceipt(buffer, fileName)
 
     // Create payment proof record
     const paymentProof = await db.paymentProof.create({
@@ -99,12 +99,17 @@ export async function POST(request: NextRequest) {
       const userEmail = clerkUser?.email_addresses?.[0]?.email_address || 'Unknown'
       const userName = clerkUser ? `${clerkUser.first_name || ''} ${clerkUser.last_name || ''}`.trim() || 'Unknown User' : 'Unknown User'
 
+      // Generate public URL for receipt image
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://opusmentis.up.railway.app'
+      const receiptUrl = `${baseUrl}/api/files/${filePath}`
+
       await notifyNewPaymentSubmission(
         userEmail,
         userName,
         planRequested,
         amount,
-        referenceNumber || undefined
+        referenceNumber || undefined,
+        receiptUrl
       )
     } catch (error) {
       console.error('Failed to send Discord new payment notification:', error)
