@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       const userName = clerkUser ? `${clerkUser.first_name || ''} ${clerkUser.last_name || ''}`.trim() || 'Unknown User' : 'Unknown User'
 
       // Generate public URL for receipt image
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://opusmentis.up.railway.app'
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://opusmentis.app'
       const receiptUrl = `${baseUrl}/api/files/${filePath}`
 
       await notifyNewPaymentSubmission(
