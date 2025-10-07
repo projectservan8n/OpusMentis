@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useUser } from '@clerk/nextjs'
 import { formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,6 +22,7 @@ import QuizGeneratorModal from '@/components/quiz-generator-modal'
 import StudyTimer from '@/components/study-timer'
 import MiniPipPlayer from '@/components/mini-pip-player'
 import { formatBytes } from '@/lib/utils'
+import { clerkTierToAppTier, PLAN_LIMITS } from '@/lib/subscription-utils'
 import {
   FileText,
   Video,
@@ -34,7 +36,8 @@ import {
   Brain,
   Loader2,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Crown
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Highlight } from '@/types/highlight'
@@ -77,6 +80,7 @@ const fileTypeIcons = {
 export default function StudyPackPage() {
   const params = useParams()
   const router = useRouter()
+  const { user } = useUser()
   const studyPackId = params.id as string
 
   const [studyPack, setStudyPack] = useState<StudyPack | null>(null)
@@ -92,6 +96,11 @@ export default function StudyPackPage() {
   const [isMediaPlaying, setIsMediaPlaying] = useState(false)
   const [mediaSeekCallback, setMediaSeekCallback] = useState<((time: number) => void) | null>(null)
   const [mediaPlayPauseCallback, setMediaPlayPauseCallback] = useState<(() => void) | null>(null)
+
+  // Get user's subscription tier and check export permission
+  const clerkTier = (user?.publicMetadata?.plan as string) || 'free_plan'
+  const userTier = clerkTierToAppTier(clerkTier)
+  const canExport = PLAN_LIMITS[userTier].canExportFlashcards
 
   useEffect(() => {
     if (studyPackId) {
@@ -538,11 +547,27 @@ export default function StudyPackPage() {
               <span className="hidden sm:inline">Generate Quiz</span>
               <span className="sm:hidden ml-1">Quiz</span>
             </Button>
-            <Button variant="outline" onClick={exportToPDF} size="sm">
-              <Download className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Export PDF</span>
-              <span className="sm:hidden ml-1">Export</span>
-            </Button>
+            {canExport ? (
+              <Button variant="outline" onClick={exportToPDF} size="sm">
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Export PDF</span>
+                <span className="sm:hidden ml-1">Export</span>
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  toast.error('PDF export is only available for Pro and Premium subscribers')
+                  router.push('/billing')
+                }}
+                size="sm"
+                className="border-orange-300 bg-orange-50 hover:bg-orange-100"
+              >
+                <Crown className="h-4 w-4 sm:mr-2 text-orange-600" />
+                <span className="hidden sm:inline text-orange-700">Upgrade to Export</span>
+                <span className="sm:hidden ml-1 text-orange-700">Upgrade</span>
+              </Button>
+            )}
             {studyPack.isOwner && (
               <Button
                 variant={studyPack.isShared ? "default" : "outline"}

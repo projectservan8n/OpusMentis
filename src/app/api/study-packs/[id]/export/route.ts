@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { auth, clerkClient } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import { clerkTierToAppTier, PLAN_LIMITS } from '@/lib/subscription-utils'
 
 export async function POST(
   request: NextRequest,
@@ -12,6 +13,19 @@ export async function POST(
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check user's subscription tier
+    const user = await clerkClient.users.getUser(userId)
+    const clerkTier = (user.publicMetadata?.plan as string) || 'free_plan'
+    const userTier = clerkTierToAppTier(clerkTier)
+    const canExport = PLAN_LIMITS[userTier].canExportFlashcards
+
+    if (!canExport) {
+      return NextResponse.json({
+        error: 'PDF export is only available for Pro and Premium subscribers. Please upgrade your plan.',
+        upgradeRequired: true
+      }, { status: 403 })
     }
 
     // Get study pack
