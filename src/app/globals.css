@@ -72,8 +72,8 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image: radial-gradient(circle, hsl(215 40% 70%) 1.5px, transparent 1.5px);
-    background-size: 24px 24px;
+    background-image: radial-gradient(circle, hsl(215 30% 60%) 2px, transparent 2px);
+    background-size: 20px 20px;
   }
 }
 
