@@ -382,108 +382,97 @@ export default function Flashcards({ flashcards, studyPackId, onFlashcardsUpdate
         <Progress value={progress} className="h-2" />
       </div>
 
-      {/* Main flashcard with flip animation */}
-      <div
-        className="relative cursor-pointer min-h-[400px]"
-        style={{ perspective: '1000px' }}
-        onClick={() => setShowAnswer(!showAnswer)}
-      >
-        <div
-          className="relative w-full h-full transition-transform duration-700"
-          style={{
-            transformStyle: 'preserve-3d',
-            transform: showAnswer ? 'rotateY(180deg)' : 'rotateY(0deg)'
-          }}
-        >
-          {/* Front of card - Question */}
-          <Card
-            className="absolute w-full min-h-[400px] bg-primary text-primary-foreground"
-            style={{ backfaceVisibility: 'hidden' }}
-          >
-            <CardContent className="p-8">
-              <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant="secondary"
-                    className="bg-white/20 text-white border-white/30"
-                  >
-                    {currentCard.difficulty}
-                  </Badge>
-                  {currentReview && (
-                    <Badge
-                      variant="secondary"
-                      className="bg-white/20 text-white border-white/30"
-                    >
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      {currentReview.masteryLevel}
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex items-center space-x-2">
-                  {currentReview && (
-                    <Badge variant="outline" className="text-xs bg-white/10 text-white border-white/30">
-                      <Zap className="h-3 w-3 mr-1" />
-                      {currentReview.totalReviews} reviews
-                    </Badge>
-                  )}
-                  {studiedCards.has(currentCard.id) && (
-                    <Badge
-                      variant="secondary"
-                      className={correctCards.has(currentCard.id)
-                        ? 'bg-green-500/20 text-green-100 border-green-300/30'
-                        : 'bg-red-500/20 text-red-100 border-red-300/30'
-                      }
-                    >
-                      {correctCards.has(currentCard.id) ? 'Correct' : 'Incorrect'}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center justify-center min-h-[250px] text-center">
-                <h4 className="text-sm font-medium mb-6 opacity-80 uppercase tracking-wide">
-                  Question
-                </h4>
-                <p className="text-2xl md:text-3xl font-semibold leading-relaxed max-w-lg px-4">
-                  {currentCard.question}
-                </p>
-                <div className="mt-8 px-6 py-2 bg-white/10 rounded-full border border-white/20 animate-pulse">
-                  <p className="text-sm opacity-80">Tap to flip 🔄</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Back of card - Answer */}
-          <Card
-            className="absolute w-full min-h-[400px] bg-green-600 text-white"
-            style={{
-              backfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)'
-            }}
-          >
-            <CardContent className="p-8">
-              <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
-                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                  Answer
+      {/* Main flashcard */}
+      <Card className="flashcard min-h-[300px]">
+        <CardContent className="p-8">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="secondary"
+                className={difficultyColors[currentCard.difficulty]}
+              >
+                {currentCard.difficulty}
+              </Badge>
+              {currentReview && (
+                <Badge
+                  variant="secondary"
+                  className={masteryColors[currentReview.masteryLevel]}
+                >
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  {currentReview.masteryLevel}
                 </Badge>
-              </div>
+              )}
+            </div>
+            <div className="flex items-center space-x-2">
+              {currentReview && (
+                <Badge variant="outline" className="text-xs">
+                  <Zap className="h-3 w-3 mr-1" />
+                  {currentReview.totalReviews} reviews
+                </Badge>
+              )}
+              {studiedCards.has(currentCard.id) && (
+                <Badge
+                  variant="secondary"
+                  className={correctCards.has(currentCard.id)
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                  }
+                >
+                  {correctCards.has(currentCard.id) ? 'Correct' : 'Incorrect'}
+                </Badge>
+              )}
+            </div>
+          </div>
 
-              <div className="flex flex-col items-center justify-center min-h-[250px] text-center">
-                <h4 className="text-sm font-medium mb-6 opacity-80 uppercase tracking-wide">
+          <div className="space-y-6">
+            {/* Question */}
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                Question
+              </h4>
+              <p className="text-lg leading-relaxed">{currentCard.question}</p>
+            </div>
+
+            {/* Answer */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-medium text-muted-foreground">
                   Answer
                 </h4>
-                <p className="text-xl md:text-2xl font-medium leading-relaxed max-w-lg px-4">
-                  {currentCard.answer}
-                </p>
-                <div className="mt-8 px-6 py-2 bg-white/10 rounded-full border border-white/20 animate-pulse">
-                  <p className="text-sm opacity-80">Tap to flip back 🔄</p>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAnswer(!showAnswer)}
+                >
+                  {showAnswer ? (
+                    <>
+                      <EyeOff className="h-4 w-4 mr-2" />
+                      Hide
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-4 w-4 mr-2" />
+                      Reveal
+                    </>
+                  )}
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+
+              {showAnswer ? (
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <p className="text-lg leading-relaxed">{currentCard.answer}</p>
+                </div>
+              ) : (
+                <div className="p-4 bg-muted/20 rounded-lg border-2 border-dashed">
+                  <p className="text-muted-foreground text-center">
+                    Click "Reveal" to see the answer
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Controls */}
       <div className="flex items-center justify-between">
