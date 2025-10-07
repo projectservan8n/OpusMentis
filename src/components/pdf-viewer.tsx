@@ -50,9 +50,13 @@ export default function PDFViewer({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [containerWidth, setContainerWidth] = useState<number>(0)
   const [isCreatingHighlight, setIsCreatingHighlight] = useState(false)
+  const [isPanning, setIsPanning] = useState(false)
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 })
+  const [scrollStart, setScrollStart] = useState({ x: 0, y: 0 })
 
   const pageRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   // Suppress PDF.js worker termination warnings (happens during normal cleanup)
   useEffect(() => {
@@ -296,6 +300,43 @@ export default function PDFViewer({
     }
   }, [isSelecting, handleMouseUp])
 
+  // Pan/drag handlers for zoomed PDF
+  const handlePanStart = useCallback((e: React.MouseEvent) => {
+    // Only enable panning when zoomed in and not selecting text
+    if (isSelecting || scale <= 1.0) return
+
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    setIsPanning(true)
+    setPanStart({ x: e.clientX, y: e.clientY })
+    setScrollStart({ x: container.scrollLeft, y: container.scrollTop })
+  }, [isSelecting, scale])
+
+  const handlePanMove = useCallback((e: React.MouseEvent) => {
+    if (!isPanning) return
+
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const dx = e.clientX - panStart.x
+    const dy = e.clientY - panStart.y
+
+    container.scrollLeft = scrollStart.x - dx
+    container.scrollTop = scrollStart.y - dy
+  }, [isPanning, panStart, scrollStart])
+
+  const handlePanEnd = useCallback(() => {
+    setIsPanning(false)
+  }, [])
+
+  useEffect(() => {
+    if (isPanning) {
+      document.addEventListener('mouseup', handlePanEnd)
+      return () => document.removeEventListener('mouseup', handlePanEnd)
+    }
+  }, [isPanning, handlePanEnd])
+
 
   // Render highlights on canvas
   const renderHighlights = () => {
@@ -493,7 +534,7 @@ export default function PDFViewer({
       </Card>
 
       {/* PDF Document */}
-      <Card className={`relative ${isFullscreen ? 'rounded-none flex-1 overflow-auto' : 'overflow-hidden'}`}>
+      <Card className={`relative ${isFullscreen ? 'rounded-none flex-1' : ''}`}>
         {loading && (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -501,18 +542,29 @@ export default function PDFViewer({
         )}
 
         <div
-          ref={containerRef}
-          className={`${isFullscreen ? 'h-full flex items-center justify-center overflow-auto' : ''}`}
+          ref={scrollContainerRef}
+          className={`${isFullscreen ? 'h-full overflow-auto' : 'overflow-auto max-h-[70vh]'}`}
+          onMouseDown={handlePanStart}
+          onMouseMove={handlePanMove}
+          onMouseUp={handlePanEnd}
+          onMouseLeave={handlePanEnd}
+          style={{
+            cursor: isPanning ? 'grabbing' : (scale > 1.0 && !isSelecting ? 'grab' : 'default')
+          }}
         >
           <div
-            ref={pageRef}
-            className="relative inline-block"
-            style={{
-              cursor: isSelecting ? 'text' : 'default',
-              userSelect: isSelecting ? 'text' : 'none',
-              touchAction: isSelecting ? 'none' : 'pan-x pan-y pinch-zoom'
-            }}
+            ref={containerRef}
+            className="flex items-start justify-center p-4"
           >
+            <div
+              ref={pageRef}
+              className="relative inline-block"
+              style={{
+                cursor: isSelecting ? 'text' : 'inherit',
+                userSelect: isSelecting ? 'text' : 'none',
+                touchAction: isSelecting ? 'none' : 'pan-x pan-y pinch-zoom'
+              }}
+            >
             <div className="relative">
               <Document
                 file={filePath}
@@ -568,6 +620,7 @@ export default function PDFViewer({
               <div className="absolute inset-0 pointer-events-none">
                 {renderHighlights()}
               </div>
+            </div>
             </div>
           </div>
         </div>
