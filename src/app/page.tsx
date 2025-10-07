@@ -30,10 +30,6 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="relative py-20 text-center overflow-hidden">
-        {/* Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100 -z-10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent -z-10" />
-
         <div className="container mx-auto px-4">
           {/* AI Badge */}
           <div className="inline-flex items-center space-x-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-6 border border-primary/20">
@@ -41,7 +37,7 @@ export default function HomePage() {
             <span className="text-sm font-semibold">Powered by Advanced AI</span>
           </div>
 
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-blue-800 to-slate-900 bg-clip-text text-transparent leading-tight">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-primary leading-tight">
             Turn Boring PDFs into Study<br />Materials You'll Actually Enjoy
           </h1>
 
@@ -51,7 +47,7 @@ export default function HomePage() {
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
             <Link href="/sign-up">
-              <Button size="lg" className="text-lg px-8 py-6 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900">
+              <Button size="lg" className="text-lg px-8 py-6">
                 <Sparkles className="mr-2 h-5 w-5" />
                 Start Learning Free
               </Button>
@@ -175,7 +171,7 @@ export default function HomePage() {
       </section>
 
       {/* Demo Section */}
-      <section id="demo" className="py-16 bg-gradient-to-b from-background to-muted/20">
+      <section id="demo" className="py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">See OpusMentis In Action ✨</h2>
@@ -319,7 +315,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {/* Step 1 */}
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
                 1
               </div>
               <h3 className="text-xl font-bold mb-3">Upload Your Content</h3>
@@ -330,7 +326,7 @@ export default function HomePage() {
 
             {/* Step 2 */}
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-700 to-slate-800 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
                 2
               </div>
               <h3 className="text-xl font-bold mb-3">AI Does the Magic</h3>
@@ -341,7 +337,7 @@ export default function HomePage() {
 
             {/* Step 3 */}
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
                 3
               </div>
               <h3 className="text-xl font-bold mb-3">Study & Ace Your Exams</h3>
@@ -403,7 +399,7 @@ export default function HomePage() {
             {/* Pro Plan */}
             <Card className="border-2 border-primary relative shadow-xl scale-105">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
+                <span className="bg-primary text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
                   ⭐ Most Popular
                 </span>
               </div>
@@ -440,7 +436,7 @@ export default function HomePage() {
                   </li>
                 </ul>
                 <Link href="/sign-up">
-                  <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900">
+                  <Button className="w-full">
                     Upgrade to Pro
                   </Button>
                 </Link>
@@ -491,7 +487,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-12 bg-gradient-to-b from-muted/30 to-muted/60">
+      <footer className="border-t py-12 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
