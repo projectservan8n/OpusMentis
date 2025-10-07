@@ -1,6 +1,12 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 import { Brain, FileText, PlayCircle, Image, Zap, Users, Star, Sparkles, BookOpen, CheckCircle, Upload, Wand2, Download } from 'lucide-react'
 import PdfViewerDemo from '@/components/landing/pdf-viewer-demo'
 import FlashcardDemo from '@/components/landing/flashcard-demo'
@@ -8,6 +14,8 @@ import KanbanDemo from '@/components/landing/kanban-demo'
 import AiSummaryDemo from '@/components/landing/ai-summary-demo'
 
 export default function HomePage() {
+  const [isAnnual, setIsAnnual] = useState(false)
+
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -352,11 +360,29 @@ export default function HomePage() {
       {/* Pricing Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h2 className="text-4xl font-bold mb-4">Choose Your Plan</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Start free, upgrade when you're ready. No pressure, no tricks!
             </p>
+          </div>
+
+          {/* Billing Toggle */}
+          <div className="flex items-center justify-center gap-3 mb-12">
+            <Label htmlFor="homepage-billing-toggle" className={`text-sm font-medium cursor-pointer ${!isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Monthly
+            </Label>
+            <Switch
+              id="homepage-billing-toggle"
+              checked={isAnnual}
+              onCheckedChange={setIsAnnual}
+            />
+            <Label htmlFor="homepage-billing-toggle" className={`text-sm font-medium cursor-pointer ${isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Annual
+              <Badge variant="secondary" className="ml-2 bg-green-100 text-green-700">
+                Save 17%
+              </Badge>
+            </Label>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -406,7 +432,17 @@ export default function HomePage() {
               <CardHeader className="pt-8">
                 <CardTitle>Pro</CardTitle>
                 <CardDescription>For serious students and learners</CardDescription>
-                <div className="text-3xl font-bold">₱149<span className="text-sm font-normal text-muted-foreground">/month</span></div>
+                <div>
+                  <div className="text-3xl font-bold">
+                    {isAnnual ? '₱1,490' : '₱149'}
+                    <span className="text-sm font-normal text-muted-foreground">{isAnnual ? '/year' : '/month'}</span>
+                  </div>
+                  {isAnnual && (
+                    <Badge variant="secondary" className="mt-2 bg-green-100 text-green-700">
+                      Save ₱298
+                    </Badge>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3 text-sm mb-6">
@@ -448,7 +484,17 @@ export default function HomePage() {
               <CardHeader>
                 <CardTitle>Premium</CardTitle>
                 <CardDescription>For teams and power users</CardDescription>
-                <div className="text-3xl font-bold">₱399<span className="text-sm font-normal text-muted-foreground">/month</span></div>
+                <div>
+                  <div className="text-3xl font-bold">
+                    {isAnnual ? '₱3,990' : '₱399'}
+                    <span className="text-sm font-normal text-muted-foreground">{isAnnual ? '/year' : '/month'}</span>
+                  </div>
+                  {isAnnual && (
+                    <Badge variant="secondary" className="mt-2 bg-green-100 text-green-700">
+                      Save ₱798
+                    </Badge>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3 text-sm mb-6">
