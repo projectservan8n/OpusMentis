@@ -73,7 +73,7 @@
   body {
     @apply text-foreground;
     background-color: hsl(0 0% 100%);
-    background-image: radial-gradient(circle, hsl(215 20% 80%) 0.8px, transparent 0.8px);
+    background-image: radial-gradient(circle, hsla(215, 20%, 70%, 0.3) 0.8px, transparent 0.8px);
     background-size: 24px 24px;
   }
 
