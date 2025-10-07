@@ -29,8 +29,8 @@ export default function FeaturesPage() {
       title: 'Multi-Format Upload',
       description: 'Upload PDFs, audio files, videos, and images. Our AI handles everything.',
       details: [
-        'PDF documents up to 200 pages',
-        'Audio/video up to 3 hours',
+        'PDF documents up to 500 pages',
+        'Audio/video up to 10 hours',
         'Image-based content with OCR',
         'Automatic text extraction'
       ]
@@ -335,10 +335,10 @@ export default function FeaturesPage() {
                 </div>
 
                 {[
-                  { feature: 'Monthly Uploads', free: '3', pro: '50', premium: '200' },
-                  { feature: 'PDF Pages', free: '10', pro: '50', premium: '200' },
-                  { feature: 'Audio/Video Length', free: '10 min', pro: '1 hour', premium: '3 hours' },
-                  { feature: 'Max File Size', free: '50MB', pro: '100MB', premium: '200MB' },
+                  { feature: 'Monthly Uploads', free: '20', pro: '200', premium: '1000' },
+                  { feature: 'PDF Pages', free: '50', pro: '200', premium: '500' },
+                  { feature: 'Audio/Video Length', free: '30 min', pro: '3 hours', premium: '10 hours' },
+                  { feature: 'Max File Size', free: '100MB', pro: '250MB', premium: '500MB' },
                   { feature: 'AI Summaries', free: '✓', pro: '✓', premium: '✓' },
                   { feature: 'Flashcards', free: '✓', pro: '✓', premium: '✓' },
                   { feature: 'Kanban Boards', free: '✓', pro: '✓', premium: '✓' },
