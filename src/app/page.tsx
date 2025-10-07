@@ -68,7 +68,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-center space-x-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>3 free uploads to start</span>
+              <span>20 free uploads to start</span>
             </div>
             <div className="flex items-center space-x-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
@@ -371,19 +371,19 @@ export default function HomePage() {
                 <ul className="space-y-3 text-sm mb-6">
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>3 uploads per month</span>
+                    <span>20 uploads per month</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>PDFs up to 10 pages</span>
+                    <span>PDFs up to 50 pages</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Audio/video up to 10 minutes</span>
+                    <span>Audio/video up to 30 minutes</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Basic summaries & flashcards</span>
+                    <span>AI summaries & flashcards</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
@@ -412,15 +412,15 @@ export default function HomePage() {
                 <ul className="space-y-3 text-sm mb-6">
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span><strong>50 uploads/month</strong></span>
+                    <span><strong>200 uploads/month</strong></span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>PDFs up to 50 pages</span>
+                    <span>PDFs up to 200 pages</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Audio/video up to 1 hour</span>
+                    <span>Audio/video up to 3 hours</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
@@ -454,15 +454,15 @@ export default function HomePage() {
                 <ul className="space-y-3 text-sm mb-6">
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span><strong>Unlimited uploads</strong></span>
+                    <span><strong>1000 uploads/month</strong></span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>PDFs up to 200 pages</span>
+                    <span>PDFs up to 500 pages</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Audio/video up to 3 hours</span>
+                    <span>Audio/video up to 10 hours</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
