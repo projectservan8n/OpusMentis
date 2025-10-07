@@ -31,7 +31,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative py-20 text-center overflow-hidden">
         {/* Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 -z-10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100 -z-10" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent -z-10" />
 
         <div className="container mx-auto px-4">
@@ -41,7 +41,7 @@ export default function HomePage() {
             <span className="text-sm font-semibold">Powered by Advanced AI</span>
           </div>
 
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-blue-800 to-slate-900 bg-clip-text text-transparent leading-tight">
             Turn Boring PDFs into Study<br />Materials You'll Actually Enjoy 🎉
           </h1>
 
@@ -51,7 +51,7 @@ export default function HomePage() {
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
             <Link href="/sign-up">
-              <Button size="lg" className="text-lg px-8 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+              <Button size="lg" className="text-lg px-8 py-6 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900">
                 <Sparkles className="mr-2 h-5 w-5" />
                 Start Learning Free
               </Button>
@@ -109,8 +109,8 @@ export default function HomePage() {
             {/* Feature 2 */}
             <Card className="border-2 hover:shadow-lg transition-shadow">
               <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center mb-4">
-                  <Wand2 className="h-6 w-6 text-purple-600" />
+                <div className="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center mb-4">
+                  <Wand2 className="h-6 w-6 text-indigo-600" />
                 </div>
                 <CardTitle>Auto-Generated Flashcards</CardTitle>
                 <CardDescription>
@@ -122,8 +122,8 @@ export default function HomePage() {
             {/* Feature 3 */}
             <Card className="border-2 hover:shadow-lg transition-shadow">
               <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-pink-100 flex items-center justify-center mb-4">
-                  <BookOpen className="h-6 w-6 text-pink-600" />
+                <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center mb-4">
+                  <BookOpen className="h-6 w-6 text-slate-600" />
                 </div>
                 <CardTitle>Smart Study Plans</CardTitle>
                 <CardDescription>
@@ -161,8 +161,8 @@ export default function HomePage() {
             {/* Feature 6 */}
             <Card className="border-2 hover:shadow-lg transition-shadow">
               <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center mb-4">
-                  <Download className="h-6 w-6 text-indigo-600" />
+                <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
+                  <Download className="h-6 w-6 text-blue-600" />
                 </div>
                 <CardTitle>Export Anywhere</CardTitle>
                 <CardDescription>
@@ -190,7 +190,7 @@ export default function HomePage() {
               <PdfViewerDemo />
             </div>
             <div className="order-1 md:order-2">
-              <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full mb-4 text-sm font-semibold">
+              <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full mb-4 text-sm font-semibold">
                 <span>📄 Smart PDF Reading</span>
               </div>
               <h3 className="text-3xl font-bold mb-4">Highlight & Extract Like a Pro</h3>
@@ -217,7 +217,7 @@ export default function HomePage() {
           {/* Demo 2: Flashcards */}
           <div className="grid md:grid-cols-2 gap-12 items-center mb-20 max-w-6xl mx-auto">
             <div>
-              <div className="inline-flex items-center space-x-2 bg-purple-100 text-purple-700 px-3 py-1 rounded-full mb-4 text-sm font-semibold">
+              <div className="inline-flex items-center space-x-2 bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full mb-4 text-sm font-semibold">
                 <span>🎴 Interactive Flashcards</span>
               </div>
               <h3 className="text-3xl font-bold mb-4">Study Cards That Actually Work</h3>
@@ -319,7 +319,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {/* Step 1 */}
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
                 1
               </div>
               <h3 className="text-xl font-bold mb-3">Upload Your Content</h3>
@@ -330,7 +330,7 @@ export default function HomePage() {
 
             {/* Step 2 */}
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-700 to-slate-800 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
                 2
               </div>
               <h3 className="text-xl font-bold mb-3">AI Does the Magic</h3>
@@ -341,7 +341,7 @@ export default function HomePage() {
 
             {/* Step 3 */}
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
                 3
               </div>
               <h3 className="text-xl font-bold mb-3">Study & Ace Your Exams</h3>
@@ -403,7 +403,7 @@ export default function HomePage() {
             {/* Pro Plan */}
             <Card className="border-2 border-primary relative shadow-xl scale-105">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
+                <span className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
                   ⭐ Most Popular
                 </span>
               </div>
@@ -440,7 +440,7 @@ export default function HomePage() {
                   </li>
                 </ul>
                 <Link href="/sign-up">
-                  <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900">
                     Upgrade to Pro
                   </Button>
                 </Link>
@@ -530,7 +530,7 @@ export default function HomePage() {
 
           <div className="border-t pt-8 text-center">
             <p className="text-sm text-muted-foreground mb-2">
-              Made with 💜 for students everywhere
+              Made with 💙 for students everywhere
             </p>
             <p className="text-xs text-muted-foreground">
               &copy; 2024 OpusMentis by Opus Automations. All rights reserved.
