@@ -73,8 +73,8 @@
   body {
     @apply text-foreground;
     background-color: hsl(0 0% 100%);
-    background-image: radial-gradient(circle, hsl(215 30% 60%) 2px, transparent 2px);
-    background-size: 20px 20px;
+    background-image: radial-gradient(circle, hsl(215 20% 80%) 0.8px, transparent 0.8px);
+    background-size: 16px 16px;
   }
 
   /* Make cards semi-transparent to show dots */
