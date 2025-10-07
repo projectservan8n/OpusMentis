@@ -543,7 +543,7 @@ export default function PDFViewer({
 
         <div
           ref={scrollContainerRef}
-          className={`${isFullscreen ? 'h-full overflow-auto' : 'overflow-auto max-h-[70vh]'}`}
+          className={`${isFullscreen ? 'h-full w-full overflow-auto' : 'overflow-auto max-h-[70vh]'}`}
           onMouseDown={handlePanStart}
           onMouseMove={handlePanMove}
           onMouseUp={handlePanEnd}
@@ -554,7 +554,11 @@ export default function PDFViewer({
         >
           <div
             ref={containerRef}
-            className="flex items-start justify-center p-4"
+            className={`flex items-start p-4 ${scale > 1.0 ? 'justify-start' : 'justify-center'}`}
+            style={{
+              minWidth: scale > 1.0 ? 'max-content' : 'auto',
+              minHeight: scale > 1.0 ? 'max-content' : 'auto'
+            }}
           >
             <div
               ref={pageRef}
