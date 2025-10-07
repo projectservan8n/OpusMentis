@@ -87,11 +87,11 @@ export default function BillingPage() {
       annualPrice: 0,
       description: 'Perfect for trying out OpusMentis',
       features: [
-        '3 uploads per month',
-        'PDFs up to 10 pages',
-        'Audio/video up to 10 minutes',
-        'Basic AI summaries',
-        'Flashcards & Kanban boards',
+        '20 uploads per month',
+        'PDFs up to 50 pages',
+        'Audio/video up to 30 minutes',
+        'AI summaries & flashcards',
+        'Kanban study boards',
         'Community support'
       ],
       limitations: [
@@ -109,9 +109,9 @@ export default function BillingPage() {
       annualPrice: 1490, // 10 months price = 2 months free
       description: 'Best for students and regular learners',
       features: [
-        '50 uploads/month',
-        'PDFs up to 50 pages',
-        'Audio/video up to 1 hour',
+        '200 uploads/month',
+        'PDFs up to 200 pages',
+        'Audio/video up to 3 hours',
         'Advanced AI processing',
         'PDF export functionality',
         'Priority support',
@@ -128,9 +128,9 @@ export default function BillingPage() {
       annualPrice: 3990, // 10 months price = 2 months free
       description: 'For power users and teams',
       features: [
-        'Everything in Pro',
-        'PDFs up to 200 pages',
-        'Audio/video up to 3 hours',
+        '1000 uploads/month',
+        'PDFs up to 500 pages',
+        'Audio/video up to 10 hours',
         'Team sharing capabilities',
         'Advanced analytics',
         'Custom integrations',
