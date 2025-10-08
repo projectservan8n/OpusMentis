@@ -195,9 +195,9 @@ export default function DashboardPage() {
           <h2 className="text-lg font-semibold">Quick Actions</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link href="/upload">
+          <Link href="/upload" className="h-full">
             <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-              <CardHeader className="h-full">
+              <CardHeader>
                 <div className="flex items-center space-x-2 mb-2">
                   <Plus className="h-5 w-5 text-primary" />
                   <CardTitle className="text-base">Upload Material</CardTitle>
@@ -209,9 +209,9 @@ export default function DashboardPage() {
             </Card>
           </Link>
 
-          <Link href="/billing">
+          <Link href="/billing" className="h-full">
             <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-              <CardHeader className="h-full">
+              <CardHeader>
                 <div className="flex items-center space-x-2 mb-2">
                   <TrendingUp className="h-5 w-5 text-primary" />
                   <CardTitle className="text-base">Upgrade Plan</CardTitle>
@@ -223,9 +223,9 @@ export default function DashboardPage() {
             </Card>
           </Link>
 
-          <Link href="/settings">
+          <Link href="/settings" className="h-full">
             <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-              <CardHeader className="h-full">
+              <CardHeader>
                 <div className="flex items-center space-x-2 mb-2">
                   <Brain className="h-5 w-5 text-primary" />
                   <CardTitle className="text-base">AI Settings</CardTitle>
