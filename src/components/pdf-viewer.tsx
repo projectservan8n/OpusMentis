@@ -303,15 +303,30 @@ export default function PDFViewer({
   // Pan/drag handlers for zoomed PDF
   const handlePanStart = useCallback((e: React.MouseEvent) => {
     // Only enable panning when zoomed in and not selecting text
-    if (isSelecting || scale <= 1.0) return
+    // Don't interfere with normal scrolling in fullscreen at scale 1.0
+    if (isSelecting) return
 
     const container = scrollContainerRef.current
     if (!container) return
 
+    // Check if content is scrollable (overflowing)
+    const hasOverflow = container.scrollHeight > container.clientHeight ||
+                        container.scrollWidth > container.clientWidth
+
+    // Only enable panning if zoomed in OR if in fullscreen with overflow
+    if (scale <= 1.0 && !(isFullscreen && hasOverflow)) return
+
+    // Don't start panning on text layer or highlight elements
+    const target = e.target as HTMLElement
+    if (target.closest('.textLayer') || target.closest('[data-annotation-id]')) {
+      return
+    }
+
     setIsPanning(true)
     setPanStart({ x: e.clientX, y: e.clientY })
     setScrollStart({ x: container.scrollLeft, y: container.scrollTop })
-  }, [isSelecting, scale])
+    e.preventDefault()
+  }, [isSelecting, scale, isFullscreen])
 
   const handlePanMove = useCallback((e: React.MouseEvent) => {
     if (!isPanning) return
@@ -324,6 +339,7 @@ export default function PDFViewer({
 
     container.scrollLeft = scrollStart.x - dx
     container.scrollTop = scrollStart.y - dy
+    e.preventDefault()
   }, [isPanning, panStart, scrollStart])
 
   const handlePanEnd = useCallback(() => {
@@ -332,8 +348,11 @@ export default function PDFViewer({
 
   useEffect(() => {
     if (isPanning) {
-      document.addEventListener('mouseup', handlePanEnd)
-      return () => document.removeEventListener('mouseup', handlePanEnd)
+      const handler = (e: MouseEvent) => {
+        handlePanEnd()
+      }
+      document.addEventListener('mouseup', handler)
+      return () => document.removeEventListener('mouseup', handler)
     }
   }, [isPanning, handlePanEnd])
 
@@ -549,7 +568,9 @@ export default function PDFViewer({
           onMouseUp={handlePanEnd}
           onMouseLeave={handlePanEnd}
           style={{
-            cursor: isPanning ? 'grabbing' : (scale > 1.0 && !isSelecting ? 'grab' : 'default')
+            cursor: isPanning ? 'grabbing' : (scale > 1.0 && !isSelecting ? 'grab' : 'default'),
+            overscrollBehavior: 'contain',
+            WebkitOverflowScrolling: 'touch'
           }}
         >
           <div
