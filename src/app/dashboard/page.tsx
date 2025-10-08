@@ -196,13 +196,13 @@ export default function DashboardPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link href="/upload">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardHeader>
-                <div className="flex items-center space-x-2">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+              <CardHeader className="h-full">
+                <div className="flex items-center space-x-2 mb-2">
                   <Plus className="h-5 w-5 text-primary" />
                   <CardTitle className="text-base">Upload Material</CardTitle>
                 </div>
-                <CardDescription>
+                <CardDescription className="line-clamp-2">
                   Upload PDFs, audio, video, or images to create study materials
                 </CardDescription>
               </CardHeader>
@@ -210,13 +210,13 @@ export default function DashboardPage() {
           </Link>
 
           <Link href="/billing">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardHeader>
-                <div className="flex items-center space-x-2">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+              <CardHeader className="h-full">
+                <div className="flex items-center space-x-2 mb-2">
                   <TrendingUp className="h-5 w-5 text-primary" />
                   <CardTitle className="text-base">Upgrade Plan</CardTitle>
                 </div>
-                <CardDescription>
+                <CardDescription className="line-clamp-2">
                   Get unlimited uploads and advanced features
                 </CardDescription>
               </CardHeader>
@@ -224,13 +224,13 @@ export default function DashboardPage() {
           </Link>
 
           <Link href="/settings">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardHeader>
-                <div className="flex items-center space-x-2">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+              <CardHeader className="h-full">
+                <div className="flex items-center space-x-2 mb-2">
                   <Brain className="h-5 w-5 text-primary" />
                   <CardTitle className="text-base">AI Settings</CardTitle>
                 </div>
-                <CardDescription>
+                <CardDescription className="line-clamp-2">
                   Customize how AI generates your study materials
                 </CardDescription>
               </CardHeader>
