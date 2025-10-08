@@ -107,6 +107,8 @@ export default function BillingPage() {
       name: 'Pro',
       monthlyPrice: 149,
       annualPrice: 1490, // 10 months price = 2 months free
+      originalMonthlyPrice: 298,
+      originalAnnualPrice: 1788,
       description: 'Best for students and regular learners',
       features: [
         '200 uploads/month',
@@ -126,6 +128,8 @@ export default function BillingPage() {
       name: 'Premium',
       monthlyPrice: 399,
       annualPrice: 3990, // 10 months price = 2 months free
+      originalMonthlyPrice: 798,
+      originalAnnualPrice: 4788,
       description: 'For power users and teams',
       features: [
         '1000 uploads/month',
@@ -379,14 +383,24 @@ export default function BillingPage() {
                     </div>
                     <CardDescription>{plan.description}</CardDescription>
                     <div className="mt-4">
+                      {plan.id !== 'free' && (
+                        <div className="flex items-baseline gap-2 mb-1">
+                          <span className="text-lg text-muted-foreground line-through">
+                            ₱{isAnnual ? (plan as any).originalAnnualPrice?.toLocaleString() : (plan as any).originalMonthlyPrice}
+                          </span>
+                          <Badge className="bg-red-500 text-white font-bold">
+                            -50%
+                          </Badge>
+                        </div>
+                      )}
                       <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold">{getDisplayPrice(plan)}</span>
+                        <span className="text-3xl font-bold text-primary">{getDisplayPrice(plan)}</span>
                         <span className="text-muted-foreground">{getDisplayPeriod(plan)}</span>
                       </div>
                       {getSavingsText(plan) && (
-                        <Badge variant="secondary" className="mt-2 bg-green-100 text-green-700">
+                        <p className="text-sm text-green-600 font-semibold mt-1">
                           {getSavingsText(plan)}
-                        </Badge>
+                        </p>
                       )}
                     </div>
                   </CardHeader>

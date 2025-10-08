@@ -433,14 +433,22 @@ export default function HomePage() {
                 <CardTitle>Pro</CardTitle>
                 <CardDescription>For serious students and learners</CardDescription>
                 <div>
-                  <div className="text-3xl font-bold">
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-2xl text-muted-foreground line-through">
+                      {isAnnual ? '₱1,788' : '₱298'}
+                    </span>
+                    <Badge className="bg-red-500 text-white font-bold">
+                      {isAnnual ? '-17%' : '-50%'}
+                    </Badge>
+                  </div>
+                  <div className="text-3xl font-bold text-primary">
                     {isAnnual ? '₱1,490' : '₱149'}
                     <span className="text-sm font-normal text-muted-foreground">{isAnnual ? '/year' : '/month'}</span>
                   </div>
                   {isAnnual && (
-                    <Badge variant="secondary" className="mt-2 bg-green-100 text-green-700">
-                      Save ₱298
-                    </Badge>
+                    <p className="text-sm text-green-600 font-semibold mt-1">
+                      Save ₱298/year
+                    </p>
                   )}
                 </div>
               </CardHeader>
@@ -485,14 +493,22 @@ export default function HomePage() {
                 <CardTitle>Premium</CardTitle>
                 <CardDescription>For teams and power users</CardDescription>
                 <div>
-                  <div className="text-3xl font-bold">
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-2xl text-muted-foreground line-through">
+                      {isAnnual ? '₱4,788' : '₱798'}
+                    </span>
+                    <Badge className="bg-red-500 text-white font-bold">
+                      {isAnnual ? '-17%' : '-50%'}
+                    </Badge>
+                  </div>
+                  <div className="text-3xl font-bold text-primary">
                     {isAnnual ? '₱3,990' : '₱399'}
                     <span className="text-sm font-normal text-muted-foreground">{isAnnual ? '/year' : '/month'}</span>
                   </div>
                   {isAnnual && (
-                    <Badge variant="secondary" className="mt-2 bg-green-100 text-green-700">
-                      Save ₱798
-                    </Badge>
+                    <p className="text-sm text-green-600 font-semibold mt-1">
+                      Save ₱798/year
+                    </p>
                   )}
                 </div>
               </CardHeader>
