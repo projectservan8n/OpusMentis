@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import { CheckCircle2, Crown, Zap, Users, ArrowRight, Brain } from 'lucide-react'
 
 export default function PricingPage() {
@@ -14,14 +16,13 @@ export default function PricingPage() {
     {
       id: 'free',
       name: 'Free',
-      monthlyPrice: '₱0',
-      annualPrice: '₱0',
+      monthlyPrice: 0,
+      annualPrice: 0,
       description: 'Perfect for trying out OpusMentis',
       features: [
-        '3 uploads per month',
-        'PDFs up to 10 pages',
-        'Audio/video up to 10 minutes',
-        'Max file size: 50MB',
+        '20 uploads per month',
+        'PDFs up to 50 pages',
+        'Audio/video up to 30 minutes',
         'Basic AI summaries',
         'Flashcards & Kanban boards',
         'Community support'
@@ -34,15 +35,15 @@ export default function PricingPage() {
     {
       id: 'pro',
       name: 'Pro',
-      monthlyPrice: '₱149',
-      annualPrice: '₱1,490',
-      annualSavings: '₱298',
+      monthlyPrice: 149,
+      annualPrice: 1490,
+      originalMonthlyPrice: 298,
+      originalAnnualPrice: 1788,
       description: 'Best for students and regular learners',
       features: [
-        '50 uploads per month',
-        'PDFs up to 50 pages',
-        'Audio/video up to 1 hour',
-        'Max file size: 100MB',
+        '200 uploads/month',
+        'PDFs up to 200 pages',
+        'Audio/video up to 3 hours',
         'Advanced AI processing',
         'PDF export functionality',
         'Priority support',
@@ -57,15 +58,15 @@ export default function PricingPage() {
     {
       id: 'premium',
       name: 'Premium',
-      monthlyPrice: '₱399',
-      annualPrice: '₱3,990',
-      annualSavings: '₱798',
+      monthlyPrice: 399,
+      annualPrice: 3990,
+      originalMonthlyPrice: 798,
+      originalAnnualPrice: 4788,
       description: 'For power users and teams',
       features: [
-        '200 uploads per month',
-        'PDFs up to 200 pages',
-        'Audio/video up to 3 hours',
-        'Max file size: 200MB',
+        '1000 uploads/month',
+        'PDFs up to 500 pages',
+        'Audio/video up to 10 hours',
         'Team sharing capabilities',
         'Advanced analytics',
         'Custom integrations',
@@ -112,30 +113,22 @@ export default function PricingPage() {
           </p>
 
           {/* Billing Toggle */}
-          <div className="inline-flex items-center gap-2 p-1 bg-muted rounded-lg mb-4">
-            <button
-              onClick={() => setBillingPeriod('monthly')}
-              className={`px-6 py-2 rounded-md transition-colors ${
-                billingPeriod === 'monthly'
-                  ? 'bg-background shadow-sm font-medium'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
+          <div className="flex items-center justify-center gap-4 bg-muted/50 p-4 rounded-lg mb-4 max-w-md mx-auto">
+            <Label htmlFor="billing-toggle" className={`text-lg font-semibold cursor-pointer ${billingPeriod === 'monthly' ? 'text-foreground' : 'text-muted-foreground'}`}>
               Monthly
-            </button>
-            <button
-              onClick={() => setBillingPeriod('annual')}
-              className={`px-6 py-2 rounded-md transition-colors ${
-                billingPeriod === 'annual'
-                  ? 'bg-background shadow-sm font-medium'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
+            </Label>
+            <Switch
+              id="billing-toggle"
+              checked={billingPeriod === 'annual'}
+              onCheckedChange={(checked) => setBillingPeriod(checked ? 'annual' : 'monthly')}
+              className="data-[state=checked]:bg-primary scale-125"
+            />
+            <Label htmlFor="billing-toggle" className={`text-lg font-semibold cursor-pointer ${billingPeriod === 'annual' ? 'text-foreground' : 'text-muted-foreground'}`}>
               Annual
-              <Badge variant="secondary" className="ml-2 bg-green-100 text-green-700 border-0">
+              <Badge variant="secondary" className="ml-2 bg-green-100 text-green-700 text-sm">
                 Save 17%
               </Badge>
-            </button>
+            </Label>
           </div>
 
           <p className="text-sm text-muted-foreground">
@@ -147,76 +140,74 @@ export default function PricingPage() {
       {/* Pricing Cards */}
       <section className="pb-20 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             {plans.map((plan) => {
-              const Icon = plan.icon
+              const PlanIcon = plan.icon
+              const isPopular = plan.popular
+
               return (
                 <Card
                   key={plan.id}
-                  className={`relative ${plan.color} ${
-                    plan.popular ? 'shadow-lg scale-105 border-2' : ''
-                  }`}
+                  className={`relative ${plan.color} ${isPopular ? 'ring-2 ring-blue-500' : ''}`}
                 >
-                  {plan.popular && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  {isPopular && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                       <Badge className="bg-blue-500 text-white">Most Popular</Badge>
                     </div>
                   )}
+
                   <CardHeader>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`p-2 rounded-lg ${
-                        plan.id === 'free' ? 'bg-gray-100' :
-                        plan.id === 'pro' ? 'bg-blue-100' : 'bg-purple-100'
-                      }`}>
-                        <Icon className={`h-6 w-6 ${
-                          plan.id === 'free' ? 'text-gray-600' :
-                          plan.id === 'pro' ? 'text-blue-600' : 'text-purple-600'
-                        }`} />
-                      </div>
-                      <div>
-                        <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                      </div>
+                    <div className="flex items-center space-x-2">
+                      <PlanIcon className="h-6 w-6 text-primary" />
+                      <CardTitle>{plan.name}</CardTitle>
                     </div>
                     <CardDescription>{plan.description}</CardDescription>
                     <div className="mt-4">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold">
-                          {billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice}
+                      {plan.id !== 'free' && (
+                        <div className="flex items-baseline gap-2 mb-1">
+                          <span className="text-lg text-muted-foreground line-through">
+                            ₱{billingPeriod === 'annual' ? (plan as any).originalAnnualPrice?.toLocaleString() : (plan as any).originalMonthlyPrice}
+                          </span>
+                          <Badge className="bg-red-500 text-white font-bold">
+                            -50%
+                          </Badge>
+                        </div>
+                      )}
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-bold text-primary">
+                          {plan.id === 'free' ? '₱0' : `₱${billingPeriod === 'annual' ? plan.annualPrice.toLocaleString() : plan.monthlyPrice}`}
                         </span>
                         <span className="text-muted-foreground">
                           {billingPeriod === 'monthly' ? '/month' : '/year'}
                         </span>
                       </div>
-                      {billingPeriod === 'annual' && plan.annualSavings && (
-                        <p className="text-sm text-green-600 font-medium mt-2">
-                          Save {plan.annualSavings} per year
-                        </p>
-                      )}
                       {billingPeriod === 'annual' && plan.id !== 'free' && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Billed annually
+                        <p className="text-sm text-green-600 font-semibold mt-1">
+                          Save ₱{plan.monthlyPrice * 12 - plan.annualPrice}
                         </p>
                       )}
                     </div>
                   </CardHeader>
+
                   <CardContent>
+                    <ul className="space-y-2 mb-6">
+                      {plan.features.map((feature, index) => (
+                        <li key={index} className="flex items-center text-sm">
+                          <CheckCircle2 className="h-4 w-4 text-green-600 mr-2 flex-shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+
                     <Link href="/billing">
                       <Button
-                        className="w-full mb-6"
-                        variant={plan.ctaVariant}
+                        className="w-full"
+                        variant={isPopular ? "default" : "outline"}
                       >
                         {plan.ctaText}
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     </Link>
-                    <div className="space-y-3">
-                      {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-start gap-3">
-                          <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                          <span className="text-sm">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
                   </CardContent>
                 </Card>
               )
