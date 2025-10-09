@@ -203,7 +203,7 @@ Return ONLY valid JSON, no additional text.
 
   const response = completion.choices[0]?.message?.content
   if (!response) {
-    throw new Error('No response from OpenAI')
+    throw new Error('No response from AI')
   }
 
   // Clean response
@@ -214,8 +214,34 @@ Return ONLY valid JSON, no additional text.
     cleanedResponse = cleanedResponse.replace(/^```\s*/, '').replace(/```\s*$/, '')
   }
 
-  const questions = JSON.parse(cleanedResponse)
-  return questions
+  // Validate we have content before parsing
+  if (!cleanedResponse || cleanedResponse.length < 10) {
+    console.error('Empty or too short AI response:', cleanedResponse)
+    throw new Error('AI returned an invalid response. Please try again.')
+  }
+
+  // Try to parse JSON with better error handling
+  try {
+    const questions = JSON.parse(cleanedResponse)
+
+    // Validate it's an array
+    if (!Array.isArray(questions)) {
+      console.error('AI response is not an array:', questions)
+      throw new Error('AI returned invalid question format')
+    }
+
+    // Validate questions have required fields
+    if (questions.length === 0) {
+      throw new Error('AI generated no questions')
+    }
+
+    return questions
+  } catch (parseError: any) {
+    console.error('JSON parse error:', parseError)
+    console.error('Raw AI response:', response)
+    console.error('Cleaned response:', cleanedResponse)
+    throw new Error(`Failed to parse AI response: ${parseError.message}. The AI may be unavailable or returned malformed data.`)
+  }
 }
 
 /**
