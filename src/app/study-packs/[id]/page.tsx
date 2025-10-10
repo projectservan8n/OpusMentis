@@ -12,6 +12,7 @@ import DashboardLayout from '@/components/dashboard-layout'
 import KanbanBoard from '@/components/kanban-board'
 import Flashcards from '@/components/flashcards'
 import Notes from '@/components/notes'
+import AIChat from '@/components/ai-chat'
 import PDFViewer from '@/components/pdf-viewer'
 import AudioPlayer from '@/components/audio-player'
 import VideoPlayer from '@/components/video-player'
@@ -638,6 +639,12 @@ export default function StudyPackPage() {
                 >
                   Notes ({studyPack.notes?.length || 0})
                 </TabsTrigger>
+                <TabsTrigger
+                  value="chat"
+                  className="flex-shrink-0 rounded-none border-b-2 border-b-transparent bg-transparent px-4 sm:px-6 pb-3 pt-3 font-semibold text-sm text-muted-foreground shadow-none transition-none data-[state=active]:border-b-primary data-[state=active]:text-foreground data-[state=active]:shadow-none whitespace-nowrap"
+                >
+                  AI Chat
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -768,6 +775,10 @@ export default function StudyPackPage() {
                     studyPackId={studyPack.id}
                     initialNotes={studyPack.notes || []}
                   />
+                </TabsContent>
+
+                <TabsContent value="chat" className="mt-0">
+                  <AIChat studyPackId={studyPack.id} />
                 </TabsContent>
                   </div>
                 </Tabs>

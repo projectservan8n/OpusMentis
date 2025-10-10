@@ -341,3 +341,18 @@ model UserProgress {
 
   @@map("user_progress")
 }
+
+// AI Chat Messages - Chat with your study materials
+model ChatMessage {
+  id          String   @id @default(cuid())
+  studyPackId String
+  userId      String
+  role        String   // 'user' or 'assistant'
+  content     String   @db.Text
+  createdAt   DateTime @default(now())
+
+  @@index([studyPackId])
+  @@index([userId])
+  @@index([studyPackId, createdAt])
+  @@map("chat_messages")
+}

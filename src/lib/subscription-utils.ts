@@ -7,6 +7,7 @@ export interface PlanLimits {
   maxUploadsPerMonth: number
   maxPdfPages: number
   maxAudioVideoMinutes: number
+  maxChatMessagesPerDay: number
   canExportFlashcards: boolean
   canShareTeams: boolean
 }
@@ -43,6 +44,7 @@ export const PLAN_LIMITS: Record<SubscriptionTier, PlanLimits> = {
     maxUploadsPerMonth: 20,
     maxPdfPages: 50,
     maxAudioVideoMinutes: 30,
+    maxChatMessagesPerDay: 20, // 20 messages per day
     canExportFlashcards: false,
     canShareTeams: false
   },
@@ -50,6 +52,7 @@ export const PLAN_LIMITS: Record<SubscriptionTier, PlanLimits> = {
     maxUploadsPerMonth: 200,
     maxPdfPages: 200,
     maxAudioVideoMinutes: 180,
+    maxChatMessagesPerDay: 100, // 100 messages per day
     canExportFlashcards: true,
     canShareTeams: false
   },
@@ -57,6 +60,7 @@ export const PLAN_LIMITS: Record<SubscriptionTier, PlanLimits> = {
     maxUploadsPerMonth: 1000,
     maxPdfPages: 500,
     maxAudioVideoMinutes: 600,
+    maxChatMessagesPerDay: -1, // Unlimited
     canExportFlashcards: true,
     canShareTeams: true
   }
