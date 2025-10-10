@@ -43,6 +43,7 @@ export default function FloatingAIChat({ studyPackId }: FloatingAIChatProps) {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+  const [streamingContent, setStreamingContent] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -153,6 +154,7 @@ export default function FloatingAIChat({ studyPackId }: FloatingAIChatProps) {
       }
 
       let assistantResponse = ''
+      let displayedContent = ''
 
       while (true) {
         const { done, value } = await reader.read()
@@ -161,14 +163,22 @@ export default function FloatingAIChat({ studyPackId }: FloatingAIChatProps) {
         const chunk = decoder.decode(value, { stream: true })
         assistantResponse += chunk
 
-        // Update assistant message in real-time
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === tempAssistantMessage.id
-              ? { ...msg, content: assistantResponse }
-              : msg
+        // Character-by-character animation
+        for (let i = displayedContent.length; i < assistantResponse.length; i++) {
+          displayedContent += assistantResponse[i]
+
+          // Update message with each character
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === tempAssistantMessage.id
+                ? { ...msg, content: displayedContent }
+                : msg
+            )
           )
-        )
+
+          // Small delay for typing effect (adjust speed here)
+          await new Promise(resolve => setTimeout(resolve, 10))
+        }
       }
 
       // Reload chat history to get final saved messages with real IDs
@@ -241,7 +251,7 @@ export default function FloatingAIChat({ studyPackId }: FloatingAIChatProps) {
 
   // Chat window when open
   return (
-    <Card className="fixed bottom-6 right-6 z-50 w-[400px] h-[600px] flex flex-col shadow-2xl border-2 border-primary/20">
+    <Card className="fixed bottom-6 right-6 z-50 w-[500px] h-[700px] flex flex-col shadow-2xl border-2 border-primary/20 bg-background">
       {/* Chat Header */}
       <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary/10 to-purple-500/10">
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -355,7 +365,7 @@ export default function FloatingAIChat({ studyPackId }: FloatingAIChatProps) {
                     'flex-1 px-3 py-2 rounded-lg text-sm',
                     message.role === 'user'
                       ? 'bg-primary text-primary-foreground'
-                      : 'bg-card border'
+                      : 'bg-muted/50 border'
                   )}
                 >
                   {message.role === 'user' ? (
