@@ -130,6 +130,7 @@ model PaymentProof {
   id           String   @id @default(cuid())
   userId       String
   planRequested String  // pro, premium
+  billingPeriod String  @default("monthly") // monthly, annual
   screenshotUrl String  // path to uploaded proof image
   amount       String  // amount paid (for verification)
   referenceNumber String? // GCash reference number if provided

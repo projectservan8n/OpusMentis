@@ -39,14 +39,24 @@ export async function getUserSubscriptionTier(userId: string): Promise<Subscript
 }
 
 // Update user's subscription tier in Clerk metadata
-export async function updateUserSubscriptionTier(userId: string, tier: SubscriptionTier) {
+export async function updateUserSubscriptionTier(
+  userId: string,
+  tier: SubscriptionTier,
+  billingPeriod: 'monthly' | 'annual' = 'monthly'
+) {
   try {
     const clerkTier = appTierToClerkTier(tier)
 
-    // Calculate expiration date (30 days from now for paid plans)
+    // Calculate expiration date based on billing period
     const expirationDate = tier === 'free' ? null : new Date()
     if (expirationDate && tier !== 'free') {
-      expirationDate.setDate(expirationDate.getDate() + 30)
+      if (billingPeriod === 'annual') {
+        // 365 days for annual subscriptions
+        expirationDate.setDate(expirationDate.getDate() + 365)
+      } else {
+        // 30 days for monthly subscriptions
+        expirationDate.setDate(expirationDate.getDate() + 30)
+      }
     }
 
     await clerkClient.users.updateUserMetadata(userId, {
@@ -55,7 +65,8 @@ export async function updateUserSubscriptionTier(userId: string, tier: Subscript
       },
       privateMetadata: {
         subscriptionExpiresAt: expirationDate?.toISOString() || null,
-        subscriptionStartedAt: new Date().toISOString()
+        subscriptionStartedAt: new Date().toISOString(),
+        billingPeriod: tier === 'free' ? null : billingPeriod
       }
     })
   } catch (error) {
@@ -93,6 +104,82 @@ export async function getUserSubscriptionExpiry(userId: string): Promise<Date | 
     console.error('Error getting subscription expiry:', error)
     return null
   }
+}
+
+// Get user's current billing period
+export async function getUserBillingPeriod(userId: string): Promise<'monthly' | 'annual' | null> {
+  try {
+    const user = await clerkClient.users.getUser(userId)
+    const billingPeriod = user.privateMetadata?.billingPeriod as string
+
+    return billingPeriod === 'annual' ? 'annual' : billingPeriod === 'monthly' ? 'monthly' : null
+  } catch (error) {
+    console.error('Error getting billing period:', error)
+    return null
+  }
+}
+
+// Calculate prorated credit when upgrading from monthly to annual
+export function calculateProratedCredit(
+  monthlyPrice: number,
+  daysRemaining: number
+): number {
+  // Calculate the daily value of the monthly subscription
+  const dailyValue = monthlyPrice / 30
+
+  // Return the credit for remaining days
+  return Math.round(dailyValue * daysRemaining)
+}
+
+// Get upgrade pricing with prorated credit
+export async function getUpgradePricing(
+  userId: string,
+  targetTier: SubscriptionTier,
+  targetBillingPeriod: 'monthly' | 'annual',
+  annualPrice: number,
+  monthlyPrice: number
+): Promise<{
+  fullPrice: number
+  proratedCredit: number
+  finalPrice: number
+  daysRemaining: number
+}> {
+  const currentTier = await getUserSubscriptionTier(userId)
+  const currentBillingPeriod = await getUserBillingPeriod(userId)
+  const expiresAt = await getUserSubscriptionExpiry(userId)
+
+  // Default response (no credit)
+  const defaultResponse = {
+    fullPrice: targetBillingPeriod === 'annual' ? annualPrice : monthlyPrice,
+    proratedCredit: 0,
+    finalPrice: targetBillingPeriod === 'annual' ? annualPrice : monthlyPrice,
+    daysRemaining: 0
+  }
+
+  // Only apply credit if upgrading from monthly to annual on the same tier
+  if (
+    currentTier === targetTier &&
+    currentBillingPeriod === 'monthly' &&
+    targetBillingPeriod === 'annual' &&
+    expiresAt
+  ) {
+    const now = new Date()
+    const daysRemaining = Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+
+    if (daysRemaining > 0) {
+      const proratedCredit = calculateProratedCredit(monthlyPrice, daysRemaining)
+      const finalPrice = Math.max(0, annualPrice - proratedCredit)
+
+      return {
+        fullPrice: annualPrice,
+        proratedCredit,
+        finalPrice,
+        daysRemaining
+      }
+    }
+  }
+
+  return defaultResponse
 }
 
 // Downgrade expired subscriptions to free

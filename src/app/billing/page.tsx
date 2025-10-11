@@ -18,9 +18,17 @@ import { clerkTierToAppTier } from '@/lib/subscription-utils'
 
 interface UserSubscription {
   tier: 'free' | 'pro' | 'premium'
+  billingPeriod?: 'monthly' | 'annual'
   pendingProof?: boolean
   rejectedProof?: boolean
   expiresAt?: Date | null
+}
+
+interface UpgradePricing {
+  fullPrice: number
+  proratedCredit: number
+  finalPrice: number
+  daysRemaining: number
 }
 
 // GCash Payment Details (configurable)
@@ -42,6 +50,8 @@ export default function BillingPage() {
   const [referenceNumber, setReferenceNumber] = useState('')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [isAnnual, setIsAnnual] = useState(false)
+  const [upgradePricing, setUpgradePricing] = useState<UpgradePricing | null>(null)
+  const [loadingPricing, setLoadingPricing] = useState(false)
 
   useEffect(() => {
     fetchSubscriptionData()
@@ -55,6 +65,7 @@ export default function BillingPage() {
         const subData = await subResponse.json()
         setSubscription({
           tier: subData.tier,
+          billingPeriod: subData.billingPeriod || 'monthly',
           expiresAt: subData.expiresAt ? new Date(subData.expiresAt) : null
         })
       } else {
@@ -172,8 +183,29 @@ export default function BillingPage() {
     return `Save ₱${savings}`
   }
 
-  const handleUpgrade = (planId: string) => {
+  const fetchUpgradePricing = async (planId: string, billingPeriod: 'monthly' | 'annual') => {
+    const plan = plans.find(p => p.id === planId)
+    if (!plan || plan.id === 'free') return
+
+    setLoadingPricing(true)
+    try {
+      const response = await fetch(
+        `/api/subscription/upgrade-pricing?tier=${planId}&billingPeriod=${billingPeriod}&annualPrice=${plan.annualPrice}&monthlyPrice=${plan.monthlyPrice}`
+      )
+      if (response.ok) {
+        const pricing = await response.json()
+        setUpgradePricing(pricing)
+      }
+    } catch (error) {
+      console.error('Error fetching upgrade pricing:', error)
+    } finally {
+      setLoadingPricing(false)
+    }
+  }
+
+  const handleUpgrade = async (planId: string, billingPeriod: 'monthly' | 'annual' = isAnnual ? 'annual' : 'monthly') => {
     setSelectedPlan(planId)
+    await fetchUpgradePricing(planId, billingPeriod)
     setShowPaymentModal(true)
   }
 
@@ -203,10 +235,19 @@ export default function BillingPage() {
       formData.append('referenceNumber', referenceNumber)
       formData.append('billingPeriod', isAnnual ? 'annual' : 'monthly')
 
+      // Use the prorated amount if applicable, otherwise use the full price
       const selectedPlanData = plans.find(p => p.id === selectedPlan)
-      const amount = isAnnual
-        ? `₱${selectedPlanData?.annualPrice.toLocaleString()}`
-        : `₱${selectedPlanData?.monthlyPrice}`
+      let amount: string
+
+      if (upgradePricing && upgradePricing.proratedCredit > 0) {
+        // User is upgrading from monthly to annual with credit
+        amount = `₱${upgradePricing.finalPrice.toLocaleString()}`
+      } else {
+        // Regular upgrade or new subscription
+        amount = isAnnual
+          ? `₱${selectedPlanData?.annualPrice.toLocaleString()}`
+          : `₱${selectedPlanData?.monthlyPrice}`
+      }
       formData.append('amount', amount)
 
       const response = await fetch('/api/payment-proofs', {
@@ -269,6 +310,11 @@ export default function BillingPage() {
                     }
                   >
                     {subscription.tier.toUpperCase()}
+                    {subscription.tier !== 'free' && subscription.billingPeriod && (
+                      <span className="ml-1">
+                        ({subscription.billingPeriod === 'annual' ? 'Annual' : 'Monthly'})
+                      </span>
+                    )}
                   </Badge>
                   {subscription.pendingProof && (
                     <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-300">
@@ -363,6 +409,12 @@ export default function BillingPage() {
               const planTierLevel = tierOrder[plan.id as keyof typeof tierOrder]
               const isDowngrade = planTierLevel < currentTierLevel
 
+              // Check if this is a billing period upgrade (same tier, different period)
+              const isBillingPeriodUpgrade =
+                plan.id === subscription.tier &&
+                subscription.billingPeriod === 'monthly' &&
+                isAnnual
+
               return (
                 <Card
                   key={plan.id}
@@ -378,9 +430,14 @@ export default function BillingPage() {
                     <div className="flex items-center space-x-2">
                       <PlanIcon className="h-6 w-6 text-primary" />
                       <CardTitle>{plan.name}</CardTitle>
-                      {isCurrentPlan && (
+                      {isCurrentPlan && !isBillingPeriodUpgrade && (
                         <Badge variant="outline" className="ml-auto">
                           Current
+                        </Badge>
+                      )}
+                      {isBillingPeriodUpgrade && (
+                        <Badge className="ml-auto bg-green-500 text-white">
+                          Upgrade Available
                         </Badge>
                       )}
                     </div>
@@ -433,23 +490,25 @@ export default function BillingPage() {
                       </div>
                     )}
 
-                    {isCurrentPlan ? (
+                    {isCurrentPlan && !isBillingPeriodUpgrade ? (
                       <Button disabled className="w-full">
                         Current Plan
                       </Button>
-                    ) : isDowngrade ? (
+                    ) : isDowngrade && !isBillingPeriodUpgrade ? (
                       <Button disabled className="w-full" variant="outline">
                         Lower Tier
                       </Button>
                     ) : (
                       <Button
                         className="w-full"
-                        onClick={() => handleUpgrade(plan.id)}
+                        onClick={() => handleUpgrade(plan.id, isAnnual ? 'annual' : 'monthly')}
                         disabled={loading || subscription.pendingProof}
-                        variant={isPopular ? "default" : "outline"}
+                        variant={isBillingPeriodUpgrade || isPopular ? "default" : "outline"}
                       >
                         {subscription.pendingProof
                           ? 'Payment Under Review'
+                          : isBillingPeriodUpgrade
+                          ? 'Upgrade to Annual'
                           : `Upgrade to ${plan.name}`
                         }
                       </Button>
@@ -480,15 +539,33 @@ export default function BillingPage() {
                     <div className="p-4 border rounded-lg bg-blue-50">
                       <h4 className="font-medium mb-2">Payment Details</h4>
                       <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>Amount:</span>
-                          <span className="font-medium">
-                            {(() => {
-                              const plan = plans.find(p => p.id === selectedPlan)
-                              return plan ? getDisplayPrice(plan) : '₱0'
-                            })()}
-                          </span>
-                        </div>
+                        {upgradePricing && upgradePricing.proratedCredit > 0 && (
+                          <>
+                            <div className="flex justify-between">
+                              <span>Full Price:</span>
+                              <span className="font-medium">₱{upgradePricing.fullPrice.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between text-green-700">
+                              <span>Prorated Credit ({upgradePricing.daysRemaining} days remaining):</span>
+                              <span className="font-medium">-₱{upgradePricing.proratedCredit.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between pt-2 border-t border-blue-200">
+                              <span className="font-semibold">Amount to Pay:</span>
+                              <span className="font-bold text-lg">₱{upgradePricing.finalPrice.toLocaleString()}</span>
+                            </div>
+                          </>
+                        )}
+                        {(!upgradePricing || upgradePricing.proratedCredit === 0) && (
+                          <div className="flex justify-between">
+                            <span>Amount:</span>
+                            <span className="font-medium">
+                              {(() => {
+                                const plan = plans.find(p => p.id === selectedPlan)
+                                return plan ? getDisplayPrice(plan) : '₱0'
+                              })()}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex justify-between">
                           <span>Billing Period:</span>
                           <span className="font-medium">{isAnnual ? 'Annual' : 'Monthly'}</span>
@@ -518,9 +595,22 @@ export default function BillingPage() {
                     </div>
 
                     <div className="text-sm text-muted-foreground">
-                      <p>• Send the exact amount to the GCash number above</p>
-                      <p>• Save the transaction receipt/screenshot</p>
-                      <p>• Upload the proof in Step 2 below</p>
+                      {upgradePricing && upgradePricing.proratedCredit > 0 ? (
+                        <>
+                          <p className="font-semibold text-green-700 mb-2">
+                            🎉 You're getting ₱{upgradePricing.proratedCredit.toLocaleString()} credit for your remaining {upgradePricing.daysRemaining} days!
+                          </p>
+                          <p>• Send exactly ₱{upgradePricing.finalPrice.toLocaleString()} to the GCash number above</p>
+                          <p>• Save the transaction receipt/screenshot</p>
+                          <p>• Upload the proof in Step 2 below</p>
+                        </>
+                      ) : (
+                        <>
+                          <p>• Send the exact amount to the GCash number above</p>
+                          <p>• Save the transaction receipt/screenshot</p>
+                          <p>• Upload the proof in Step 2 below</p>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -616,6 +706,13 @@ export default function BillingPage() {
                 <h4 className="font-medium mb-2">Can I pay monthly or yearly?</h4>
                 <p className="text-sm text-muted-foreground">
                   Yes! We offer both monthly and annual billing. Annual subscriptions save you 17% (2 months free). Use the toggle above to switch between billing periods.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-2">Can I upgrade from monthly to annual?</h4>
+                <p className="text-sm text-muted-foreground">
+                  Absolutely! When you upgrade from monthly to annual, we'll calculate the remaining value of your monthly subscription and apply it as a credit towards your annual payment. Just toggle to "Annual" and click "Upgrade to Annual" on your current plan.
                 </p>
               </div>
 
