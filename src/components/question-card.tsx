@@ -98,9 +98,9 @@ export default function QuestionCard({
                     className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
                       showAnswer
                         ? isCorrectOption
-                          ? 'border-green-500 bg-green-50
+                          ? 'border-green-500 bg-green-50'
                           : isSelected
-                          ? 'border-red-500 bg-red-50
+                          ? 'border-red-500 bg-red-50'
                           : 'border-border bg-muted/30'
                         : isSelected
                         ? 'border-primary bg-primary/5'
@@ -144,9 +144,9 @@ export default function QuestionCard({
                     className={`flex-1 p-4 rounded-lg border-2 font-medium transition-all ${
                       showAnswer
                         ? isCorrectOption
-                          ? 'border-green-500 bg-green-50 text-green-700
+                          ? 'border-green-500 bg-green-50 text-green-700'
                           : isSelected
-                          ? 'border-red-500 bg-red-50 text-red-700
+                          ? 'border-red-500 bg-red-50 text-red-700'
                           : 'border-border bg-muted/30'
                         : isSelected
                         ? 'border-primary bg-primary/5 text-primary'
