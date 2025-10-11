@@ -44,7 +44,7 @@ function DemoSkeleton() {
 }
 
 export default function HomePage() {
-  // Set SEO meta tags
+  // Set SEO meta tags dynamically since we're using 'use client'
   useEffect(() => {
     document.title = 'OpusMentis - AI-Powered Study Assistant | Transform PDFs into Flashcards'
     const metaDescription = document.querySelector('meta[name="description"]')

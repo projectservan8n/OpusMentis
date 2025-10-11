@@ -14,7 +14,7 @@ export default function PrivacyPolicy() {
             <p className="text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
           </div>
 
-          <div className="prose prose-gray dark:prose-invert max-w-none">
+          <div className="prose prose-gray max-w-none">
             <p className="text-lg mb-6">
               At OpusMentis (operated by Opus Automations), we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you use our platform.
             </p>

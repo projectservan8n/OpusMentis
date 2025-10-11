@@ -34,36 +34,6 @@
 
     --radius: 0.5rem;
   }
-
-  .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
-
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 223 47% 11%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 217 91% 60%;
-  }
 }
 
 @layer base {
@@ -72,10 +42,6 @@
   }
   body {
     @apply text-foreground;
-  }
-
-  /* Light mode background */
-  body:not(.dark) {
     background-color: hsl(45 30% 96%);
     background-image:
       radial-gradient(circle, hsla(215, 20%, 70%, 0.5) 0.8px, transparent 0.8px),
@@ -83,50 +49,27 @@
     background-size: 32px 32px, 200px 200px;
     background-attachment: fixed;
   }
-
-  /* Dark mode background */
-  .dark body {
-    background-color: hsl(222 47% 11%);
-    background-image:
-      radial-gradient(circle, hsla(217, 91%, 60%, 0.03) 1px, transparent 1px);
-    background-size: 24px 24px;
-    background-attachment: fixed;
-  }
 }
 
-/* FORCE DARK MODE CARDS - Put this OUTSIDE @layer base for higher specificity */
-.dark * {
-  /* Force all cards and containers to be DARK */
+/* Force all modals and dialogs to have solid white backgrounds */
+[role="dialog"],
+[role="alertdialog"],
+.modal,
+.dialog,
+[data-radix-dialog-content],
+[data-radix-alert-dialog-content] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
-.dark .bg-card,
-.dark [class*="bg-card"] {
-  background-color: hsl(222, 47%, 11%) !important;
+/* Ensure all cards and popups have solid backgrounds */
+.bg-card,
+[class*="bg-card"] {
+  background-color: #ffffff !important;
 }
 
-.dark .bg-secondary {
-  background-color: hsl(217, 33%, 17%) !important;
-}
-
-.dark .bg-muted {
-  background-color: hsl(223, 47%, 11%) !important;
-}
-
-.dark .bg-white {
-  background-color: hsl(222, 47%, 11%) !important;
-}
-
-.dark .bg-background {
-  background-color: transparent !important;
-}
-
-/* Light mode cards */
-body:not(.dark) .bg-card {
-  background-color: hsla(0, 0%, 100%, 0.9) !important;
-}
-
-body:not(.dark) .bg-background {
-  background-color: transparent !important;
+.bg-popover {
+  background-color: #ffffff !important;
 }
 
 /* Custom styles for StudyFlow AI */

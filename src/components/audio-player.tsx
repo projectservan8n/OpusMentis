@@ -254,7 +254,7 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
         <div className="flex items-center justify-center gap-4">
           <button
             onClick={() => skip(-10)}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
+            className="p-2 hover:bg-gray-100 rounded-full transition"
             title="Rewind 10s"
           >
             <SkipBack className="h-5 w-5" />
@@ -277,7 +277,7 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
 
           <button
             onClick={() => skip(10)}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
+            className="p-2 hover:bg-gray-100 rounded-full transition"
             title="Forward 10s"
           >
             <SkipForward className="h-5 w-5" />
@@ -289,7 +289,7 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
           <div className="flex items-center gap-3">
             <button
               onClick={toggleMute}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition"
+              className="p-2 hover:bg-gray-100 rounded transition"
             >
               {isMuted || volume === 0 ? (
                 <VolumeX className="h-4 w-4" />
@@ -304,7 +304,7 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
               step={0.01}
               value={isMuted ? 0 : volume}
               onChange={(e) => handleVolumeChange([parseFloat(e.target.value)])}
-              className="w-24 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0"
+              className="w-24 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0"
             />
           </div>
 

@@ -404,7 +404,7 @@ export default function FloatingAIChat({ studyPackId }: FloatingAIChatProps) {
                   {message.role === 'user' ? (
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>
                   ) : (
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                    <div className="prose prose-sm max-w-none">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{

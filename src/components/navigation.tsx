@@ -4,10 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton, useUser, OrganizationSwitcher } from '@clerk/nextjs'
-import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { cn } from '@/lib/utils'
 import {
   Brain,
@@ -140,24 +138,10 @@ function NavigationLinks({ isAdmin, pathname, onNavigate }: { isAdmin: boolean; 
 export default function Navigation() {
   const pathname = usePathname()
   const { user } = useUser()
-  const { theme } = useTheme()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Check if user is admin
   const isAdmin = user?.emailAddresses?.[0]?.emailAddress === 'tony@opusautomations.com'
-
-  // Clerk appearance based on current theme
-  const clerkAppearance = theme === 'dark' ? {
-    baseTheme: undefined,
-    variables: {
-      colorBackground: 'hsl(222, 47%, 11%)',
-      colorInputBackground: 'hsl(216, 34%, 17%)',
-      colorInputText: 'hsl(210, 40%, 98%)',
-      colorText: 'hsl(210, 40%, 98%)',
-      colorTextSecondary: 'hsl(215, 20%, 65%)',
-      colorPrimary: 'hsl(217, 91%, 60%)',
-    }
-  } : {}
 
   return (
     <>
@@ -182,28 +166,23 @@ export default function Navigation() {
                   rootBox: "w-full",
                   organizationSwitcherTrigger: "w-full justify-start px-3 py-2 rounded-md hover:bg-accent",
                 },
-                ...clerkAppearance
               }}
             />
           </div>
 
           <div className="flex-shrink-0 flex border-t p-4">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center min-w-0 flex-1">
-                <UserButton
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-8 h-8"
-                    },
-                    ...clerkAppearance
-                  }}
-                />
-                <div className="ml-3 overflow-hidden">
-                  <p className="text-sm font-medium truncate">{user?.firstName}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.emailAddresses?.[0]?.emailAddress}</p>
-                </div>
+            <div className="flex items-center w-full">
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8"
+                  },
+                }}
+              />
+              <div className="ml-3 overflow-hidden">
+                <p className="text-sm font-medium truncate">{user?.firstName}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.emailAddresses?.[0]?.emailAddress}</p>
               </div>
-              <ThemeToggle />
             </div>
           </div>
         </div>
@@ -242,13 +221,11 @@ export default function Navigation() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <ThemeToggle />
             <UserButton
               appearance={{
                 elements: {
                   avatarBox: "w-8 h-8"
                 },
-                ...clerkAppearance
               }}
             />
           </div>

@@ -189,7 +189,7 @@ export default function ApiKeysPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center space-x-2">
-                <code className="flex-1 px-3 py-2 bg-background border border-green-300 dark:border-green-700 rounded-md text-sm font-mono overflow-x-auto">
+                <code className="flex-1 px-3 py-2 bg-background border border-green-300 rounded-md text-sm font-mono overflow-x-auto">
                   {newlyCreatedKey}
                 </code>
                 <Button

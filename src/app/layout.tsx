@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs'
 import { Toaster } from 'react-hot-toast'
-import { ThemeProvider } from '@/components/theme-provider'
 import ConsoleSuppressor from '@/components/console-suppressor'
 import "./globals.css";
 
@@ -37,30 +36,23 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
+      <html lang="en" className="light">
         <body className={inter.className}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
-            <ConsoleSuppressor />
-            <div className="min-h-screen bg-background">
-              {children}
-            </div>
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: 'hsl(var(--background))',
-                  color: 'hsl(var(--foreground))',
-                  border: '1px solid hsl(var(--border))',
-                },
-              }}
-            />
-          </ThemeProvider>
+          <ConsoleSuppressor />
+          <div className="min-h-screen">
+            {children}
+          </div>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#ffffff',
+                color: '#000000',
+                border: '1px solid #e5e7eb',
+              },
+            }}
+          />
         </body>
       </html>
     </ClerkProvider>

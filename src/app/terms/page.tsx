@@ -14,7 +14,7 @@ export default function TermsOfService() {
             <p className="text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
           </div>
 
-          <div className="prose prose-gray dark:prose-invert max-w-none">
+          <div className="prose prose-gray max-w-none">
             <p className="text-lg mb-6">
               Welcome to OpusMentis, operated by Opus Automations. By accessing and using our platform, you agree to be bound by these Terms of Service. Please read them carefully.
             </p>

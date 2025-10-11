@@ -84,7 +84,7 @@ export default function FloatingMediaPlayer({
 
   return (
     <div
-      className={`fixed z-50 bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 transition-all ${
+      className={`fixed z-50 bg-white rounded-lg shadow-2xl border border-gray-200 transition-all ${
         isMinimized ? 'w-96' : 'w-[500px]'
       } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       style={{
@@ -94,7 +94,7 @@ export default function FloatingMediaPlayer({
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-t-lg"
+        className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50 rounded-t-lg"
         onMouseDown={handleMouseDown}
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -105,14 +105,14 @@ export default function FloatingMediaPlayer({
         <div className="flex items-center gap-1">
           <button
             onClick={() => setIsMinimized(!isMinimized)}
-            className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition"
+            className="p-1.5 hover:bg-gray-200 rounded transition"
             title={isMinimized ? 'Expand' : 'Minimize'}
           >
             {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
           </button>
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 rounded transition"
+            className="p-1.5 hover:bg-red-100 hover:text-red-600 rounded transition"
             title="Close"
           >
             <X className="h-4 w-4" />
@@ -124,7 +124,7 @@ export default function FloatingMediaPlayer({
       {!isMinimized && (
         <div className="player-controls p-4">
           {isQuizActive && (
-            <div className="mb-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-sm text-yellow-800 dark:text-yellow-200">
+            <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
               ⚠️ Media paused during quiz
             </div>
           )}
@@ -148,7 +148,7 @@ export default function FloatingMediaPlayer({
       )}
 
       {isMinimized && (
-        <div className="p-3 text-sm text-gray-500 dark:text-gray-400">
+        <div className="p-3 text-sm text-gray-500">
           Click <Maximize2 className="h-3 w-3 inline" /> to expand player
         </div>
       )}

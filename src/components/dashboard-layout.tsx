@@ -14,14 +14,14 @@ export default function DashboardLayout({
   subtitle
 }: DashboardLayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent">
       <Navigation />
 
       {/* Main content - offset for mobile header and desktop sidebar */}
       <div className="lg:pl-64">
         <div className="pt-16 lg:pt-0 min-h-screen flex flex-col">
           {title && (
-            <div className="bg-background border-b px-4 py-4 sm:px-6 lg:px-8">
+            <div className="bg-white/80 backdrop-blur-sm border-b px-4 py-4 sm:px-6 lg:px-8">
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-foreground">{title}</h1>
                 {subtitle && (
