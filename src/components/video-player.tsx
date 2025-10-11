@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Slider } from '@/components/ui/slider'
+import { Separator } from '@/components/ui/separator'
+import TranscriptViewer from '@/components/transcript-viewer'
 import {
   Play,
   Pause,
@@ -407,7 +409,7 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
         </div>
 
         {/* Additional Controls (Outside Video) */}
-        <div className="px-6 pb-6 space-y-3">
+        <div className="px-6 pb-6 space-y-4">
           <Button
             variant="outline"
             onClick={handleDownload}
@@ -417,9 +419,24 @@ export default function VideoPlayer({ filePath, title, transcript, onTimeUpdate,
             Download Video
           </Button>
 
-          <p className="text-sm text-muted-foreground text-center">
-            Use the study timer while watching to track your focus time
-          </p>
+          {/* Transcript Section */}
+          {transcript && (
+            <>
+              <Separator />
+              <TranscriptViewer
+                transcript={transcript}
+                currentTime={currentTime}
+                onSeek={seekToTime}
+              />
+            </>
+          )}
+
+          {/* Info */}
+          {!transcript && (
+            <p className="text-sm text-muted-foreground text-center">
+              Use the study timer while watching to track your focus time
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

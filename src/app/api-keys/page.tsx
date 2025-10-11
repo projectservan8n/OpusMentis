@@ -189,7 +189,7 @@ export default function ApiKeysPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center space-x-2">
-                <code className="flex-1 px-3 py-2 bg-white border border-green-300 rounded-md text-sm font-mono overflow-x-auto">
+                <code className="flex-1 px-3 py-2 bg-background border border-green-300 dark:border-green-700 rounded-md text-sm font-mono overflow-x-auto">
                   {newlyCreatedKey}
                 </code>
                 <Button
@@ -329,7 +329,7 @@ export default function ApiKeysPage() {
                   <div
                     key={apiKey.id}
                     className={`p-4 border rounded-lg ${
-                      apiKey.status === 'revoked' ? 'bg-gray-50 opacity-60' : ''
+                      apiKey.status === 'revoked' ? 'bg-muted/50 opacity-60' : ''
                     }`}
                   >
                     <div className="flex items-start justify-between mb-3">

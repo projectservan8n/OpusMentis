@@ -27,6 +27,7 @@ export default function TranscriptViewer({
   const [segments, setSegments] = useState<TranscriptSegment[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [activeSegmentIndex, setActiveSegmentIndex] = useState<number | null>(null)
+  const [activeWordIndex, setActiveWordIndex] = useState<number>(-1)
   const activeSegmentRef = useRef<HTMLDivElement>(null)
 
   // Parse transcript into segments
@@ -66,7 +67,7 @@ export default function TranscriptViewer({
     setSegments(parsed)
   }, [transcript])
 
-  // Update active segment based on current playback time
+  // Update active segment and word based on current playback time
   useEffect(() => {
     if (segments.length === 0) return
 
@@ -81,17 +82,54 @@ export default function TranscriptViewer({
     }
 
     setActiveSegmentIndex(foundIndex)
+
+    // Calculate active word within the segment (karaoke effect)
+    if (foundIndex !== null) {
+      const segment = segments[foundIndex]
+      const nextSegment = segments[foundIndex + 1]
+
+      // Estimate segment duration (time until next segment, or assume 5 seconds if last)
+      const segmentDuration = nextSegment
+        ? nextSegment.timestamp - segment.timestamp
+        : 5
+
+      // Time elapsed within this segment
+      const timeInSegment = currentTime - segment.timestamp
+
+      // Split text into words
+      const words = segment.text.split(/\s+/)
+
+      // Estimate time per word
+      const timePerWord = segmentDuration / words.length
+
+      // Calculate which word should be highlighted
+      const wordIndex = Math.floor(timeInSegment / timePerWord)
+      setActiveWordIndex(Math.min(wordIndex, words.length - 1))
+    } else {
+      setActiveWordIndex(-1)
+    }
   }, [currentTime, segments])
 
-  // Auto-scroll to active segment - scrolls ONLY within ScrollArea container, NOT the page
+  // Auto-scroll active segment to center ONLY within transcript container, NOT the main page
   useEffect(() => {
     if (activeSegmentRef.current) {
-      // Use scrollIntoView with 'nearest' to avoid scrolling the page
-      activeSegmentRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest', // Only scrolls if element is outside visible area
-        inline: 'nearest'
-      })
+      const scrollContainer = activeSegmentRef.current.closest('[data-radix-scroll-area-viewport]')
+
+      if (scrollContainer) {
+        const segmentRect = activeSegmentRef.current.getBoundingClientRect()
+        const containerRect = scrollContainer.getBoundingClientRect()
+
+        // Calculate the scroll position to center the segment within the container
+        const segmentCenter = activeSegmentRef.current.offsetTop + (segmentRect.height / 2)
+        const containerCenter = containerRect.height / 2
+        const scrollTo = segmentCenter - containerCenter
+
+        // Scroll ONLY the transcript container, not the page
+        scrollContainer.scrollTo({
+          top: scrollTo,
+          behavior: 'smooth'
+        })
+      }
     }
   }, [activeSegmentIndex])
 
@@ -146,7 +184,7 @@ export default function TranscriptViewer({
 
       <CardContent>
         <ScrollArea className="h-[500px] pr-4">
-          <div className="space-y-2">
+          <div className="space-y-1">
             {filteredSegments.map((segment, index) => {
               const isActive = activeSegmentIndex === segments.indexOf(segment)
               const isSearchMatch = searchQuery &&
@@ -158,7 +196,7 @@ export default function TranscriptViewer({
                   ref={isActive ? activeSegmentRef : null}
                   onClick={() => handleSegmentClick(segment)}
                   className={`
-                    group p-3 rounded-lg border cursor-pointer transition-all
+                    group p-2 rounded-lg border cursor-pointer transition-all
                     ${isActive
                       ? 'bg-primary/10 border-primary shadow-sm'
                       : 'hover:bg-muted border-transparent'
@@ -166,7 +204,7 @@ export default function TranscriptViewer({
                     ${isSearchMatch && !isActive ? 'bg-yellow-50 border-yellow-200' : ''}
                   `}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-2">
                     <div className="flex-shrink-0">
                       <Badge
                         variant={isActive ? "default" : "outline"}
@@ -176,10 +214,31 @@ export default function TranscriptViewer({
                         {segment.timestampText}
                       </Badge>
                     </div>
-                    <p className={`text-sm leading-relaxed ${
+                    <p className={`text-sm leading-snug ${
                       isActive ? 'font-medium' : 'text-muted-foreground group-hover:text-foreground'
                     }`}>
-                      {segment.text}
+                      {isActive ? (
+                        // Karaoke-style word-by-word highlight for active segment
+                        segment.text.split(/\s+/).map((word, wordIdx) => (
+                          <span
+                            key={wordIdx}
+                            className={`inline-block transition-all duration-200 ${
+                              wordIdx === activeWordIndex
+                                ? 'text-primary font-bold scale-110 drop-shadow-lg'
+                                : wordIdx < activeWordIndex
+                                ? 'text-foreground'
+                                : 'text-muted-foreground'
+                            }`}
+                            style={{
+                              marginRight: '0.25rem'
+                            }}
+                          >
+                            {word}
+                          </span>
+                        ))
+                      ) : (
+                        segment.text
+                      )}
                     </p>
                   </div>
                 </div>

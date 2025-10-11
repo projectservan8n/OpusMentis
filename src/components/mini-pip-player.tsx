@@ -27,18 +27,18 @@ export default function MiniPipPlayer({
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 bg-black/90 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-700 p-3 w-64">
+    <div className="fixed top-6 right-6 z-50 bg-black/90 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-700 p-3 w-64">
       <div className="flex items-center gap-3">
         {/* Play/Pause Button */}
         <button
           onClick={onPlayPause}
           disabled={!onPlayPause}
-          className="w-10 h-10 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center transition flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-10 h-10 rounded-full bg-background hover:bg-accent flex items-center justify-center transition flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed border"
         >
           {isPlaying ? (
-            <Pause className="h-5 w-5 text-black" fill="black" />
+            <Pause className="h-5 w-5 text-foreground" fill="currentColor" />
           ) : (
-            <Play className="h-5 w-5 text-black ml-0.5" fill="black" />
+            <Play className="h-5 w-5 text-foreground ml-0.5" fill="currentColor" />
           )}
         </button>
 

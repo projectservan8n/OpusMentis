@@ -45,7 +45,10 @@ export default function FloatingAIChat({ studyPackId }: FloatingAIChatProps) {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const isFirstOpenRef = useRef(true)
+  const shouldAutoScrollRef = useRef(true)
 
   // Get user's subscription tier and limits
   const clerkTier = (user?.publicMetadata?.plan as string) || 'free_plan'
@@ -65,16 +68,43 @@ export default function FloatingAIChat({ studyPackId }: FloatingAIChatProps) {
     ? -1
     : Math.max(0, limits.maxChatMessagesPerDay - todayUserMessages)
 
-  // Auto-scroll to bottom when new messages arrive
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  // Auto-scroll to bottom when new messages arrive - ONLY within chat container
+  const scrollToBottom = (instant = false) => {
+    if (messagesEndRef.current && scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
+      if (scrollContainer) {
+        scrollContainer.scrollTo({
+          top: scrollContainer.scrollHeight,
+          behavior: instant ? 'auto' : 'smooth'
+        })
+      }
+    }
   }
 
   useEffect(() => {
-    if (isOpen) {
-      scrollToBottom()
+    if (isOpen && messages.length > 0 && shouldAutoScrollRef.current) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        // Scroll instantly on first open, smoothly thereafter
+        if (isFirstOpenRef.current) {
+          scrollToBottom(true)
+          isFirstOpenRef.current = false
+        } else {
+          scrollToBottom(false)
+        }
+      }, 50)
     }
   }, [messages, isOpen])
+
+  // Reset first open flag when chat closes
+  useEffect(() => {
+    if (!isOpen) {
+      isFirstOpenRef.current = true
+    }
+  }, [isOpen])
+
+  // No need to prevent body scroll - users can interact with page while chatting
+  // Removed overflow hidden to allow users to work with other features while chat is open
 
   // Load chat history when opened
   useEffect(() => {
@@ -181,8 +211,9 @@ export default function FloatingAIChat({ studyPackId }: FloatingAIChatProps) {
         }
       }
 
-      // Reload chat history to get final saved messages with real IDs
-      await loadChatHistory()
+      // Messages are already in state from streaming, no need to reload
+      // Just update the temp IDs to reflect that the messages are now saved
+      // (The backend has saved them, but we don't need to fetch them again)
     } catch (error: any) {
       console.error('Chat error:', error)
       toast.error(error?.message || 'Failed to send message')
@@ -235,10 +266,10 @@ export default function FloatingAIChat({ studyPackId }: FloatingAIChatProps) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 p-4 bg-gradient-to-r from-primary to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
+        className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[9999] p-3 md:p-4 bg-gradient-to-r from-primary to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
         aria-label="Open AI Chat Assistant"
       >
-        <Sparkles className="h-6 w-6" />
+        <Sparkles className="h-5 w-5 md:h-6 md:w-6" />
         <span className="absolute -top-1 -right-1 flex h-5 w-5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-5 w-5 bg-purple-500 items-center justify-center text-xs font-bold">
@@ -251,7 +282,9 @@ export default function FloatingAIChat({ studyPackId }: FloatingAIChatProps) {
 
   // Chat window when open
   return (
-    <Card className="fixed bottom-6 right-6 z-50 w-[500px] h-[700px] flex flex-col shadow-2xl border-2 border-primary/20 bg-background">
+    <Card
+      className="fixed bottom-0 right-0 left-0 md:bottom-6 md:right-6 md:left-auto z-[9999] w-full md:w-[500px] h-[90vh] md:h-[700px] flex flex-col shadow-2xl border-2 border-primary/20 md:rounded-lg rounded-t-lg"
+    >
       {/* Chat Header */}
       <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary/10 to-purple-500/10">
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -298,7 +331,7 @@ export default function FloatingAIChat({ studyPackId }: FloatingAIChatProps) {
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
         {isLoadingHistory ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -420,7 +453,7 @@ export default function FloatingAIChat({ studyPackId }: FloatingAIChatProps) {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="p-3 border-t bg-background">
+      <div className="p-3 border-t">
         <div className="flex gap-2">
           <Textarea
             ref={textareaRef}

@@ -1,36 +1,84 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Brain, FileText, PlayCircle, Image, Zap, Users, Star, Sparkles, BookOpen, CheckCircle, Upload, Wand2, Download } from 'lucide-react'
-import PdfViewerDemo from '@/components/landing/pdf-viewer-demo'
-import FlashcardDemo from '@/components/landing/flashcard-demo'
-import KanbanDemo from '@/components/landing/kanban-demo'
-import AiSummaryDemo from '@/components/landing/ai-summary-demo'
+import { Brain, FileText, PlayCircle, Image, Zap, Users, Star, Sparkles, BookOpen, CheckCircle, Upload, Wand2, Download, MessageCircle, Loader2 } from 'lucide-react'
+import { useEffect } from 'react'
+
+// Lazy load demo components for better performance
+const PdfViewerDemo = dynamic(() => import('@/components/landing/pdf-viewer-demo'), {
+  loading: () => <DemoSkeleton />,
+  ssr: false
+})
+const FlashcardDemo = dynamic(() => import('@/components/landing/flashcard-demo'), {
+  loading: () => <DemoSkeleton />,
+  ssr: false
+})
+const KanbanDemo = dynamic(() => import('@/components/landing/kanban-demo'), {
+  loading: () => <DemoSkeleton />,
+  ssr: false
+})
+const AiSummaryDemo = dynamic(() => import('@/components/landing/ai-summary-demo'), {
+  loading: () => <DemoSkeleton />,
+  ssr: false
+})
+const AiChatDemo = dynamic(() => import('@/components/landing/ai-chat-demo'), {
+  loading: () => <DemoSkeleton />,
+  ssr: false
+})
+
+// Demo loading skeleton
+function DemoSkeleton() {
+  return (
+    <Card className="w-full h-96 flex items-center justify-center bg-muted/30">
+      <div className="text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+        <p className="text-sm text-muted-foreground">Loading demo...</p>
+      </div>
+    </Card>
+  )
+}
 
 export default function HomePage() {
-  const [isAnnual, setIsAnnual] = useState(false)
+  // Set SEO meta tags
+  useEffect(() => {
+    document.title = 'OpusMentis - AI-Powered Study Assistant | Transform PDFs into Flashcards'
+    const metaDescription = document.querySelector('meta[name="description"]')
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'Upload PDFs, audio, or video and watch AI transform them into flashcards, summaries, and study plans in seconds. Free plan available. No credit card required.')
+    }
+  }, [])
 
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      <header className="border-b">
+      {/* Header - Sticky */}
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2">
             <Brain className="h-8 w-8 text-primary" />
             <span className="text-2xl font-bold">OpusMentis</span>
-          </div>
-          <div className="flex items-center space-x-4">
+          </Link>
+          <div className="hidden md:flex items-center space-x-4">
+            <Link href="/features">
+              <Button variant="ghost">Features</Button>
+            </Link>
+            <Link href="/billing">
+              <Button variant="ghost">Pricing</Button>
+            </Link>
             <Link href="/sign-in">
               <Button variant="ghost">Sign In</Button>
             </Link>
             <Link href="/sign-up">
               <Button>Get Started Free</Button>
+            </Link>
+          </div>
+          {/* Mobile menu - simplified */}
+          <div className="md:hidden">
+            <Link href="/sign-up">
+              <Button size="sm">Get Started</Button>
             </Link>
           </div>
         </div>
@@ -68,20 +116,26 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* Trust Indicators */}
-          <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-muted-foreground">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>No credit card required</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>20 free uploads to start</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>Cancel anytime</span>
-            </div>
+          {/* Trust Indicators - Enhanced */}
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 sm:gap-6 max-w-2xl mx-auto">
+            <Card className="border-green-200 bg-green-50/50 px-4 py-2">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <span className="text-sm font-medium text-green-900">No credit card required</span>
+              </div>
+            </Card>
+            <Card className="border-blue-200 bg-blue-50/50 px-4 py-2">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">Free forever plan</span>
+              </div>
+            </Card>
+            <Card className="border-purple-200 bg-purple-50/50 px-4 py-2">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-purple-600" />
+                <span className="text-sm font-medium text-purple-900">Cancel anytime</span>
+              </div>
+            </Card>
           </div>
         </div>
       </section>
@@ -162,15 +216,15 @@ export default function HomePage() {
               </CardHeader>
             </Card>
 
-            {/* Feature 6 */}
-            <Card className="border-2 hover:shadow-lg transition-shadow">
+            {/* Feature 6: AI Chat Assistant */}
+            <Card className="border-2 hover:shadow-lg transition-shadow bg-gradient-to-br from-purple-50 to-blue-50">
               <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
-                  <Download className="h-6 w-6 text-blue-600" />
+                <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center mb-4">
+                  <MessageCircle className="h-6 w-6 text-purple-600" />
                 </div>
-                <CardTitle>Export Anywhere</CardTitle>
+                <CardTitle>AI Chat Assistant</CardTitle>
                 <CardDescription>
-                  Export your flashcards and summaries to PDF. Study offline, anytime!
+                  Chat with an AI tutor that knows your study materials inside out—get instant answers!
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -279,7 +333,7 @@ export default function HomePage() {
           </div>
 
           {/* Demo 4: AI Summary */}
-          <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center mb-20 max-w-6xl mx-auto">
             <div>
               <div className="inline-flex items-center space-x-2 bg-green-100 text-green-700 px-3 py-1 rounded-full mb-4 text-sm font-semibold">
                 <span>🤖 AI Intelligence</span>
@@ -305,6 +359,40 @@ export default function HomePage() {
             </div>
             <div>
               <AiSummaryDemo />
+            </div>
+          </div>
+
+          {/* Demo 5: AI Chat Assistant */}
+          <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+            <div className="order-2 md:order-1">
+              <AiChatDemo />
+            </div>
+            <div className="order-1 md:order-2">
+              <div className="inline-flex items-center space-x-2 bg-purple-100 text-purple-700 px-3 py-1 rounded-full mb-4 text-sm font-semibold">
+                <span>💬 AI Chat Assistant</span>
+              </div>
+              <h3 className="text-3xl font-bold mb-4">Your Personal Study Tutor, 24/7</h3>
+              <p className="text-lg text-muted-foreground mb-6">
+                Get instant answers to questions about your study materials. The AI Chat Assistant understands your content and helps you learn faster with personalized explanations.
+              </p>
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Ask questions in natural language—no complex commands</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Get explanations tailored to your study materials</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Generate flashcards and quizzes on-demand</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span>Available while studying—floats on every page</span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
@@ -339,7 +427,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-bold mb-3">AI Does the Magic</h3>
               <p className="text-muted-foreground">
-                Our advanced AI analyzes your content and creates summaries, flashcards, and study plans in seconds.
+                Our advanced AI analyzes your content and creates summaries, flashcards, study plans, and an AI chat assistant—all in seconds.
               </p>
             </div>
 
@@ -350,206 +438,116 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-bold mb-3">Study & Ace Your Exams</h3>
               <p className="text-muted-foreground">
-                Use your personalized flashcards, summaries, and study plans to learn faster and retain more!
+                Use your personalized flashcards, summaries, study plans, and AI tutor to learn faster and retain more!
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="py-16">
+      {/* FAQ Section */}
+      <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold mb-4">Choose Your Plan</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Start free, upgrade when you're ready. No pressure, no tricks!
-            </p>
-          </div>
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold mb-4">Frequently Asked Questions</h2>
+              <p className="text-lg text-muted-foreground">
+                Everything you need to know about OpusMentis
+              </p>
+            </div>
 
-          {/* Billing Toggle */}
-          <div className="flex items-center justify-center gap-3 mb-12">
-            <Label htmlFor="homepage-billing-toggle" className={`text-sm font-medium cursor-pointer ${!isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
-              Monthly
-            </Label>
-            <Switch
-              id="homepage-billing-toggle"
-              checked={isAnnual}
-              onCheckedChange={setIsAnnual}
-            />
-            <Label htmlFor="homepage-billing-toggle" className={`text-sm font-medium cursor-pointer ${isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
-              Annual
-              <Badge variant="secondary" className="ml-2 bg-green-100 text-green-700">
-                Save 17%
-              </Badge>
-            </Label>
-          </div>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">How does the AI processing work?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Upload your study materials (PDFs, audio, video, or images), and our AI analyzes the content to extract key concepts, generate summaries, create flashcards, and build study plans—all automatically in seconds.
+                  </p>
+                </CardContent>
+              </Card>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Free Plan */}
-            <Card className="border-2">
-              <CardHeader>
-                <CardTitle>Free</CardTitle>
-                <CardDescription>Perfect for trying out OpusMentis</CardDescription>
-                <div className="text-3xl font-bold">₱0<span className="text-sm font-normal text-muted-foreground">/month</span></div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3 text-sm mb-6">
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>20 uploads per month</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>PDFs up to 50 pages</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Audio/video up to 30 minutes</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>AI summaries & flashcards</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Kanban study boards</span>
-                  </li>
-                </ul>
-                <Link href="/sign-up">
-                  <Button className="w-full" variant="outline">Get Started Free</Button>
-                </Link>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Is there really a free plan?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Yes! The free plan includes 20 uploads per month, AI summaries, flashcards, kanban boards, and basic AI chat assistance. No credit card required to start.
+                  </p>
+                </CardContent>
+              </Card>
 
-            {/* Pro Plan */}
-            <Card className="border-2 border-primary relative shadow-xl scale-105">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-primary text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
-                  ⭐ Most Popular
-                </span>
-              </div>
-              <CardHeader className="pt-8">
-                <CardTitle>Pro</CardTitle>
-                <CardDescription>For serious students and learners</CardDescription>
-                <div>
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="text-2xl text-muted-foreground line-through">
-                      {isAnnual ? '₱1,788' : '₱298'}
-                    </span>
-                    <Badge className="bg-red-500 text-white font-bold">
-                      {isAnnual ? '-17%' : '-50%'}
-                    </Badge>
-                  </div>
-                  <div className="text-3xl font-bold text-primary">
-                    {isAnnual ? '₱1,490' : '₱149'}
-                    <span className="text-sm font-normal text-muted-foreground">{isAnnual ? '/year' : '/month'}</span>
-                  </div>
-                  {isAnnual && (
-                    <p className="text-sm text-green-600 font-semibold mt-1">
-                      Save ₱298/year
-                    </p>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3 text-sm mb-6">
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span><strong>200 uploads/month</strong></span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>PDFs up to 200 pages</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Audio/video up to 3 hours</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Advanced AI processing</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Export to PDF</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Priority support</span>
-                  </li>
-                </ul>
-                <Link href="/sign-up">
-                  <Button className="w-full">
-                    Upgrade to Pro
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">What file formats do you support?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    We support PDFs (up to 500 pages), audio files (MP3, WAV), video files (MP4, MOV), and images (JPG, PNG). Our AI can extract text from all these formats using OCR and speech recognition.
+                  </p>
+                </CardContent>
+              </Card>
 
-            {/* Premium Plan */}
-            <Card className="border-2">
-              <CardHeader>
-                <CardTitle>Premium</CardTitle>
-                <CardDescription>For teams and power users</CardDescription>
-                <div>
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="text-2xl text-muted-foreground line-through">
-                      {isAnnual ? '₱4,788' : '₱798'}
-                    </span>
-                    <Badge className="bg-red-500 text-white font-bold">
-                      {isAnnual ? '-17%' : '-50%'}
-                    </Badge>
-                  </div>
-                  <div className="text-3xl font-bold text-primary">
-                    {isAnnual ? '₱3,990' : '₱399'}
-                    <span className="text-sm font-normal text-muted-foreground">{isAnnual ? '/year' : '/month'}</span>
-                  </div>
-                  {isAnnual && (
-                    <p className="text-sm text-green-600 font-semibold mt-1">
-                      Save ₱798/year
-                    </p>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3 text-sm mb-6">
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span><strong>1000 uploads/month</strong></span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>PDFs up to 500 pages</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Audio/video up to 10 hours</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Team sharing & collaboration</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Advanced analytics</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span>Custom integrations</span>
-                  </li>
-                </ul>
-                <Link href="/sign-up">
-                  <Button className="w-full" variant="outline">Upgrade to Premium</Button>
-                </Link>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Can I export my study materials?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Yes! Pro and Premium users can export their summaries, flashcards, and notes as professionally formatted PDFs. Perfect for offline studying or printing.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">How does the AI Chat Assistant work?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    The AI Chat Assistant is trained on your uploaded study materials and can answer questions, explain concepts, and even generate flashcards on-demand. It's like having a personal tutor available 24/7.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">What payment methods do you accept?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    We currently accept GCash payments for Filipino users. Simply upload your payment proof, and we'll activate your subscription within 24 hours. More payment options coming soon!
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="text-center mt-12">
+              <p className="text-muted-foreground mb-4">Still have questions?</p>
+              <Link href="/contact">
+                <Button variant="outline" size="lg">
+                  Contact Support
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
+      {/* Mobile Sticky CTA */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background border-t p-4 shadow-lg">
+        <Link href="/sign-up" className="block">
+          <Button className="w-full" size="lg">
+            <Sparkles className="mr-2 h-5 w-5" />
+            Start Learning Free
+          </Button>
+        </Link>
+      </div>
+
       {/* Footer */}
-      <footer className="border-t py-12">
+      <footer className="border-t py-12 pb-24 md:pb-12">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>

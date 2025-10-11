@@ -92,6 +92,7 @@ export default function BillingPage() {
         'Audio/video up to 30 minutes',
         'AI summaries & flashcards',
         'Kanban study boards',
+        'AI Chat Assistant (basic)',
         'Community support'
       ],
       limitations: [
@@ -116,6 +117,7 @@ export default function BillingPage() {
         'Audio/video up to 3 hours',
         'Advanced AI processing',
         'PDF export functionality',
+        'Unlimited AI Chat Assistant',
         'Priority support',
         'Custom study settings'
       ],
@@ -136,6 +138,7 @@ export default function BillingPage() {
         'PDFs up to 500 pages',
         'Audio/video up to 10 hours',
         'Team sharing capabilities',
+        'Priority AI Chat Assistant',
         'Advanced analytics',
         'Custom integrations',
         'White-label options',

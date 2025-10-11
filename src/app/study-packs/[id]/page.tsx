@@ -1,29 +1,61 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { formatDistanceToNow } from 'date-fns'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import DashboardLayout from '@/components/dashboard-layout'
-import KanbanBoard from '@/components/kanban-board'
-import Flashcards from '@/components/flashcards'
-import Notes from '@/components/notes'
 import FloatingAIChat from '@/components/floating-ai-chat'
-import PDFViewer from '@/components/pdf-viewer'
 import AudioPlayer from '@/components/audio-player'
 import VideoPlayer from '@/components/video-player'
 import ImageViewer from '@/components/image-viewer'
 import TranscriptViewer from '@/components/transcript-viewer'
 import HighlightSidebar from '@/components/highlight-sidebar'
-import QuizGeneratorModal from '@/components/quiz-generator-modal'
 import StudyTimer from '@/components/study-timer'
 import MiniPipPlayer from '@/components/mini-pip-player'
+import BreadcrumbNav from '@/components/breadcrumb-nav'
+import KeyboardShortcutsModal from '@/components/keyboard-shortcuts-modal'
+import StudyProgress from '@/components/study-progress'
+import {
+  PDFViewerSkeleton,
+  KanbanSkeleton,
+  FlashcardsSkeleton,
+  NotesSkeleton,
+  SummarySkeleton
+} from '@/components/skeletons/study-pack-skeleton'
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { formatBytes } from '@/lib/utils'
 import { clerkTierToAppTier, PLAN_LIMITS } from '@/lib/subscription-utils'
+
+// Lazy load heavy components
+const PDFViewer = dynamic(() => import('@/components/pdf-viewer'), {
+  loading: () => <PDFViewerSkeleton />,
+  ssr: false
+})
+
+const KanbanBoard = dynamic(() => import('@/components/kanban-board'), {
+  loading: () => <KanbanSkeleton />,
+  ssr: false
+})
+
+const Flashcards = dynamic(() => import('@/components/flashcards'), {
+  loading: () => <FlashcardsSkeleton />,
+  ssr: false
+})
+
+const Notes = dynamic(() => import('@/components/notes'), {
+  loading: () => <NotesSkeleton />,
+  ssr: false
+})
+
+const QuizGeneratorModal = dynamic(() => import('@/components/quiz-generator-modal'), {
+  ssr: false
+})
 import {
   FileText,
   Video,
@@ -97,6 +129,10 @@ export default function StudyPackPage() {
   const [isMediaPlaying, setIsMediaPlaying] = useState(false)
   const [mediaSeekCallback, setMediaSeekCallback] = useState<((time: number) => void) | null>(null)
   const [mediaPlayPauseCallback, setMediaPlayPauseCallback] = useState<(() => void) | null>(null)
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [flashcardsReviewed, setFlashcardsReviewed] = useState(0)
+  const [studyTimeMinutes, setStudyTimeMinutes] = useState(0)
 
   // Get user's subscription tier and check export permission
   const clerkTier = (user?.publicMetadata?.plan as string) || 'free_plan'
@@ -108,8 +144,29 @@ export default function StudyPackPage() {
       fetchStudyPack()
       fetchHighlights()
       fetchDocumentStructure()
+      fetchProgressData()
     }
   }, [studyPackId])
+
+  // Load progress data
+  const fetchProgressData = async () => {
+    try {
+      // Fetch study time from timer
+      const timerResponse = await fetch(`/api/study-sessions/timer?studyPackId=${studyPackId}`)
+      if (timerResponse.ok) {
+        const timerData = await timerResponse.json()
+        setStudyTimeMinutes(Math.floor(timerData.totalTime / 60))
+      }
+
+      // Load flashcard review count from localStorage
+      const reviewedCount = localStorage.getItem(`flashcards-reviewed-${studyPackId}`)
+      if (reviewedCount) {
+        setFlashcardsReviewed(parseInt(reviewedCount, 10))
+      }
+    } catch (error) {
+      console.error('Error loading progress data:', error)
+    }
+  }
 
   // Load saved playback position when study pack loads (for audio/video)
   useEffect(() => {
@@ -197,6 +254,85 @@ export default function StudyPackPage() {
       mediaPlayPauseCallback() // Pause the media
     }
   }, [showQuizGenerator, isMediaPlaying, mediaPlayPauseCallback])
+
+  // Fullscreen handler
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((e) => {
+        console.error('Error attempting to enable fullscreen:', e)
+      })
+      setIsFullscreen(true)
+    } else {
+      document.exitFullscreen()
+      setIsFullscreen(false)
+    }
+  }, [])
+
+  // Track fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  }, [])
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: ' ',
+      callback: () => {
+        if (mediaPlayPauseCallback && (studyPack?.fileType === 'audio' || studyPack?.fileType === 'video')) {
+          mediaPlayPauseCallback()
+        }
+      },
+      description: 'Play/Pause media'
+    },
+    {
+      key: '1',
+      callback: () => setActiveTab('pdf'),
+      description: 'Switch to Document/Media tab'
+    },
+    {
+      key: '2',
+      callback: () => setActiveTab('summary'),
+      description: 'Switch to Summary tab'
+    },
+    {
+      key: '3',
+      callback: () => setActiveTab('kanban'),
+      description: 'Switch to Kanban tab'
+    },
+    {
+      key: '4',
+      callback: () => setActiveTab('flashcards'),
+      description: 'Switch to Flashcards tab'
+    },
+    {
+      key: '5',
+      callback: () => setActiveTab('notes'),
+      description: 'Switch to Notes tab'
+    },
+    {
+      key: 'f',
+      callback: toggleFullscreen,
+      description: 'Toggle fullscreen'
+    },
+    {
+      key: 's',
+      metaKey: true,
+      callback: () => {
+        toast.success('All changes are auto-saved!')
+      },
+      description: 'Quick save (auto-saved)'
+    },
+    {
+      key: '?',
+      shiftKey: true,
+      callback: () => setShowShortcutsModal(true),
+      description: 'Show keyboard shortcuts'
+    }
+  ], true) // Enable keyboard shortcuts always
 
   const fetchStudyPack = async () => {
     try {
@@ -499,6 +635,15 @@ export default function StudyPackPage() {
   return (
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6">
+        {/* Breadcrumb Navigation */}
+        <BreadcrumbNav
+          items={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Study Packs', href: '/dashboard' },
+            { label: studyPack.title }
+          ]}
+        />
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex items-start space-x-2 sm:space-x-4">
@@ -658,6 +803,7 @@ export default function StudyPackPage() {
                   <VideoPlayer
                     filePath={`/api/files/${studyPack.filePath}`}
                     title={studyPack.title}
+                    transcript={studyPack.transcript}
                     onTimeUpdate={setCurrentMediaTime}
                     onPlayerReady={(seekFn) => setMediaSeekCallback(() => seekFn)}
                     onDurationChange={setMediaDuration}
@@ -776,18 +922,18 @@ export default function StudyPackPage() {
             </Card>
           </div>
 
-          {/* Sidebar - Study Timer, Transcript & Highlights */}
+          {/* Sidebar - Progress, Study Timer, Transcript & Highlights */}
           <div className="lg:col-span-1 space-y-6">
-            <StudyTimer studyPackId={studyPackId} />
+            {/* Study Progress */}
+            <StudyProgress
+              flashcardsTotal={studyPack.flashcards?.length || 0}
+              flashcardsReviewed={flashcardsReviewed}
+              kanbanTasks={studyPack.kanbanTasks || []}
+              notesCount={studyPack.notes?.length || 0}
+              studyTimeMinutes={studyTimeMinutes}
+            />
 
-            {/* Show transcript for audio/video files */}
-            {(studyPack.fileType === 'audio' || studyPack.fileType === 'video') && studyPack.transcript && activeTab === 'pdf' && (
-              <TranscriptViewer
-                transcript={studyPack.transcript}
-                currentTime={currentMediaTime}
-                onSeek={mediaSeekCallback || undefined}
-              />
-            )}
+            <StudyTimer studyPackId={studyPackId} />
 
             {/* Show highlights sidebar only for PDF files */}
             {studyPack.fileType === 'pdf' && activeTab === 'pdf' && (
@@ -827,6 +973,12 @@ export default function StudyPackPage() {
 
       {/* Floating AI Chat Assistant */}
       <FloatingAIChat studyPackId={studyPackId} />
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal
+        open={showShortcutsModal}
+        onClose={() => setShowShortcutsModal(false)}
+      />
     </DashboardLayout>
   )
 }

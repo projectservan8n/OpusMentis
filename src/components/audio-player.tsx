@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Slider } from '@/components/ui/slider'
+import { Separator } from '@/components/ui/separator'
+import TranscriptViewer from '@/components/transcript-viewer'
 import {
   Play,
   Pause,
@@ -326,10 +328,24 @@ export default function AudioPlayer({ filePath, title, transcript, onTimeUpdate,
           Download Audio
         </Button>
 
+        {/* Transcript Section */}
+        {transcript && (
+          <>
+            <Separator className="my-4" />
+            <TranscriptViewer
+              transcript={transcript}
+              currentTime={currentTime}
+              onSeek={seekToTime}
+            />
+          </>
+        )}
+
         {/* Info */}
-        <p className="text-sm text-muted-foreground text-center">
-          Use the study timer while listening to track your focus time
-        </p>
+        {!transcript && (
+          <p className="text-sm text-muted-foreground text-center">
+            Use the study timer while listening to track your focus time
+          </p>
+        )}
       </CardContent>
     </Card>
   )

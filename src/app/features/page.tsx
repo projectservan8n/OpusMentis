@@ -19,7 +19,8 @@ import {
   Upload,
   Lightbulb,
   Target,
-  Rocket
+  Rocket,
+  MessageCircle
 } from 'lucide-react'
 
 export default function FeaturesPage() {
@@ -89,6 +90,17 @@ export default function FeaturesPage() {
         'Print-ready',
         'Shareable files'
       ]
+    },
+    {
+      icon: MessageCircle,
+      title: 'AI Chat Assistant',
+      description: 'Get instant answers from an AI tutor that knows your study materials inside out.',
+      details: [
+        'Natural language questions',
+        'Context-aware responses',
+        'On-demand flashcard generation',
+        'Available on every page'
+      ]
     }
   ]
 
@@ -128,6 +140,12 @@ export default function FeaturesPage() {
       title: 'Smart Insights',
       description: 'Get AI-generated insights and connections between different topics.',
       badge: 'Intelligent'
+    },
+    {
+      icon: MessageCircle,
+      title: 'AI Chat Tutor',
+      description: 'Chat with an AI assistant trained on your study materials for personalized help.',
+      badge: '24/7 Available'
     }
   ]
 
@@ -145,7 +163,7 @@ export default function FeaturesPage() {
     {
       step: '3',
       title: 'Study & Review',
-      description: 'Use flashcards, summaries, and kanban boards to master your material.'
+      description: 'Use flashcards, summaries, kanban boards, and AI chat tutor to master your material.'
     },
     {
       step: '4',
@@ -165,11 +183,17 @@ export default function FeaturesPage() {
               <span className="text-xl font-bold">OpusMentis</span>
             </Link>
             <div className="flex items-center gap-4">
-              <Link href="/pricing">
+              <Link href="/features">
+                <Button variant="ghost">Features</Button>
+              </Link>
+              <Link href="/billing">
                 <Button variant="ghost">Pricing</Button>
               </Link>
-              <Link href="/dashboard">
-                <Button>Get Started</Button>
+              <Link href="/sign-in">
+                <Button variant="ghost">Sign In</Button>
+              </Link>
+              <Link href="/sign-up">
+                <Button>Get Started Free</Button>
               </Link>
             </div>
           </div>
@@ -342,6 +366,7 @@ export default function FeaturesPage() {
                   { feature: 'AI Summaries', free: '✓', pro: '✓', premium: '✓' },
                   { feature: 'Flashcards', free: '✓', pro: '✓', premium: '✓' },
                   { feature: 'Kanban Boards', free: '✓', pro: '✓', premium: '✓' },
+                  { feature: 'AI Chat Assistant', free: 'Basic', pro: 'Unlimited', premium: 'Priority' },
                   { feature: 'PDF Export', free: '—', pro: '✓', premium: '✓' },
                   { feature: 'Team Sharing', free: '—', pro: '—', premium: '✓' },
                   { feature: 'Priority Support', free: '—', pro: '✓', premium: '✓' },
