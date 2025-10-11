@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { CheckCircle2, Crown, Zap, Users, ArrowRight, Brain } from 'lucide-react'
+import { ForceLightMode } from '@/components/force-light-mode'
 
 export default function PricingPage() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly')
@@ -81,6 +82,7 @@ export default function PricingPage() {
   ]
 
   return (
+    <ForceLightMode>
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b">
@@ -294,5 +296,6 @@ export default function PricingPage() {
         </div>
       </footer>
     </div>
+    </ForceLightMode>
   )
 }

@@ -1,7 +1,11 @@
+'use client'
+
 import Link from 'next/link'
+import { ForceLightMode } from '@/components/force-light-mode'
 
 export default function TermsOfService() {
   return (
+    <ForceLightMode>
     <div className="min-h-screen bg-background py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-card shadow-sm rounded-lg p-8 border">
@@ -168,5 +172,6 @@ export default function TermsOfService() {
         </div>
       </div>
     </div>
+    </ForceLightMode>
   )
 }

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Brain, FileText, PlayCircle, Image, Zap, Users, Star, Sparkles, BookOpen, CheckCircle, Upload, Wand2, Download, MessageCircle, Loader2 } from 'lucide-react'
 import { useEffect } from 'react'
+import { ForceLightMode } from '@/components/force-light-mode'
 
 // Lazy load demo components for better performance
 const PdfViewerDemo = dynamic(() => import('@/components/landing/pdf-viewer-demo'), {
@@ -53,6 +54,7 @@ export default function HomePage() {
   }, [])
 
   return (
+    <ForceLightMode>
     <div className="min-h-screen">
       {/* Header - Sticky */}
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -595,5 +597,6 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
+    </ForceLightMode>
   )
 }

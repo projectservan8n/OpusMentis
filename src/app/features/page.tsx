@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,6 +24,7 @@ import {
   Rocket,
   MessageCircle
 } from 'lucide-react'
+import { ForceLightMode } from '@/components/force-light-mode'
 
 export default function FeaturesPage() {
   const coreFeatures = [
@@ -173,6 +176,7 @@ export default function FeaturesPage() {
   ]
 
   return (
+    <ForceLightMode>
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b">
@@ -431,5 +435,6 @@ export default function FeaturesPage() {
         </div>
       </footer>
     </div>
+    </ForceLightMode>
   )
 }
